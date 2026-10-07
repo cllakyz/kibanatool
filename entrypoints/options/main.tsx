@@ -1,3 +1,5 @@
 import { createRoot } from "react-dom/client";
+import { App } from "./App";
+import "./options.css";
 
-createRoot(document.getElementById("root")!).render(<h1>kibanatool</h1>);
+createRoot(document.getElementById("root")!).render(<App />);

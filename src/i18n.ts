@@ -8,7 +8,20 @@ export type MessageKey =
   | "errorIncompatible"
   | "errorServer"
   | "errorNetwork"
-  | "errorUnknown";
+  | "errorUnknown"
+  | "optionsLoading"
+  | "optionsIntro"
+  | "optionsLoadError"
+  | "optionsSavedReload"
+  | "optionsEnvironments"
+  | "optionsEnvName"
+  | "optionsAdd"
+  | "optionsGrant"
+  | "optionsGranted"
+  | "optionsRemove"
+  | "optionsActions"
+  | "optionsActionsHelp"
+  | "optionsSave";
 
 const getMessage = browser.i18n.getMessage.bind(browser.i18n) as unknown as (
   name: string,
