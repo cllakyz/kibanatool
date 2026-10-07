@@ -1,0 +1,4 @@
+{
+  "extName": { "message": "kibanatool" },
+  "extDescription": { "message": "Speeds up working with logs in Kibana Discover: action buttons built from log fields." }
+}

@@ -1,0 +1,4 @@
+{
+  "extName": { "message": "kibanatool" },
+  "extDescription": { "message": "Kibana Discover'da logla çalışmayı hızlandırır: log alanlarından üretilen aksiyon butonları." }
+}
