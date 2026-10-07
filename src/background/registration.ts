@@ -32,6 +32,12 @@ async function grantedPatterns(config: Config, permissions: PermissionsLike): Pr
   return granted.sort();
 }
 
+/** Runs `task` one call at a time: each call starts only after the previous one has settled. */
+export function serialized(task: () => Promise<void>): () => Promise<void> {
+  let queue: Promise<void> = Promise.resolve();
+  return () => (queue = queue.then(task, task));
+}
+
 /** Registers, updates or removes the content script; returns the origins it now runs on. */
 export async function syncContentScripts(
   config: Config,

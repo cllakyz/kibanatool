@@ -1,6 +1,11 @@
 import { describe, expect, it } from "vitest";
 import { type Config, emptyConfig } from "../../../src/core/config";
-import { CONTENT_SCRIPT_FILE, CONTENT_SCRIPT_ID, syncContentScripts } from "../../../src/background/registration";
+import {
+  CONTENT_SCRIPT_FILE,
+  CONTENT_SCRIPT_ID,
+  serialized,
+  syncContentScripts,
+} from "../../../src/background/registration";
 
 function fakes(options: { granted: string[]; registered?: boolean }) {
   const calls: string[] = [];
@@ -67,5 +72,27 @@ describe("syncContentScripts", () => {
     const fresh = fakes({ granted: [] });
     await syncContentScripts(config, fresh);
     expect(fresh.calls).toEqual([]);
+  });
+});
+
+describe("serialized", () => {
+  it("starts each call only after the previous one has settled", async () => {
+    const events: string[] = [];
+    let release!: () => void;
+    const gate = new Promise<void>((resolve) => (release = resolve));
+    let call = 0;
+    const run = serialized(async () => {
+      const n = ++call;
+      events.push(`start ${n}`);
+      if (n === 1) await gate;
+      events.push(`end ${n}`);
+    });
+    const first = run();
+    const second = run();
+    await Promise.resolve();
+    expect(events).toEqual(["start 1"]);
+    release();
+    await Promise.all([first, second]);
+    expect(events).toEqual(["start 1", "end 1", "start 2", "end 2"]);
   });
 });
