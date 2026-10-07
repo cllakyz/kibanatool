@@ -56,6 +56,12 @@ describe("flattenDoc", () => {
   it("handles a hit without _source", () => {
     expect(flattenDoc({ _id: "x", _index: "i" })).toEqual({ _id: "x", _index: "i" });
   });
+
+  it("has no inherited keys such as constructor or toString", () => {
+    const fields = flattenDoc(hit({}));
+    expect(fields["constructor"]).toBeUndefined();
+    expect(fields["toString"]).toBeUndefined();
+  });
 });
 
 describe("isMissing", () => {

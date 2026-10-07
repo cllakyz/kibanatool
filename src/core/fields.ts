@@ -41,7 +41,7 @@ export function parseJsonText(text: string): Record<string, unknown> | unknown[]
 }
 
 export function flattenDoc(hit: RawHit): FieldMap {
-  const fields: FieldMap = {};
+  const fields: FieldMap = Object.create(null);
   flattenInto(fields, "", hit._source ?? {}, 0);
   fields._id = hit._id;
   fields._index = hit._index;
