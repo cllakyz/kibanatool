@@ -1,0 +1,47 @@
+// Resolves {path|fallback} placeholders against a field map (spec §7.2, §7.3).
+import { type FieldMap, formatValue, isMissing } from "./fields";
+
+const PLACEHOLDER = /\{([A-Za-z0-9_.@-]+(?:\|[A-Za-z0-9_.@-]+)*)\}/g;
+
+export interface Placeholder {
+  raw: string;
+  paths: string[];
+}
+
+export function parsePlaceholders(template: string): Placeholder[] {
+  return [...template.matchAll(PLACEHOLDER)].map((match) => ({
+    raw: match[0],
+    paths: (match[1] ?? "").split("|"),
+  }));
+}
+
+/** First present value among `paths`, as text; null when none has a value. */
+export function lookup(fields: FieldMap, paths: string[]): string | null {
+  for (const path of paths) {
+    const value = fields[path];
+    if (!isMissing(value)) return formatValue(value);
+  }
+  return null;
+}
+
+/** Fills every placeholder with `encode(value)`; null when any placeholder has no value. */
+export function resolveTemplate(
+  template: string,
+  fields: FieldMap,
+  encode: (value: string) => string,
+): string | null {
+  let missing = false;
+  const result = template.replace(PLACEHOLDER, (_match, group: string) => {
+    const value = lookup(fields, group.split("|"));
+    if (value === null) {
+      missing = true;
+      return "";
+    }
+    return encode(value);
+  });
+  return missing ? null : result;
+}
+
+export function isHttpUrlTemplate(template: string): boolean {
+  return /^https?:\/\//i.test(template.trim());
+}
