@@ -2,6 +2,8 @@
 import { z } from "zod";
 import { isHttpUrlTemplate } from "./template";
 
+z.config({ jitless: true }); // MV3 forbids eval; skip zod's Function("") fast-path probe
+
 function isHttpUrl(value: string): boolean {
   try {
     const url = new URL(value);

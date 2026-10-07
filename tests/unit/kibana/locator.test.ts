@@ -18,6 +18,13 @@ describe("decodeSingleDocLocator", () => {
     });
   });
 
+  it("decodes a payload whose base64 contains '/' (compressToBase64, not the URI-safe variant)", () => {
+    const payload = { index: "dv424", rowIndex: "idx-424", rowId: "r13144" };
+    // This payload is chosen because its base64 contains "/", the one character the URI-safe decoder maps differently.
+    expect(LZString.compressToBase64(JSON.stringify(payload))).toContain("/");
+    expect(decodeSingleDocLocator(locatorHref(payload))).toEqual({ dataViewId: "dv424", index: "idx-424", id: "r13144" });
+  });
+
   it("accepts the uncompressed p= variant", () => {
     const href = `/app/r?l=DISCOVER_SINGLE_DOC_LOCATOR&v=8.19.23&p=${encodeURIComponent(JSON.stringify(params))}`;
     expect(decodeSingleDocLocator(href)?.id).toBe("AbC_123-x");

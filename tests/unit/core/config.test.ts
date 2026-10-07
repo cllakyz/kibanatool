@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { z } from "zod";
 import {
   type Config,
   actionsForEnvironment,
@@ -116,5 +117,11 @@ describe("actionsForEnvironment", () => {
     config.actions.push({ ...config.actions[0]!, id: "off", enabled: false });
     expect(actionsForEnvironment(config, "prod").map((action) => action.id)).toEqual(["admin", "same-user"]);
     expect(actionsForEnvironment(config, "staging").map((action) => action.id)).toEqual(["admin"]);
+  });
+});
+
+describe("zod runtime config", () => {
+  it("runs jitless: MV3 forbids eval, so zod must not probe Function(\"\")", () => {
+    expect(z.config().jitless).toBe(true);
   });
 });
