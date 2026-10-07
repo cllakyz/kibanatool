@@ -33,7 +33,9 @@ async function start(): Promise<void> {
     style.textContent = BAR_CSS;
     const container = document.createElement("div");
     shadow.append(style, container);
-    const root: Root = createRoot(container);
+    const root: Root = createRoot(container, {
+      onUncaughtError: (error: unknown) => console.debug(LOG, "render failed:", error),
+    });
     return {
       render(view: DetailView) {
         const environment = activeEnvironment(config, location.href);
@@ -78,10 +80,13 @@ async function start(): Promise<void> {
   window.addEventListener("hashchange", schedule);
   browser.storage.onChanged.addListener((changes, areaName) => {
     if (!isConfigChange(changes, areaName)) return;
-    void store.load().then((loaded) => {
-      config = loaded.config;
-      run();
-    });
+    void store
+      .load()
+      .then((loaded) => {
+        config = loaded.config;
+        run();
+      })
+      .catch((error: unknown) => console.debug(LOG, "config reload failed:", error));
   });
   run();
 }

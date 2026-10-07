@@ -4,6 +4,10 @@ import { isHttpUrlTemplate, lookup, parsePlaceholders, resolveTemplate } from ".
 const enc = encodeURIComponent;
 
 describe("resolveTemplate", () => {
+  it("returns null when the encoder throws (e.g. a lone surrogate)", () => {
+    expect(resolveTemplate("https://x.test/{s}", { s: "\uD800" }, enc)).toBeNull();
+  });
+
   it("fills a placeholder and URL-encodes special characters", () => {
     expect(resolveTemplate("https://x.test/u/{q}", { q: "a b/c#d&e?f" }, enc)).toBe(
       "https://x.test/u/a%20b%2Fc%23d%26e%3Ff",

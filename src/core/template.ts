@@ -37,7 +37,12 @@ export function resolveTemplate(
       missing = true;
       return "";
     }
-    return encode(value);
+    try {
+      return encode(value);
+    } catch {
+      missing = true;
+      return "";
+    }
   });
   return missing ? null : result;
 }
