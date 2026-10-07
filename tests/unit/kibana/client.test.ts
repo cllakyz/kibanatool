@@ -80,6 +80,16 @@ describe("fetchDoc", () => {
     const offline = fakeFetch(() => Promise.reject(new TypeError("Failed to fetch")));
     expect(await kindOf(createKibanaClient({ prefix: "", fetch: offline.fetch }).fetchDoc("i", "d"))).toBe("network");
   });
+
+  it("reports incompatible for a non-JSON success body", async () => {
+    const { fetch } = fakeFetch(() => new Response("<html>login</html>", { status: 200 }));
+    expect(await kindOf(createKibanaClient({ prefix: "", fetch }).fetchDoc("i", "d"))).toBe("incompatible");
+  });
+
+  it("reports incompatible when rawResponse has no hits array", async () => {
+    const { fetch } = fakeFetch(() => json({ rawResponse: {} }));
+    expect(await kindOf(createKibanaClient({ prefix: "", fetch }).fetchDoc("i", "d"))).toBe("incompatible");
+  });
 });
 
 describe("getDataView", () => {
@@ -100,6 +110,16 @@ describe("getDataView", () => {
       "/api/data_views/data_view/all%20logs",
       "/api/index_patterns/index_pattern/all%20logs",
     ]);
+  });
+
+  it("reports notFound when both endpoints return 404", async () => {
+    const { fetch } = fakeFetch(() => json({ message: "Not Found" }, 404));
+    expect(await kindOf(createKibanaClient({ prefix: "", fetch }).getDataView("missing"))).toBe("notFound");
+  });
+
+  it("reports incompatible for a non-JSON success body", async () => {
+    const { fetch } = fakeFetch(() => new Response("<html>login</html>", { status: 200 }));
+    expect(await kindOf(createKibanaClient({ prefix: "", fetch }).getDataView("app-log"))).toBe("incompatible");
   });
 });
 

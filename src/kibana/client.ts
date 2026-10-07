@@ -40,6 +40,15 @@ function errorFor(status: number): KibanaError {
   return new KibanaError("server", `HTTP ${status}`, status);
 }
 
+/** A 2xx body that is not JSON (e.g. an SSO page) is an unexpected response, not a raw SyntaxError. */
+async function readJson<T>(response: Response): Promise<T> {
+  try {
+    return (await response.json()) as T;
+  } catch {
+    throw new KibanaError("incompatible", "Unexpected response");
+  }
+}
+
 export function createKibanaClient(options: { prefix: string; fetch: FetchFn }): KibanaClient {
   const { prefix, fetch } = options;
   const docs = new Map<string, Promise<RawHit>>();
@@ -71,8 +80,10 @@ export function createKibanaClient(options: { prefix: string; fetch: FetchFn }):
       body: JSON.stringify({ params: { index, body: { size: 1, query: { ids: { values: [id] } } } } }),
     });
     if (!response.ok) throw errorFor(response.status);
-    const body = (await response.json()) as { rawResponse?: { hits?: { hits?: RawHit[] } } };
-    const hit = body.rawResponse?.hits?.hits?.[0];
+    const body = await readJson<{ rawResponse?: { hits?: { hits?: RawHit[] } } }>(response);
+    const hits = body.rawResponse?.hits?.hits;
+    if (!Array.isArray(hits)) throw new KibanaError("incompatible", "Unexpected response");
+    const hit = hits[0];
     if (!hit) throw new KibanaError("notFound", "Document not found");
     return hit;
   }
@@ -81,11 +92,12 @@ export function createKibanaClient(options: { prefix: string; fetch: FetchFn }):
     const encoded = encodeURIComponent(id);
     let response = await request(`/api/data_views/data_view/${encoded}`);
     if (response.status === 404) response = await request(`/api/index_patterns/index_pattern/${encoded}`);
+    if (response.status === 404) throw new KibanaError("notFound", "Data view not found", 404);
     if (!response.ok) throw errorFor(response.status);
-    const body = (await response.json()) as {
+    const body = await readJson<{
       data_view?: { title?: string; timeFieldName?: string };
       index_pattern?: { title?: string; timeFieldName?: string };
-    };
+    }>(response);
     const view = body.data_view ?? body.index_pattern;
     if (!view?.title) throw new KibanaError("incompatible", "Unexpected data view response");
     return { title: view.title, timeFieldName: view.timeFieldName || undefined };
