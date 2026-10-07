@@ -8,12 +8,11 @@ action buttons built from the raw fields of the log you open. Inspired by
 
 ## Privacy
 
-The extension only talks to the Kibana you configure, with your own session. Nothing leaves your browser,
-there is no telemetry.
+The extension only sends same-origin requests to the Kibana you configure, using your own session, and opens the links you click. There is no telemetry and no third-party service.
 
 ## Development
 
-Requirements: Node 22+, npm, Docker (for the dev stacks), jq.
+Requirements: Node 22+, npm, Docker (for the dev stacks), Docker Compose v2, jq, openssl, curl.
 
 ```bash
 npm install

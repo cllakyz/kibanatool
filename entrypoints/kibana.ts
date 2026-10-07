@@ -36,11 +36,16 @@ async function start(): Promise<void> {
     const root: Root = createRoot(container, {
       onUncaughtError: (error: unknown) => console.debug(LOG, "render failed:", error),
     });
+    let loggedMissing = false;
     return {
       render(view: DetailView) {
         const environment = activeEnvironment(config, location.href);
         const actions = environment ? actionsForEnvironment(config, environment.id) : [];
         const identity = view.identity;
+        if (!identity && !loggedMissing) {
+          loggedMissing = true;
+          console.debug(LOG, "no document identity in this detail view; bar hidden");
+        }
         root.render(
           identity && actions.length > 0
             ? createElement(ActionBar, { key: `${identity.index}/${identity.id}`, identity, actions, client })
