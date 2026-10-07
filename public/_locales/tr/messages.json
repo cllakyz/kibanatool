@@ -1,4 +1,17 @@
 {
   "extName": { "message": "kibanatool" },
-  "extDescription": { "message": "Kibana Discover'da logla çalışmayı hızlandırır: log alanlarından üretilen aksiyon butonları." }
+  "extDescription": { "message": "Kibana Discover'da logla çalışmayı hızlandırır: log alanlarından üretilen aksiyon butonları." },
+  "barLoading": { "message": "kibanatool: log yükleniyor…" },
+  "errorForbidden": { "message": "kibanatool: bu logu okuma yetkin yok" },
+  "errorNotFound": { "message": "kibanatool: log bulunamadı" },
+  "errorIncompatible": {
+    "message": "kibanatool: bu Kibana sürümüyle uyumsuz olabilir ($VERSION$)",
+    "placeholders": { "version": { "content": "$1", "example": "9.5.5" } }
+  },
+  "errorServer": {
+    "message": "kibanatool: Kibana hata döndürdü (HTTP $STATUS$)",
+    "placeholders": { "status": { "content": "$1", "example": "502" } }
+  },
+  "errorNetwork": { "message": "kibanatool: Kibana'ya ulaşılamadı" },
+  "errorUnknown": { "message": "kibanatool: bir şeyler ters gitti" }
 }

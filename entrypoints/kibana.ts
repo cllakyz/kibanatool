@@ -1,6 +1,87 @@
+import { createElement } from "react";
+import { type Root, createRoot } from "react-dom/client";
 import { defineUnlistedScript } from "#imports";
+import { browser } from "wxt/browser";
+import { findDetailViews } from "../src/adapters/detect";
+import type { DetailView } from "../src/adapters/types";
+import { ActionBar } from "../src/content/ActionBar";
+import { type Mount, type MountHandle, reconcileMounts } from "../src/content/mounts";
+import { BAR_CSS } from "../src/content/styles";
+import { type Config, actionsForEnvironment, activeEnvironment } from "../src/core/config";
+import { createKibanaClient } from "../src/kibana/client";
+import { kibanaPrefix } from "../src/kibana/prefix";
+import { createConfigStore, isConfigChange } from "../src/storage";
+
+const LOG = "[kibanatool]";
 
 // Registered at runtime for granted Kibana origins (see src/background/registration.ts).
 export default defineUnlistedScript(() => {
-  console.debug("[kibanatool] content script loaded");
+  start().catch((error: unknown) => console.debug(LOG, "inactive:", error));
 });
+
+async function start(): Promise<void> {
+  const prefix = kibanaPrefix(location.pathname);
+  if (prefix === null) return;
+  const store = createConfigStore(browser.storage.local);
+  let config: Config = (await store.load()).config;
+  const client = createKibanaClient({ prefix, fetch: (input, init) => window.fetch(input, init) });
+  const mounts = new Map<Element, Mount>();
+
+  function createMount(host: HTMLElement): MountHandle {
+    const shadow = host.attachShadow({ mode: "open" });
+    const style = document.createElement("style");
+    style.textContent = BAR_CSS;
+    const container = document.createElement("div");
+    shadow.append(style, container);
+    const root: Root = createRoot(container);
+    return {
+      render(view: DetailView) {
+        const environment = activeEnvironment(config, location.href);
+        const actions = environment ? actionsForEnvironment(config, environment.id) : [];
+        const identity = view.identity;
+        root.render(
+          identity && actions.length > 0
+            ? createElement(ActionBar, { key: `${identity.index}/${identity.id}`, identity, actions, client })
+            : null,
+        );
+      },
+      destroy() {
+        root.unmount();
+      },
+    };
+  }
+
+  function run(): void {
+    try {
+      const views = activeEnvironment(config, location.href) ? findDetailViews(document, location) : [];
+      reconcileMounts(views, mounts, createMount, document);
+    } catch (error) {
+      console.debug(LOG, "reconcile failed:", error);
+    }
+  }
+
+  let scheduled: number | undefined;
+  function schedule(): void {
+    if (scheduled !== undefined) return;
+    scheduled = window.setTimeout(() => {
+      scheduled = undefined;
+      run();
+    }, 100);
+  }
+
+  new MutationObserver(schedule).observe(document.body, {
+    childList: true,
+    subtree: true,
+    attributes: true,
+    attributeFilter: ["href"],
+  });
+  window.addEventListener("hashchange", schedule);
+  browser.storage.onChanged.addListener((changes, areaName) => {
+    if (!isConfigChange(changes, areaName)) return;
+    void store.load().then((loaded) => {
+      config = loaded.config;
+      run();
+    });
+  });
+  run();
+}
