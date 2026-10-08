@@ -1,29 +1,73 @@
 # kibanatool
 
-A Chrome extension that speeds up working with logs in Kibana Discover (7.17, 8.x, 9.x): it adds
-action buttons built from the raw fields of the log you open. Inspired by
-[graytool](https://github.com/bozkurtemre/graytool) for Graylog.
+A Chrome extension that speeds up working with logs in Kibana Discover. It adds a row of action buttons to
+the log you open, built from that log's raw fields. It works on Kibana 7.17, 8.x and 9.x.
 
-> Status: early development. Design: `docs/superpowers/specs/2026-10-07-kibanatool-design.md`.
+Inspired by [graytool](https://github.com/bozkurtemre/graytool) for Graylog.
+
+## What it does
+
+When you open a log in Discover (an expanded row on 7.17, the document flyout on 8.x/9.x), kibanatool shows
+a bar above it with:
+
+- **Link actions** that jump to another system with a value from the log, e.g. `https://admin.example.com/users/{user_id}`.
+- **Discover actions** that open related logs in a new tab: the same user's logs, or everything ±5 minutes around this log.
+- **JSON**: fields that hold JSON text, such as a request body, as a tree you can search and copy from.
+- **⋯** to copy the log as Markdown with sensitive fields masked, a link to the log, or the current view with its time range fixed.
+
+## Set up
+
+1. Install kibanatool from the Chrome Web Store, or build it (see [Development](#development)) and load
+   `.output/chrome-mv3` as an unpacked extension.
+2. Click the toolbar icon to open the options.
+3. **Environments:** add your Kibana address, e.g. `https://kibana.example.com` or `https://example.com/kibana`.
+   Chrome asks for access to that site; the extension runs nowhere else.
+4. **Actions:** add link or Discover actions, and paste a sample log into the preview to see the result.
+   Or import [`examples/kibanatool-settings.json`](examples/kibanatool-settings.json) under **Export and import** and edit it.
+5. Reload your Kibana tab and open a log.
+
+### Placeholders and conditions
+
+- `{field}` is a field of the raw log. Nested fields use dots (`context.user_id`), and fields that hold JSON
+  text can be read inside too (`context.body.amount`).
+- `{a|b|c}` uses the first field that has a value. If none has one, the button is hidden.
+- Values are URL-encoded in links and quoted for KQL in Discover queries.
+- Conditions (`exists`, `equals`, `notEquals`, `contains`, `startsWith`) must all hold for the button to show.
+
+### Example actions
+
+These are in [`examples/kibanatool-settings.json`](examples/kibanatool-settings.json):
+
+| Label | Kind | Template |
+|---|---|---|
+| User in admin | Link | `https://admin.example.com/users/{user_id\|context.user_id\|user.id}` |
+| Sentry | Link, only when `level_name` is `ERROR` | `https://acme.sentry.io/issues/?query={message}` |
+| Jira | Link | `https://acme.atlassian.net/issues/?jql=text%20~%20{user_id\|user.id}` |
+| This user's logs | Discover | `user_id:{user_id}` |
+| ±5 minutes | Discover, 5-minute window | empty query |
+
+### Copy and masking
+
+"Copy as Markdown" masks every field whose path matches a pattern under **Copy and masking** (by default
+`*authorization*`, `*password*`, `*token*`, `*secret*` and `*cookie*`), keys inside JSON text included.
+Masking applies to what you copy; the screen and your link templates are not changed.
 
 ## Privacy
 
-The extension only sends same-origin requests to the Kibana you configure, using your own session, and opens the links you click. There is no telemetry and no third-party service.
+kibanatool talks only to the Kibana addresses you add, with your own session, and keeps its settings in your
+browser. There is no telemetry and no third-party service. See [PRIVACY.md](PRIVACY.md).
 
 ## Development
 
-Requirements: Node 22+, npm, Docker (for the dev stacks), Docker Compose v2, jq, openssl, curl.
+Requirements: Node 22+, npm, Docker with Compose v2 (for the dev stacks), jq, openssl, curl.
 
 ```bash
 npm install
-npm test
+npm test                 # unit tests
+npm run typecheck
 npm run build            # output: .output/chrome-mv3
-npm run check:manifest   # fails if the manifest asks for more permissions than allowed
+npm run check:manifest   # fails if the manifest asks for more than allowed
 ```
-
-Load the extension: open `chrome://extensions`, enable *Developer mode*, *Load unpacked* →
-`.output/chrome-mv3`. Then open the extension's options, add your Kibana address, grant access and
-reload your Kibana tab.
 
 ### Kibana dev stacks
 
@@ -40,6 +84,30 @@ re-creates the same synthetic logs every time. Data views: `app_log` (Monolog-sh
 space; 9.x has an `obs` space in the Observability view, where ECS logs open on "Log overview"
 (`/s/obs/app/discover`).
 
+### End-to-end tests
+
+```bash
+./docker/up.sh 9
+KT_STACK=9 npm run e2e                              # builds, then runs tests/e2e against that stack
+KT_STACK=9 KT_CAPTURE=1 npm run e2e -- capture      # refreshes tests/fixtures from the stack
+```
+
+CI runs the unit checks and the e2e tests against all three versions on every pull request.
+
+### Release
+
+```bash
+npm run icons   # after changing assets/icon.svg
+npm run zip     # .output/kibanatool-<version>-chrome.zip, uploaded to the Chrome Web Store by hand
+```
+
+Store listing texts are in [docs/store-listing.md](docs/store-listing.md); changes in [CHANGELOG.md](CHANGELOG.md).
+
+## Credits
+
+The `{path|fallback}` placeholders, the condition operators and the field flattening are adapted from
+[graytool](https://github.com/bozkurtemre/graytool) by Emre Bozkurt (MIT License, Copyright (c) 2026 Emre Bozkurt).
+
 ## License
 
-MIT
+MIT. See [LICENSE](LICENSE).
