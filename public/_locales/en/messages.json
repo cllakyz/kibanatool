@@ -16,7 +16,7 @@
   "errorUnknown": { "message": "kibanatool: something went wrong" },
   "optionsLoading": { "message": "Loading…" },
   "optionsIntro": { "message": "Add the Kibana addresses you use, grant access, then define link actions. Reload open Kibana tabs after changes." },
-  "optionsLoadError": { "message": "The stored settings were invalid and have been replaced with empty settings:" },
+  "optionsLoadError": { "message": "The stored settings are invalid, so empty settings are in use. Saving anything replaces the stored settings:" },
   "optionsSavedReload": { "message": "Saved. Reload open Kibana tabs to apply." },
   "optionsEnvironments": { "message": "Environments" },
   "optionsEnvName": { "message": "Name (e.g. Production)" },
@@ -50,5 +50,24 @@
   "jsonNoMatches": { "message": "No matches" },
   "jsonToggle": { "message": "Expand or collapse" },
   "jsonCopyValue": { "message": "Copy value" },
-  "jsonCopyPath": { "message": "Copy path" }
+  "jsonCopyPath": { "message": "Copy path" },
+  "optionsEnvUrl": { "message": "Kibana address" },
+  "optionsPending": { "message": "Waiting for access" },
+  "optionsPermissionError": {
+    "message": "Chrome could not update the access permission: $ERROR$",
+    "placeholders": { "error": { "content": "$1", "example": "Permission denied" } }
+  },
+  "optionsCopy": { "message": "Copy and masking" },
+  "optionsMarkdownFields": { "message": "Fields for \"Copy as Markdown\", one per line (empty: every field, alphabetically)" },
+  "optionsMaskPatterns": { "message": "Masked fields, one pattern per line (* matches anything; case does not matter)" },
+  "optionsTransfer": { "message": "Export and import" },
+  "optionsExport": { "message": "Export settings" },
+  "optionsImport": { "message": "Import a settings file" },
+  "optionsImportPreview": {
+    "message": "This file has $ENVIRONMENTS$ environments and $ACTIONS$ actions. Importing replaces all current settings; grant access to the environments afterwards.",
+    "placeholders": { "environments": { "content": "$1", "example": "2" }, "actions": { "content": "$2", "example": "5" } }
+  },
+  "optionsImportConfirm": { "message": "Replace settings" },
+  "optionsImportErrors": { "message": "The file was rejected:" },
+  "optionsCancel": { "message": "Cancel" }
 }

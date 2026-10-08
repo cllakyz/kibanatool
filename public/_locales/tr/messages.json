@@ -16,7 +16,7 @@
   "errorUnknown": { "message": "kibanatool: bir şeyler ters gitti" },
   "optionsLoading": { "message": "Yükleniyor…" },
   "optionsIntro": { "message": "Kullandığın Kibana adreslerini ekle, erişim izni ver, sonra link aksiyonlarını tanımla. Değişikliklerden sonra açık Kibana sekmelerini yenile." },
-  "optionsLoadError": { "message": "Kayıtlı ayarlar geçersizdi, yerine boş ayarlar kullanıldı:" },
+  "optionsLoadError": { "message": "Kayıtlı ayarlar geçersiz, bu yüzden boş ayarlar kullanılıyor. Yapılacak ilk kayıt, kayıtlı ayarların yerine geçer:" },
   "optionsSavedReload": { "message": "Kaydedildi. Uygulanması için açık Kibana sekmelerini yenile." },
   "optionsEnvironments": { "message": "Ortamlar" },
   "optionsEnvName": { "message": "Ad (örn. Production)" },
@@ -50,5 +50,24 @@
   "jsonNoMatches": { "message": "Eşleşme yok" },
   "jsonToggle": { "message": "Aç/kapa" },
   "jsonCopyValue": { "message": "Değeri kopyala" },
-  "jsonCopyPath": { "message": "Yolu kopyala" }
+  "jsonCopyPath": { "message": "Yolu kopyala" },
+  "optionsEnvUrl": { "message": "Kibana adresi" },
+  "optionsPending": { "message": "İzin bekliyor" },
+  "optionsPermissionError": {
+    "message": "Chrome erişim iznini güncelleyemedi: $ERROR$",
+    "placeholders": { "error": { "content": "$1", "example": "Permission denied" } }
+  },
+  "optionsCopy": { "message": "Kopyalama ve maskeleme" },
+  "optionsMarkdownFields": { "message": "\"Markdown olarak kopyala\" için alanlar, her satıra bir tane (boş: bütün alanlar, alfabetik)" },
+  "optionsMaskPatterns": { "message": "Maskelenecek alanlar, her satıra bir desen (* her şeyle eşleşir; büyük/küçük harf fark etmez)" },
+  "optionsTransfer": { "message": "Dışa ve içe aktarma" },
+  "optionsExport": { "message": "Ayarları dışa aktar" },
+  "optionsImport": { "message": "Ayar dosyası içe aktar" },
+  "optionsImportPreview": {
+    "message": "Bu dosyada $ENVIRONMENTS$ ortam ve $ACTIONS$ aksiyon var. İçe aktarma mevcut ayarların hepsinin yerine geçer; ardından ortamlara erişim izni ver.",
+    "placeholders": { "environments": { "content": "$1", "example": "2" }, "actions": { "content": "$2", "example": "5" } }
+  },
+  "optionsImportConfirm": { "message": "Ayarların yerine koy" },
+  "optionsImportErrors": { "message": "Dosya reddedildi:" },
+  "optionsCancel": { "message": "Vazgeç" }
 }
