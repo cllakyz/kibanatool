@@ -21,7 +21,7 @@ npm run check:manifest      # run after build; fails if the manifest asks for mo
 npm run dev                 # WXT dev mode
 ```
 
-Dev Kibana stacks: `./docker/up.sh 8|9` starts Kibana 8.19.23 on :18601 or 9.5.5 on :19601, with security on and anonymous browser login. It also seeds synthetic logs. `./docker/down.sh 8|9` stops a stack and deletes its data. `./docker/obs-view.sh 9` switches the 9.x default space to the Observability view, where ECS logs open the flyout on the "Log overview" tab. There is no 7.17 stack in `docker/`, and no Playwright/e2e harness in the repo yet.
+Dev Kibana stacks: `./docker/up.sh 7|8|9` starts Kibana 7.17.29 on :17601 under the `/kibana` base path, 8.19.23 on :18601 or 9.5.5 on :19601, with security on and anonymous browser login (as `kt_anon`; Elasticsearch anonymous access is off). It re-seeds the same synthetic logs, data views, a `test` space, an `obs` Observability space (9.x) and the read-only user `kt_reader` on every run. `./docker/down.sh 7|8|9` stops a stack and deletes its data. Secrets are in `docker/.env.<major>`; never print them.
 
 ## Architecture
 

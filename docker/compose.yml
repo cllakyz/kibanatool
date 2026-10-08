@@ -1,5 +1,6 @@
-# Development stack: Elasticsearch + Kibana with security ON.
-# Kibana's anonymous auth provider gives the browser a real session without a password.
+# Development and e2e stack: Elasticsearch + Kibana with security ON (spec §13.2).
+# Kibana's anonymous provider signs the browser in as kt_anon (created by up.sh), so no password is needed.
+# Elasticsearch anonymous access stays off: it would add its roles to every user, read-only ones included.
 name: ${STACK_NAME}
 
 services:
@@ -10,9 +11,6 @@ services:
       xpack.security.enabled: "true"
       xpack.security.http.ssl.enabled: "false"
       xpack.security.transport.ssl.enabled: "false"
-      xpack.security.authc.anonymous.username: anonymous_user
-      xpack.security.authc.anonymous.roles: superuser
-      xpack.security.authc.anonymous.authz_exception: "true"
       ELASTIC_PASSWORD: ${ELASTIC_PASSWORD}
       ES_JAVA_OPTS: "-Xms512m -Xmx512m"
     ports:
@@ -27,7 +25,11 @@ services:
     image: docker.elastic.co/kibana/kibana:${STACK_VERSION}
     environment:
       KIBANA_SYSTEM_PASSWORD: ${KIBANA_SYSTEM_PASSWORD}
+      ANON_PASSWORD: ${ANON_PASSWORD}
       ENC_KEY: ${ENC_KEY}
+      # The image skips empty values, so stacks without BASE_PATH run at the root.
+      SERVER_BASEPATH: ${BASE_PATH:-}
+      SERVER_REWRITEBASEPATH: ${BASE_PATH:+true}
     volumes:
       - ./kibana.yml:/usr/share/kibana/config/kibana.yml:ro
     ports:

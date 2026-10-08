@@ -28,14 +28,17 @@ reload your Kibana tab.
 ### Kibana dev stacks
 
 ```bash
+./docker/up.sh 7     # Kibana 7.17.29 on http://localhost:17601/kibana (served under a base path)
 ./docker/up.sh 8     # Kibana 8.19.23 on http://localhost:18601
 ./docker/up.sh 9     # Kibana 9.5.5  on http://localhost:19601
-./docker/obs-view.sh 9   # optional: Observability view (ECS logs open on "Log overview")
 ./docker/down.sh 8   # stop and delete data
 ```
 
-Security is on; the browser signs in anonymously, no password needed. Data views: `app_log`
-(Monolog-shaped, time field `datetime`), `*_log` (no time field) and `logs-*` (ECS, `@timestamp`).
+Security is on; the browser signs in anonymously, no password needed. `up.sh` is safe to re-run: it
+re-creates the same synthetic logs every time. Data views: `app_log` (Monolog-shaped, time field
+`datetime`), `*_log` (no time field) and `logs-*` (ECS, `@timestamp`). Every stack also has a `test`
+space; 9.x has an `obs` space in the Observability view, where ECS logs open on "Log overview"
+(`/s/obs/app/discover`).
 
 ## License
 
