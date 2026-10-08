@@ -52,7 +52,7 @@ export function ActionEditor({ action, environments, onChange, onSave, onCancel 
     <form className="editor" onSubmit={submit}>
       <label>
         {t("optionsLabel")}
-        <input required value={action.label} onChange={(event) => update({ label: event.target.value })} />
+        <input required name="label" value={action.label} onChange={(event) => update({ label: event.target.value })} />
       </label>
       <label className="inline">
         <input type="checkbox" checked={action.enabled} onChange={(event) => update({ enabled: event.target.checked })} />
@@ -74,7 +74,7 @@ export function ActionEditor({ action, environments, onChange, onSave, onCancel 
       {action.kind === "link" ? (
         <label>
           {t("optionsUrlTemplate")}
-          <input required spellCheck={false} value={action.urlTemplate} onChange={(event) => update({ urlTemplate: event.target.value })} />
+          <input required name="urlTemplate" spellCheck={false} value={action.urlTemplate} onChange={(event) => update({ urlTemplate: event.target.value })} />
         </label>
       ) : (
         <>

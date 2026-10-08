@@ -1,17 +1,18 @@
 // Export and import of the whole settings (spec §8): validate, preview the counts, then replace.
-import { type ChangeEvent, useState } from "react";
+import { type ChangeEvent, useRef, useState } from "react";
 import type { Config } from "../../src/core/config";
 import { t } from "../../src/i18n";
 import { parseImport } from "../../src/options/model";
 import { Feedback, type SectionProps, useSubmit } from "./feedback";
 
-export function TransferSection({ config, onSave }: SectionProps) {
+export function TransferSection({ onSave, exportValue }: SectionProps & { exportValue: unknown }) {
   const [pending, setPending] = useState<Config | null>(null);
+  const picks = useRef(0);
   const { errors, saved, submit, fail } = useSubmit(onSave);
 
   function exportSettings(): void {
     const link = document.createElement("a");
-    link.href = `data:application/json;charset=utf-8,${encodeURIComponent(JSON.stringify(config, null, 2))}`;
+    link.href = `data:application/json;charset=utf-8,${encodeURIComponent(JSON.stringify(exportValue, null, 2))}`;
     link.download = "kibanatool-settings.json";
     link.click();
   }
@@ -20,9 +21,11 @@ export function TransferSection({ config, onSave }: SectionProps) {
     const file = event.target.files?.[0];
     event.target.value = ""; // so choosing the same file again still fires change
     setPending(null);
+    const pick = ++picks.current; // a slower, earlier pick must not overwrite the latest one
     if (!file) return;
     file.text().then(
       (text) => {
+        if (pick !== picks.current) return;
         const result = parseImport(text);
         if (result.ok) {
           fail([]);
@@ -31,7 +34,9 @@ export function TransferSection({ config, onSave }: SectionProps) {
           fail([t("optionsImportErrors"), ...result.errors]);
         }
       },
-      (error: unknown) => fail([String(error)]),
+      (error: unknown) => {
+        if (pick === picks.current) fail([String(error)]);
+      },
     );
   }
 

@@ -25,6 +25,8 @@ export function ActionsSection({ config, onSave }: SectionProps) {
     });
   }
 
+  // One draft at a time: opening another one would drop its unsaved changes.
+  const editing = draft !== null;
   return (
     <section aria-labelledby="actions-title">
       <h2 id="actions-title">{t("optionsActions")}</h2>
@@ -36,10 +38,14 @@ export function ActionsSection({ config, onSave }: SectionProps) {
             <span className="badge">{t(action.kind === "link" ? "optionsKindLink" : "optionsKindDiscover")}</span>
             {!action.enabled && <span className="pending">{t("optionsDisabled")}</span>}
             <span className="muted">{environmentNames(config, action)}</span>
-            <button type="button" onClick={() => setDraft(action)}>
+            <button type="button" disabled={editing} aria-label={`${t("optionsEdit")}: ${action.label}`} onClick={() => setDraft(action)}>
               {t("optionsEdit")}
             </button>
-            <button type="button" className="link" onClick={() => {
+            <button
+              type="button"
+              className="link"
+              aria-label={`${t("optionsRemove")}: ${action.label}`}
+              onClick={() => {
                 if (draft?.id === action.id) setDraft(null);
                 void submit(withoutAction(config, action.id));
               }}
@@ -50,10 +56,10 @@ export function ActionsSection({ config, onSave }: SectionProps) {
         ))}
       </ul>
       <div className="row">
-        <button type="button" onClick={() => setDraft(newAction("link"))}>
+        <button type="button" disabled={editing} onClick={() => setDraft(newAction("link"))}>
           {t("optionsAddLink")}
         </button>
-        <button type="button" onClick={() => setDraft(newAction("discover"))}>
+        <button type="button" disabled={editing} onClick={() => setDraft(newAction("discover"))}>
           {t("optionsAddDiscover")}
         </button>
       </div>

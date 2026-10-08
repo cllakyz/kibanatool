@@ -39,6 +39,12 @@ describe("createConfigStore", () => {
     expect(loaded.errors.length).toBeGreaterThan(0);
   });
 
+  it("keeps a corrupt stored value so it can be exported and repaired", async () => {
+    const stored = { schemaVersion: 99, environments: "x" };
+    const loaded = await createConfigStore(fakeArea({ [CONFIG_KEY]: stored })).load();
+    expect(loaded.invalid).toEqual(stored);
+  });
+
   it("refuses to save an invalid config", async () => {
     const area = fakeArea();
     const invalid = { ...config, environments: [{ id: "x", name: "X", kibanaUrl: "nope" }] };

@@ -12,6 +12,8 @@ export interface LoadedConfig {
   config: Config;
   /** Validation errors of a corrupt stored config; the empty config is used then. */
   errors: string[];
+  /** The corrupt stored value itself, so the options page can export it for repair. */
+  invalid?: unknown;
 }
 
 export function createConfigStore(area: StorageAreaLike) {
@@ -20,7 +22,7 @@ export function createConfigStore(area: StorageAreaLike) {
       const stored = (await area.get(CONFIG_KEY))[CONFIG_KEY];
       if (stored === undefined) return { config: emptyConfig(), errors: [] };
       const parsed = parseConfig(stored);
-      return parsed.ok ? { config: parsed.config, errors: [] } : { config: emptyConfig(), errors: parsed.errors };
+      return parsed.ok ? { config: parsed.config, errors: [] } : { config: emptyConfig(), errors: parsed.errors, invalid: stored };
     },
     async save(config: Config): Promise<void> {
       const parsed = parseConfig(config);
