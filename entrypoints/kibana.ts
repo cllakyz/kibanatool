@@ -7,7 +7,7 @@ import type { DetailView } from "../src/adapters/types";
 import { ActionBar } from "../src/content/ActionBar";
 import { type Mount, type MountHandle, reconcileMounts } from "../src/content/mounts";
 import { BAR_CSS } from "../src/content/styles";
-import { type Config, actionsForEnvironment, activeEnvironment, basePathOf } from "../src/core/config";
+import { type Action, type Config, actionsForEnvironment, activeEnvironment, basePathOf } from "../src/core/config";
 import { createKibanaClient } from "../src/kibana/client";
 import { kibanaPrefix } from "../src/kibana/prefix";
 import { createConfigStore, isConfigChange } from "../src/storage";
@@ -30,6 +30,13 @@ async function start(): Promise<void> {
   const prefix: string = found;
   const client = createKibanaClient({ prefix, fetch: (input, init) => window.fetch(input, init) });
   const mounts = new Map<Element, Mount>();
+  // Recomputed only when the config changes: the bars refetch when this array changes identity.
+  let actions = currentActions();
+
+  function currentActions(): Action[] {
+    const environment = activeEnvironment(config, location.href);
+    return environment ? actionsForEnvironment(config, environment.id) : [];
+  }
 
   function createMount(host: HTMLElement): MountHandle {
     const shadow = host.attachShadow({ mode: "open" });
@@ -43,16 +50,23 @@ async function start(): Promise<void> {
     let loggedMissing = false;
     return {
       render(view: DetailView) {
-        const environment = activeEnvironment(config, location.href);
-        const actions = environment ? actionsForEnvironment(config, environment.id) : [];
         const identity = view.identity;
         if (!identity && !loggedMissing) {
           loggedMissing = true;
           console.debug(LOG, "no document identity in this detail view; bar hidden");
         }
+        // The copy menu needs no actions, so every identified log gets a bar.
         root.render(
-          identity && actions.length > 0
-            ? createElement(ActionBar, { key: `${identity.index}/${identity.id}`, identity, actions, client })
+          identity
+            ? createElement(ActionBar, {
+                key: `${identity.index}/${identity.id}`,
+                identity,
+                actions,
+                client,
+                prefix,
+                hash: location.hash,
+                copy: config.copy,
+              })
             : null,
         );
       },
@@ -93,6 +107,7 @@ async function start(): Promise<void> {
       .load()
       .then((loaded) => {
         config = loaded.config;
+        actions = currentActions();
         run();
       })
       .catch((error: unknown) => console.debug(LOG, "config reload failed:", error));

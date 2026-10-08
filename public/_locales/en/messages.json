@@ -26,5 +26,14 @@
   "optionsRemove": { "message": "Remove" },
   "optionsActions": { "message": "Actions (JSON)" },
   "optionsActionsHelp": { "message": "A JSON array of actions. Placeholders use {field} or {field|fallback}. Example: [{\"id\":\"admin\",\"kind\":\"link\",\"label\":\"Admin\",\"enabled\":true,\"environmentIds\":[],\"conditions\":[],\"urlTemplate\":\"https://admin.example.com/users/{user_id}\"}]" },
-  "optionsSave": { "message": "Save actions" }
+  "optionsSave": { "message": "Save actions" },
+  "discoverNoTime": { "message": "No time to center on: the data view has no time field or this log has no value for it" },
+  "menuLabel": { "message": "Copy options" },
+  "menuCopyMarkdown": { "message": "Copy as Markdown" },
+  "menuCopyDocLink": { "message": "Copy link to this log" },
+  "menuCopyFixedView": { "message": "Copy view with fixed time" },
+  "markdownOpenInKibana": { "message": "Open in Kibana" },
+  "noticeCopied": { "message": "Copied" },
+  "noticeCopyFailed": { "message": "Could not copy" },
+  "noticeTimeNotConverted": { "message": "Could not convert the time range to fixed dates" }
 }

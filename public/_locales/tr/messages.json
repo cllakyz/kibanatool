@@ -26,5 +26,14 @@
   "optionsRemove": { "message": "Kaldır" },
   "optionsActions": { "message": "Aksiyonlar (JSON)" },
   "optionsActionsHelp": { "message": "Aksiyonların JSON dizisi. Yer tutucular {alan} ya da {alan|yedek} biçiminde. Örnek: [{\"id\":\"admin\",\"kind\":\"link\",\"label\":\"Admin\",\"enabled\":true,\"environmentIds\":[],\"conditions\":[],\"urlTemplate\":\"https://admin.example.com/users/{user_id}\"}]" },
-  "optionsSave": { "message": "Aksiyonları kaydet" }
+  "optionsSave": { "message": "Aksiyonları kaydet" },
+  "discoverNoTime": { "message": "Ortalanacak zaman yok: data view'ın zaman alanı yok ya da bu logda o alanın değeri yok" },
+  "menuLabel": { "message": "Kopyalama seçenekleri" },
+  "menuCopyMarkdown": { "message": "Markdown olarak kopyala" },
+  "menuCopyDocLink": { "message": "Logun linkini kopyala" },
+  "menuCopyFixedView": { "message": "Görünümü sabit zamanla kopyala" },
+  "markdownOpenInKibana": { "message": "Kibana'da aç" },
+  "noticeCopied": { "message": "Kopyalandı" },
+  "noticeCopyFailed": { "message": "Kopyalanamadı" },
+  "noticeTimeNotConverted": { "message": "Zaman aralığı sabit tarihlere çevrilemedi" }
 }
