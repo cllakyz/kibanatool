@@ -33,7 +33,7 @@ export function CopyMenu({ items, onCopy }: { items: CopyItem[]; onCopy: (text: 
 
   function onListKey(event: KeyboardEvent<HTMLDivElement>): void {
     if (event.key === "Tab") {
-      setOpen(false);
+      close();
       return;
     }
     const buttons = [...(listRef.current?.querySelectorAll<HTMLButtonElement>('[role="menuitem"]') ?? [])];

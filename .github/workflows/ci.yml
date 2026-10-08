@@ -49,9 +49,9 @@ jobs:
       - run: npx playwright install --with-deps chromium
       - run: ./docker/up.sh ${{ matrix.major }}
       - run: npm run e2e
-      - name: Kibana logs
+      - name: Stack logs
         if: failure()
-        run: docker compose --env-file docker/.env.${{ matrix.major }} -f docker/compose.yml logs --tail 300 kibana
+        run: docker compose --env-file docker/.env.${{ matrix.major }} -f docker/compose.yml logs --tail 300 kibana es
       - uses: actions/upload-artifact@v4
         if: failure()
         with:

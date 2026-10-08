@@ -49,11 +49,10 @@ async function readJson<T extends object>(response: Response): Promise<T> {
   try {
     body = await response.json();
   } catch (error) {
-    // AbortSignal.timeout also aborts a body that is still arriving: that is a slow Kibana, not another API.
-    if (error instanceof DOMException && (error.name === "TimeoutError" || error.name === "AbortError")) {
-      throw new KibanaError("network", "Kibana is unreachable");
-    }
-    throw new KibanaError("incompatible", "Unexpected response");
+    // Only a non-JSON body (SyntaxError) is another API. A timeout/abort of AbortSignal.timeout on a body that is
+    // still arriving, or a dropped connection (TypeError), is a slow or unreachable Kibana.
+    if (error instanceof SyntaxError) throw new KibanaError("incompatible", "Unexpected response");
+    throw new KibanaError("network", "Kibana is unreachable");
   }
   if (typeof body !== "object" || body === null) throw new KibanaError("incompatible", "Unexpected response");
   return body as T;

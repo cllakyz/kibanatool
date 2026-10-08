@@ -144,4 +144,10 @@ describe("unusedOrigins", () => {
     expect(unusedOrigins(granted, emptyConfig())).toEqual(granted);
     expect(unusedOrigins([], config)).toEqual([]);
   });
+
+  it("leaves wildcard grants the extension did not request alone", () => {
+    const wildcards = ["https://*/*", "http://*/*", "*://*/*", "https://*.example.com/*"];
+    expect(unusedOrigins(wildcards, emptyConfig())).toEqual([]);
+    expect(unusedOrigins([...wildcards, "http://b.example.com:5601/*"], emptyConfig())).toEqual(["http://b.example.com:5601/*"]);
+  });
 });

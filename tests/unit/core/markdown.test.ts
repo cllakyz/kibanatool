@@ -93,6 +93,11 @@ describe("buildMarkdown with a listed parent field", () => {
     ]);
   });
 
+  it("writes a leaf once when both the parent and the leaf are listed", () => {
+    const lines = buildMarkdown(options({ fields: ["context", "context.trace"] })).split("\n");
+    expect(lines.filter((line) => line.startsWith("- `context.trace`"))).toHaveLength(1);
+  });
+
   it("keeps parentheses in the log link from ending the Markdown link", () => {
     const markdown = buildMarkdown(options({ docUrl: "http://k/app/discover#/doc/dv/logs(1)?id=a(b)" }));
     expect(markdown.split("\n").at(-1)).toBe("[Open in Kibana](http://k/app/discover#/doc/dv/logs%281%29?id=a%28b%29)");

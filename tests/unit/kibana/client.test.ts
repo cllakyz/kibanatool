@@ -173,4 +173,14 @@ describe("timeouts while the body is read", () => {
     const client = createKibanaClient({ prefix: "", fetch });
     expect(await kindOf(client.fetchDoc("app_log", "abc"))).toBe("network");
   });
+
+  it("reports a connection dropped mid-body as network, not incompatible", async () => {
+    const { fetch } = fakeFetch(() => {
+      const response = searchOk();
+      response.json = () => Promise.reject(new TypeError("network error"));
+      return response;
+    });
+    const client = createKibanaClient({ prefix: "", fetch });
+    expect(await kindOf(client.fetchDoc("app_log", "abc"))).toBe("network");
+  });
 });

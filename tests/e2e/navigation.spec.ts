@@ -20,7 +20,7 @@ test("7.17: every expanded row has its own bar", async ({ context }) => {
   expect((await barLinks(rows.nth(1))).Error).toBe("https://errors.example.com/?id=app-008");
 });
 
-test("8.x/9.x: the bar follows the next log in the flyout", async ({ context }) => {
+test("8.x/9.x: the bar follows next and previous in the flyout", async ({ context }) => {
   test.skip(stack.major === 7, "7.17 has no flyout");
   const { detail } = await openDoc(context, ERRORS);
   expect((await barLinks(detail)).Error).toBe("https://errors.example.com/?id=app-004");
@@ -28,4 +28,6 @@ test("8.x/9.x: the bar follows the next log in the flyout", async ({ context }) 
   await expect.poll(async () => (await barLinks(detail)).Error).toBe("https://errors.example.com/?id=app-008");
   expect((await barLinks(detail)).User).toBe("https://admin.example.com/users/100003");
   await expect(bar(detail)).toHaveCount(1);
+  await detail.locator('[data-test-subj="pagination-button-previous"]').click();
+  await expect.poll(async () => (await barLinks(detail)).Error).toBe("https://errors.example.com/?id=app-004");
 });

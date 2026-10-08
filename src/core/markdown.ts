@@ -23,7 +23,7 @@ export function buildMarkdown(options: MarkdownOptions): string {
   const leaves = flattenSource(hit._source ?? {}, false);
   // Listed fields may also name JSON sub-paths or _id, which only `all` has.
   const source: FieldMap = fields.length > 0 ? all : leaves;
-  const paths = fields.length > 0 ? fields.flatMap((path) => listedPaths(path, all, leaves)) : Object.keys(leaves).sort();
+  const paths = fields.length > 0 ? [...new Set(fields.flatMap((path) => listedPaths(path, all, leaves)))] : Object.keys(leaves).sort();
   const time = timeField === undefined ? undefined : all[timeField];
   const lines = [`**${hit._index}**${isMissing(time) ? "" : ` · ${formatValue(time)}`}`];
   for (const path of paths) {
