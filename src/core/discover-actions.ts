@@ -14,14 +14,17 @@ export function kqlQuote(value: string): string {
 
 const ZONELESS = /^\d{4}-\d{2}-\d{2}[T ]\d{2}:\d{2}(:\d{2}(\.\d+)?)?$/;
 
+/** Epoch values below 1e11 are seconds: as milliseconds they would fall before March 1973. */
+const fromEpoch = (epoch: number): number => (epoch < 1e11 ? epoch * 1000 : epoch);
+
 /** Epoch milliseconds of a time field value. Elasticsearch reads a date without a zone as UTC; Date.parse would not. */
 export function logTimeMs(value: unknown): number | undefined {
   if (Array.isArray(value)) return logTimeMs(value[0]);
   const valid = (ms: number) => (Number.isFinite(new Date(ms).getTime()) ? ms : undefined);
-  if (typeof value === "number") return valid(value);
+  if (typeof value === "number") return valid(fromEpoch(value));
   if (typeof value !== "string") return undefined;
   const text = value.trim();
-  if (/^\d+$/.test(text)) return valid(Number(text));
+  if (/^\d+$/.test(text)) return valid(fromEpoch(Number(text)));
   return valid(Date.parse(ZONELESS.test(text) ? `${text.replace(" ", "T")}Z` : text));
 }
 

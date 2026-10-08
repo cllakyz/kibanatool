@@ -162,3 +162,15 @@ describe("getVersion caching", () => {
     expect(calls).toHaveLength(2);
   });
 });
+
+describe("timeouts while the body is read", () => {
+  it("reports a body that times out as network, not incompatible", async () => {
+    const { fetch } = fakeFetch(() => {
+      const response = searchOk();
+      response.json = () => Promise.reject(new DOMException("The operation timed out.", "TimeoutError"));
+      return response;
+    });
+    const client = createKibanaClient({ prefix: "", fetch });
+    expect(await kindOf(client.fetchDoc("app_log", "abc"))).toBe("network");
+  });
+});

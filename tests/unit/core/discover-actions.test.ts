@@ -68,6 +68,13 @@ describe("logTimeMs", () => {
     expect(logTimeMs(["2026-08-12T10:00:00Z", "x"])).toBe(Date.UTC(2026, 7, 12, 10));
   });
 
+  it("reads epoch values below 1e11 as seconds, as a number or text", () => {
+    expect(logTimeMs(1786528800)).toBe(1786528800000);
+    expect(logTimeMs("1786528800")).toBe(1786528800000);
+    expect(logTimeMs(99_999_999_999)).toBe(99_999_999_999_000);
+    expect(logTimeMs(100_000_000_000)).toBe(100_000_000_000);
+  });
+
   it("returns undefined for anything else", () => {
     for (const value of ["tomorrow", "", null, undefined, {}, [], Number.NaN]) expect(logTimeMs(value)).toBeUndefined();
   });

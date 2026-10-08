@@ -71,3 +71,30 @@ describe("buildMarkdown", () => {
     ]);
   });
 });
+
+describe("buildMarkdown with a listed parent field", () => {
+  it("lists every leaf under the parent once, JSON text as one masked block", () => {
+    expect(buildMarkdown(options({ fields: ["context", "level"] })).split("\n")).toEqual([
+      "**app_log** · 2026-08-12T10:00:00+03:00",
+      "- `context.headers`:",
+      "  ```json",
+      "  {",
+      '    "Authorization": "***",',
+      '    "accept": "json"',
+      "  }",
+      "  ```",
+      "- `context.trace`:",
+      "  ```",
+      "  line1",
+      "  line2",
+      "  ```",
+      "- `level`: 200",
+      "[Open in Kibana](http://k/app/discover#/doc/dv/app_log?id=A1)",
+    ]);
+  });
+
+  it("keeps parentheses in the log link from ending the Markdown link", () => {
+    const markdown = buildMarkdown(options({ docUrl: "http://k/app/discover#/doc/dv/logs(1)?id=a(b)" }));
+    expect(markdown.split("\n").at(-1)).toBe("[Open in Kibana](http://k/app/discover#/doc/dv/logs%281%29?id=a%28b%29)");
+  });
+});
