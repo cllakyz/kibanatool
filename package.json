@@ -1,6 +1,6 @@
 {
   "name": "kibanatool",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "private": true,
   "type": "module",
   "description": "Chrome extension that speeds up working with logs in Kibana Discover (7.17, 8.x, 9.x)",
@@ -17,6 +17,7 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "e2e": "npm run build && playwright test",
+    "icons": "node scripts/icons.mjs",
     "check:manifest": "node scripts/check-manifest.mjs"
   },
   "dependencies": {
