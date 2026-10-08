@@ -1,0 +1,62 @@
+# Unit checks, then the e2e matrix against Kibana 7.17, 8.19 and 9.5 (spec §13.3).
+name: ci
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  unit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm run typecheck
+      - run: npm test
+      - run: npm run build
+      - run: npm run check:manifest
+
+  e2e:
+    name: e2e (Kibana ${{ matrix.major }})
+    needs: unit
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      matrix:
+        major: ["7", "8", "9"]
+    env:
+      KT_STACK: ${{ matrix.major }}
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npx playwright install --with-deps chromium
+      - run: ./docker/up.sh ${{ matrix.major }}
+      - run: npm run e2e
+      - name: Kibana logs
+        if: failure()
+        run: docker compose --env-file docker/.env.${{ matrix.major }} -f docker/compose.yml logs --tail 300 kibana
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: e2e-kibana-${{ matrix.major }}
+          path: |
+            playwright-report/
+            test-results/
+          retention-days: 7
