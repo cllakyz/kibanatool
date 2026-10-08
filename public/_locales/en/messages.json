@@ -1,0 +1,30 @@
+{
+  "extName": { "message": "kibanatool" },
+  "extDescription": { "message": "Speeds up working with logs in Kibana Discover: action buttons built from log fields." },
+  "barLoading": { "message": "kibanatool: loading the log…" },
+  "errorForbidden": { "message": "kibanatool: you are not allowed to read this log" },
+  "errorNotFound": { "message": "kibanatool: log not found" },
+  "errorIncompatible": {
+    "message": "kibanatool: possibly incompatible with this Kibana version ($VERSION$)",
+    "placeholders": { "version": { "content": "$1", "example": "9.5.5" } }
+  },
+  "errorServer": {
+    "message": "kibanatool: Kibana returned an error (HTTP $STATUS$)",
+    "placeholders": { "status": { "content": "$1", "example": "502" } }
+  },
+  "errorNetwork": { "message": "kibanatool: Kibana is unreachable" },
+  "errorUnknown": { "message": "kibanatool: something went wrong" },
+  "optionsLoading": { "message": "Loading…" },
+  "optionsIntro": { "message": "Add the Kibana addresses you use, grant access, then define link actions. Reload open Kibana tabs after changes." },
+  "optionsLoadError": { "message": "The stored settings were invalid and have been replaced with empty settings:" },
+  "optionsSavedReload": { "message": "Saved. Reload open Kibana tabs to apply." },
+  "optionsEnvironments": { "message": "Environments" },
+  "optionsEnvName": { "message": "Name (e.g. Production)" },
+  "optionsAdd": { "message": "Add and grant access" },
+  "optionsGrant": { "message": "Grant access" },
+  "optionsGranted": { "message": "Access granted" },
+  "optionsRemove": { "message": "Remove" },
+  "optionsActions": { "message": "Actions (JSON)" },
+  "optionsActionsHelp": { "message": "A JSON array of actions. Placeholders use {field} or {field|fallback}. Example: [{\"id\":\"admin\",\"kind\":\"link\",\"label\":\"Admin\",\"enabled\":true,\"environmentIds\":[],\"conditions\":[],\"urlTemplate\":\"https://admin.example.com/users/{user_id}\"}]" },
+  "optionsSave": { "message": "Save actions" }
+}

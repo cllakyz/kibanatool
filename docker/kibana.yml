@@ -1,0 +1,17 @@
+server.host: "0.0.0.0"
+server.name: kibanatool-dev
+elasticsearch.hosts: ["http://es:9200"]
+elasticsearch.username: "kibana_system"
+elasticsearch.password: "${KIBANA_SYSTEM_PASSWORD}"
+xpack.security.encryptionKey: "${ENC_KEY}"
+xpack.encryptedSavedObjects.encryptionKey: "${ENC_KEY}"
+xpack.reporting.encryptionKey: "${ENC_KEY}"
+xpack.security.authc.providers:
+  anonymous.anonymous1:
+    order: 0
+    credentials: "elasticsearch_anonymous_user"
+# Lets scripts call Kibana APIs with a Basic auth header; the browser uses the anonymous session.
+xpack.security.authc.http.schemes: ["apikey", "bearer", "basic"]
+status.allowAnonymous: true
+telemetry.optIn: false
+telemetry.allowChangingOptInStatus: false

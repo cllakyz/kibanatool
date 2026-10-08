@@ -1,0 +1,30 @@
+{
+  "extName": { "message": "kibanatool" },
+  "extDescription": { "message": "Kibana Discover'da logla çalışmayı hızlandırır: log alanlarından üretilen aksiyon butonları." },
+  "barLoading": { "message": "kibanatool: log yükleniyor…" },
+  "errorForbidden": { "message": "kibanatool: bu logu okuma yetkin yok" },
+  "errorNotFound": { "message": "kibanatool: log bulunamadı" },
+  "errorIncompatible": {
+    "message": "kibanatool: bu Kibana sürümüyle uyumsuz olabilir ($VERSION$)",
+    "placeholders": { "version": { "content": "$1", "example": "9.5.5" } }
+  },
+  "errorServer": {
+    "message": "kibanatool: Kibana hata döndürdü (HTTP $STATUS$)",
+    "placeholders": { "status": { "content": "$1", "example": "502" } }
+  },
+  "errorNetwork": { "message": "kibanatool: Kibana'ya ulaşılamadı" },
+  "errorUnknown": { "message": "kibanatool: bir şeyler ters gitti" },
+  "optionsLoading": { "message": "Yükleniyor…" },
+  "optionsIntro": { "message": "Kullandığın Kibana adreslerini ekle, erişim izni ver, sonra link aksiyonlarını tanımla. Değişikliklerden sonra açık Kibana sekmelerini yenile." },
+  "optionsLoadError": { "message": "Kayıtlı ayarlar geçersizdi, yerine boş ayarlar kullanıldı:" },
+  "optionsSavedReload": { "message": "Kaydedildi. Uygulanması için açık Kibana sekmelerini yenile." },
+  "optionsEnvironments": { "message": "Ortamlar" },
+  "optionsEnvName": { "message": "Ad (örn. Production)" },
+  "optionsAdd": { "message": "Ekle ve erişim izni ver" },
+  "optionsGrant": { "message": "Erişim izni ver" },
+  "optionsGranted": { "message": "Erişim var" },
+  "optionsRemove": { "message": "Kaldır" },
+  "optionsActions": { "message": "Aksiyonlar (JSON)" },
+  "optionsActionsHelp": { "message": "Aksiyonların JSON dizisi. Yer tutucular {alan} ya da {alan|yedek} biçiminde. Örnek: [{\"id\":\"admin\",\"kind\":\"link\",\"label\":\"Admin\",\"enabled\":true,\"environmentIds\":[],\"conditions\":[],\"urlTemplate\":\"https://admin.example.com/users/{user_id}\"}]" },
+  "optionsSave": { "message": "Aksiyonları kaydet" }
+}
