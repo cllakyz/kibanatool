@@ -19,9 +19,11 @@ export function buildMarkdown(options: MarkdownOptions): string {
   const { hit, timeField, fields, maskPatterns, docUrl, linkLabel } = options;
   const isMasked = maskMatcher(maskPatterns);
   const all = flattenDoc(hit);
-  // Listed fields may name JSON sub-paths or _id; the full list keeps JSON text whole (spec §7.4).
-  const source: FieldMap = fields.length > 0 ? all : flattenSource(hit._source ?? {}, false);
-  const paths = fields.length > 0 ? fields : Object.keys(source).sort();
+  // JSON text stays whole (spec §7.4): the full list and listed parents use the raw leaves, not parsed sub-paths.
+  const leaves = flattenSource(hit._source ?? {}, false);
+  // Listed fields may also name JSON sub-paths or _id, which only `all` has.
+  const source: FieldMap = fields.length > 0 ? all : leaves;
+  const paths = fields.length > 0 ? [...new Set(fields.flatMap((path) => listedPaths(path, all, leaves)))] : Object.keys(leaves).sort();
   const time = timeField === undefined ? undefined : all[timeField];
   const lines = [`**${hit._index}**${isMissing(time) ? "" : ` · ${formatValue(time)}`}`];
   for (const path of paths) {
@@ -29,8 +31,17 @@ export function buildMarkdown(options: MarkdownOptions): string {
     if (isMissing(value)) continue;
     lines.push(...fieldLines(path, maskValue(path, value, isMasked)));
   }
-  lines.push(`[${linkLabel}](${docUrl})`);
+  // A ")" in the index or id would end the Markdown link early.
+  lines.push(`[${linkLabel}](${docUrl.replace(/[()]/g, (paren) => (paren === "(" ? "%28" : "%29"))})`);
   return lines.join("\n");
+}
+
+/** A listed path that is not a field itself (e.g. `context`) stands for every raw leaf under it. */
+function listedPaths(path: string, all: FieldMap, leaves: FieldMap): string[] {
+  if (Object.hasOwn(all, path)) return [path];
+  return Object.keys(leaves)
+    .filter((leaf) => leaf.startsWith(`${path}.`))
+    .sort();
 }
 
 const isObjectArray = (value: unknown): boolean =>

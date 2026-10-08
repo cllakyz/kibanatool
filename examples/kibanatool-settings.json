@@ -1,0 +1,56 @@
+{
+  "schemaVersion": 1,
+  "environments": [{ "id": "prod", "name": "Production", "kibanaUrl": "https://kibana.example.com" }],
+  "actions": [
+    {
+      "id": "admin-user",
+      "kind": "link",
+      "label": "User in admin",
+      "enabled": true,
+      "environmentIds": [],
+      "conditions": [],
+      "urlTemplate": "https://admin.example.com/users/{user_id|context.user_id|user.id}"
+    },
+    {
+      "id": "sentry",
+      "kind": "link",
+      "label": "Sentry",
+      "enabled": true,
+      "environmentIds": [],
+      "conditions": [{ "field": "level_name", "op": "equals", "value": "ERROR" }],
+      "urlTemplate": "https://acme.sentry.io/issues/?query={message}"
+    },
+    {
+      "id": "jira",
+      "kind": "link",
+      "label": "Jira",
+      "enabled": true,
+      "environmentIds": [],
+      "conditions": [],
+      "urlTemplate": "https://acme.atlassian.net/issues/?jql=text%20~%20{user_id|user.id}"
+    },
+    {
+      "id": "user-logs",
+      "kind": "discover",
+      "label": "This user's logs",
+      "enabled": true,
+      "environmentIds": [],
+      "conditions": [],
+      "queryTemplate": "user_id:{user_id}"
+    },
+    {
+      "id": "around",
+      "kind": "discover",
+      "label": "±5 minutes",
+      "enabled": true,
+      "environmentIds": [],
+      "conditions": [],
+      "queryTemplate": "",
+      "windowMinutes": 5
+    }
+  ],
+  "copy": {
+    "markdownFields": [],
+    "maskPatterns": ["*authorization*", "*password*", "*token*", "*secret*", "*cookie*"]
+  }
+}

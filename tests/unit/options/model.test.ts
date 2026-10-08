@@ -137,17 +137,17 @@ describe("parseImport", () => {
 });
 
 describe("unusedOrigins", () => {
-  it("lists permission patterns that only the removed environments needed", () => {
-    const before = {
-      ...emptyConfig(),
-      environments: [
-        newEnvironment("A", "https://a.example.com", "e1"),
-        newEnvironment("A2", "https://a.example.com/kibana", "e2"),
-        newEnvironment("B", "http://b.example.com:5601", "e3"),
-      ],
-    };
-    const keepFirst = { ...before, environments: [before.environments[0]!] };
-    expect(unusedOrigins(before, keepFirst)).toEqual(["http://b.example.com:5601/*"]);
-    expect(unusedOrigins(before, { ...before, environments: [] })).toEqual(["https://a.example.com/*", "http://b.example.com:5601/*"]);
+  it("lists granted patterns that no environment needs any more", () => {
+    const config = { ...emptyConfig(), environments: [newEnvironment("A", "https://a.example.com/kibana", "e1")] };
+    const granted = ["https://a.example.com/*", "http://b.example.com:5601/*"];
+    expect(unusedOrigins(granted, config)).toEqual(["http://b.example.com:5601/*"]);
+    expect(unusedOrigins(granted, emptyConfig())).toEqual(granted);
+    expect(unusedOrigins([], config)).toEqual([]);
+  });
+
+  it("leaves wildcard grants the extension did not request alone", () => {
+    const wildcards = ["https://*/*", "http://*/*", "*://*/*", "https://*.example.com/*"];
+    expect(unusedOrigins(wildcards, emptyConfig())).toEqual([]);
+    expect(unusedOrigins([...wildcards, "http://b.example.com:5601/*"], emptyConfig())).toEqual(["http://b.example.com:5601/*"]);
   });
 });

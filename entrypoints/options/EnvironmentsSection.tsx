@@ -39,10 +39,11 @@ export function EnvironmentsSection({ config, onSave }: SectionProps) {
   }, [config, checks]);
 
   // Chrome shows the permission prompt only during the click, so this runs before any await.
-  function request(environment: Environment): Promise<void> {
+  // It resolves to the errors to show, so a following save cannot hide them.
+  function request(environment: Environment): Promise<string[]> {
     return browser.permissions.request({ origins: [originPattern(environment.kibanaUrl)] }).then(
-      () => undefined,
-      (error: unknown) => fail([t("optionsPermissionError", String(error))]),
+      () => [],
+      (error: unknown) => [t("optionsPermissionError", String(error))],
     );
   }
 
@@ -55,18 +56,20 @@ export function EnvironmentsSection({ config, onSave }: SectionProps) {
       return;
     }
     // Saved whether or not access was granted: the environment then waits for access.
-    void request(environment)
-      .then(() => submit(result))
-      .then((ok) => {
-        if (ok) {
-          setName("");
-          setUrl("");
-        }
-      });
+    void request(environment).then(async (permissionErrors) => {
+      if (await submit(result)) {
+        setName("");
+        setUrl("");
+      }
+      if (permissionErrors.length > 0) fail(permissionErrors);
+    });
   }
 
   function grant(environment: Environment): void {
-    void request(environment).then(() => setChecks((count) => count + 1));
+    void request(environment).then((permissionErrors) => {
+      if (permissionErrors.length > 0) fail(permissionErrors);
+      setChecks((count) => count + 1);
+    });
   }
 
   return (
@@ -82,12 +85,16 @@ export function EnvironmentsSection({ config, onSave }: SectionProps) {
             ) : (
               <>
                 <span className="pending">{t("optionsPending")}</span>
-                <button type="button" onClick={() => grant(environment)}>
+                <button type="button" aria-label={`${t("optionsGrant")}: ${environment.name}`} onClick={() => grant(environment)}>
                   {t("optionsGrant")}
                 </button>
               </>
             )}
-            <button type="button" className="link" onClick={() => void submit(withoutEnvironment(config, environment.id))}>
+            <button
+              type="button"
+              className="link"
+              aria-label={`${t("optionsRemove")}: ${environment.name}`}
+              onClick={() => void submit(withoutEnvironment(config, environment.id))}>
               {t("optionsRemove")}
             </button>
           </li>
@@ -96,12 +103,13 @@ export function EnvironmentsSection({ config, onSave }: SectionProps) {
       <form className="row" onSubmit={add}>
         <label>
           {t("optionsEnvName")}
-          <input required value={name} onChange={(event) => setName(event.target.value)} />
+          <input required name="name" value={name} onChange={(event) => setName(event.target.value)} />
         </label>
         <label>
           {t("optionsEnvUrl")}
           <input
             required
+            name="kibanaUrl"
             type="url"
             placeholder="https://kibana.example.com"
             value={url}

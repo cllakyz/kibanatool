@@ -19,9 +19,12 @@ npm run typecheck           # tsc --noEmit
 npm run build               # → .output/chrome-mv3 (load unpacked in chrome://extensions)
 npm run check:manifest      # run after build; fails if the manifest asks for more permissions than allowed
 npm run dev                 # WXT dev mode
+KT_STACK=9 npm run e2e      # builds, then runs tests/e2e against the running docker stack 7|8|9
+npm run icons               # re-render public/icon/*.png from assets/icon.svg
+npm run zip                 # store package: .output/kibanatool-<version>-chrome.zip
 ```
 
-Dev Kibana stacks: `./docker/up.sh 8|9` starts Kibana 8.19.23 on :18601 or 9.5.5 on :19601, with security on and anonymous browser login. It also seeds synthetic logs. `./docker/down.sh 8|9` stops a stack and deletes its data. `./docker/obs-view.sh 9` switches the 9.x default space to the Observability view, where ECS logs open the flyout on the "Log overview" tab. There is no 7.17 stack in `docker/`, and no Playwright/e2e harness in the repo yet.
+Dev Kibana stacks: `./docker/up.sh 7|8|9` starts Kibana 7.17.29 on :17601 under the `/kibana` base path, 8.19.23 on :18601 or 9.5.5 on :19601, with security on and anonymous browser login (as `kt_anon`; Elasticsearch anonymous access is off). It re-seeds the same synthetic logs, data views, a `test` space, an `obs` Observability space (9.x) and the read-only user `kt_reader` on every run. `./docker/down.sh 7|8|9` stops a stack and deletes its data. Secrets are in `docker/.env.<major>`; never print them.
 
 ## Architecture
 
@@ -52,7 +55,10 @@ Dev Kibana stacks: `./docker/up.sh 8|9` starts Kibana 8.19.23 on :18601 or 9.5.5
 - Settings validation repairs, it does not reject, unknown environmentIds: parseConfig drops them and disables an action left with none (an empty list would mean "all environments").
 - A new UI string needs a key in the `MessageKey` union in `src/i18n.ts` and an entry in both `public/_locales/en/messages.json` and `public/_locales/tr/messages.json`.
 - Unit tests run in the `node` environment by default. DOM tests opt in per file with `// @vitest-environment happy-dom`. Tests use fake `fetch`/`scripting`/`permissions` objects (see the `*Like` interfaces), not WXT mocks.
+- E2E tests never assert localized text (Chromium on macOS takes the UI language from the OS). They use `data-test-subj`, roles, menu order and the action labels from `e2eConfig()`, and read time ranges from `_g.time` in the URL, not from the 9.x time picker.
+- `docker/seed.mjs` is a contract with `tests/e2e` (ids, values, times): change both together. `tests/fixtures/*.json` are captured from the stacks (`KT_CAPTURE=1 npm run e2e -- capture`); refresh them after a Kibana upgrade instead of editing them.
+- The e2e copy of the extension (`.output/e2e-extension`) lists the stack's origin under `host_permissions`, because Chrome's permission prompt cannot be automated. The prompt itself is checked by hand (`docs/verification/2026-10-plan-3.md`).
 
 ## Docs
 
-Code comments cite the design spec by section (`spec §5.1`). The spec and plans live in `docs/superpowers/`, which is gitignored, local-only and written in Turkish, so a fresh clone won't have them. `docs/verification/` is tracked. Plans 1 (link actions) and 2 (Discover actions, copy/mask, JSON view, full options page) are done. Plan 3 will add the Playwright e2e matrix, CI and the store release.
+Code comments cite the design spec by section (`spec §5.1`). The spec and plans live in `docs/superpowers/`, which is gitignored, local-only and written in Turkish, so a fresh clone won't have them. `docs/verification/` is tracked. Plans 1 (link actions), 2 (Discover actions, copy/mask, JSON view, full options page) and 3 (e2e matrix, CI, store package) are done. `.github/workflows/ci.yml` runs the unit checks and the e2e matrix on every pull request.

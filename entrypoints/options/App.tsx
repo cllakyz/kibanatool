@@ -15,12 +15,15 @@ const store = createConfigStore(browser.storage.local);
 export function App() {
   const [config, setConfig] = useState<Config | null>(null);
   const [loadErrors, setLoadErrors] = useState<string[]>([]);
+  // A corrupt stored value: "Export" saves it as is until a save replaces it, so it can be fixed by hand.
+  const [invalid, setInvalid] = useState<unknown>(undefined);
 
   useEffect(() => {
     store.load().then(
       (loaded) => {
         setConfig(loaded.config);
         setLoadErrors(loaded.errors);
+        setInvalid(loaded.invalid);
       },
       (error: unknown) => {
         setConfig(emptyConfig());
@@ -41,10 +44,10 @@ export function App() {
     }
     setConfig(next);
     setLoadErrors([]);
-    const unused = unusedOrigins(current, next);
-    if (unused.length === 0) return [];
+    setInvalid(undefined);
     try {
-      await browser.permissions.remove({ origins: unused });
+      const unused = unusedOrigins((await browser.permissions.getAll()).origins ?? [], next);
+      if (unused.length > 0) await browser.permissions.remove({ origins: unused });
       return [];
     } catch (error) {
       return [t("optionsPermissionError", String(error))];
@@ -69,7 +72,7 @@ export function App() {
       <EnvironmentsSection {...props} />
       <ActionsSection {...props} />
       <CopySection {...props} />
-      <TransferSection {...props} />
+      <TransferSection {...props} exportValue={invalid ?? current} />
     </main>
   );
 }

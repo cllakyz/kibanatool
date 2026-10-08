@@ -9,7 +9,6 @@ export function CopySection({ config, onSave }: SectionProps) {
   const [patterns, setPatterns] = useState("");
   const { errors, saved, submit } = useSubmit(onSave);
 
-  // Follow the stored values, e.g. after an import.
   const storedFields = config.copy.markdownFields.join("\n");
   const storedPatterns = config.copy.maskPatterns.join("\n");
 

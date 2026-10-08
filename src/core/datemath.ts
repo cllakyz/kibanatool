@@ -19,17 +19,16 @@ export function resolveDatemath(expression: string, now: Date, roundUp: boolean)
   return date.toISOString();
 }
 
+const UNIT_MS: Partial<Record<Unit, number>> = { s: 1000, m: 60_000, h: 3_600_000 };
+
 function add(date: Date, amount: number, unit: Unit): void {
+  // Like Kibana (moment): s, m and h are absolute time, so a DST change does not shift them; d, w, M and y are calendar units.
+  const ms = UNIT_MS[unit];
+  if (ms !== undefined) {
+    date.setTime(date.getTime() + amount * ms);
+    return;
+  }
   switch (unit) {
-    case "s":
-      date.setSeconds(date.getSeconds() + amount);
-      break;
-    case "m":
-      date.setMinutes(date.getMinutes() + amount);
-      break;
-    case "h":
-      date.setHours(date.getHours() + amount);
-      break;
     case "d":
       date.setDate(date.getDate() + amount);
       break;

@@ -4,3 +4,5 @@ node_modules/
 .wxt/
 docker/.env.*
 docs/superpowers/
+playwright-report/
+test-results/

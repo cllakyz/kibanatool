@@ -56,9 +56,13 @@ export function parseImport(text: string): ParseResult {
   return parseConfig(input);
 }
 
-/** Host permission patterns that `before` needed and `after` no longer does (removed or replaced environments). */
-export function unusedOrigins(before: Config, after: Config): string[] {
+/**
+ * Granted host permission patterns that no environment of `after` needs. Compared with what Chrome granted,
+ * not with the previous config: after a corrupt load that is the empty fallback, which needs nothing.
+ * Only patterns of the shape `originPattern` emits count: wildcard grants the extension did not request
+ * ("On all sites", enterprise policy) are left alone.
+ */
+export function unusedOrigins(granted: string[], after: Config): string[] {
   const needed = new Set(after.environments.map((environment) => originPattern(environment.kibanaUrl)));
-  const previous = new Set(before.environments.map((environment) => originPattern(environment.kibanaUrl)));
-  return [...previous].filter((pattern) => !needed.has(pattern));
+  return granted.filter((pattern) => /^https?:\/\/[^*/]+\/\*$/.test(pattern) && !needed.has(pattern));
 }

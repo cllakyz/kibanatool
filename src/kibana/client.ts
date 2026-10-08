@@ -48,8 +48,11 @@ async function readJson<T extends object>(response: Response): Promise<T> {
   let body: unknown;
   try {
     body = await response.json();
-  } catch {
-    throw new KibanaError("incompatible", "Unexpected response");
+  } catch (error) {
+    // Only a non-JSON body (SyntaxError) is another API. A timeout/abort of AbortSignal.timeout on a body that is
+    // still arriving, or a dropped connection (TypeError), is a slow or unreachable Kibana.
+    if (error instanceof SyntaxError) throw new KibanaError("incompatible", "Unexpected response");
+    throw new KibanaError("network", "Kibana is unreachable");
   }
   if (typeof body !== "object" || body === null) throw new KibanaError("incompatible", "Unexpected response");
   return body as T;
