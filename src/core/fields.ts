@@ -9,9 +9,9 @@ export function isPlainObject(value: unknown): value is Record<string, unknown> 
   return typeof value === "object" && value !== null && !Array.isArray(value);
 }
 
-/** Spec §7.1: undefined, null and "" mean "no value"; 0 and false are values. */
+/** Spec §7.1: undefined, null, "" and [] mean "no value"; 0 and false are values. */
 export function isMissing(value: unknown): boolean {
-  return value === undefined || value === null || value === "";
+  return value === undefined || value === null || value === "" || (Array.isArray(value) && value.length === 0);
 }
 
 /** Primitives as text, primitive arrays joined with ",", everything else as JSON. */
@@ -40,9 +40,15 @@ export function parseJsonText(text: string): Record<string, unknown> | unknown[]
   }
 }
 
-export function flattenDoc(hit: RawHit): FieldMap {
+/** Dot-path leaves of `_source`. JSON text is also expanded under its own path unless `expandJson` is false. */
+export function flattenSource(source: Record<string, unknown>, expandJson = true): FieldMap {
   const fields: FieldMap = Object.create(null);
-  flattenInto(fields, "", hit._source ?? {}, 0);
+  flattenInto(fields, "", source, expandJson ? 0 : MAX_JSON_DEPTH);
+  return fields;
+}
+
+export function flattenDoc(hit: RawHit): FieldMap {
+  const fields = flattenSource(hit._source ?? {});
   fields._id = hit._id;
   fields._index = hit._index;
   return fields;

@@ -18,6 +18,7 @@ export function parsePlaceholders(template: string): Placeholder[] {
 /** First present value among `paths`, as text; null when none has a value. */
 export function lookup(fields: FieldMap, paths: string[]): string | null {
   for (const path of paths) {
+    if (!Object.hasOwn(fields, path)) continue;
     const value = fields[path];
     if (!isMissing(value)) return formatValue(value);
   }
@@ -49,4 +50,13 @@ export function resolveTemplate(
 
 export function isHttpUrlTemplate(template: string): boolean {
   return /^https?:\/\//i.test(template.trim());
+}
+
+export function isHttpUrl(value: string): boolean {
+  try {
+    const url = new URL(value);
+    return url.protocol === "http:" || url.protocol === "https:";
+  } catch {
+    return false;
+  }
 }

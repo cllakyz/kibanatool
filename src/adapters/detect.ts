@@ -5,8 +5,12 @@ import { findDataGridDetailViews } from "./data-grid";
 import { findLegacyDetailViews } from "./legacy-table";
 import type { DetailView } from "./types";
 
-export function findDetailViews(doc: Document, location: { pathname: string; hash: string }): DetailView[] {
-  if (!isDiscoverPath(location.pathname)) return [];
+export function findDetailViews(
+  doc: Document,
+  location: { pathname: string; hash: string },
+  prefix: string,
+): DetailView[] {
+  if (!isDiscoverPath(location.pathname, prefix)) return [];
   const state = readAppState(location.hash);
   if (isEsqlState(state)) return [];
   const fallback = dataViewIdFromState(state);

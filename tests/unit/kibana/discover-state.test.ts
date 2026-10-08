@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { dataViewIdFromState, isEsqlState, readAppState } from "../../../src/kibana/discover-state";
+import { dataViewIdFromState, isEsqlState, readAppState, readGlobalTime } from "../../../src/kibana/discover-state";
 
 // Real hashes captured during the spike (7.17 percent-encodes quotes; 9.5 adds _tab).
 const hash717 =
@@ -26,5 +26,31 @@ describe("isEsqlState", () => {
     expect(isEsqlState(readAppState("#/?_a=(dataSource:(type:esql),query:(esql:'FROM logs-* | LIMIT 10'))"))).toBe(true);
     expect(isEsqlState(readAppState("#/?_a=(query:(esql:'FROM logs-*'))"))).toBe(true);
     expect(isEsqlState(readAppState(hash95))).toBe(false);
+  });
+});
+
+describe("readGlobalTime", () => {
+  it("reads relative and absolute time ranges", () => {
+    expect(readGlobalTime(hash95)).toEqual({ from: "now-2d", to: "now" });
+    expect(readGlobalTime(hash717)).toEqual({ from: "2026-08-12T00:00:00.000Z", to: "2026-08-21T00:00:00.000Z" });
+  });
+
+  it("returns undefined without a usable time range", () => {
+    expect(readGlobalTime("#/?_a=(index:dv)")).toBeUndefined();
+    expect(readGlobalTime("#/?_g=(time:(from:1,to:now))")).toBeUndefined();
+    expect(readGlobalTime("#/?_g=(((")).toBeUndefined();
+  });
+});
+
+describe("URL state is type-checked", () => {
+  it("ignores a data view id that is not a non-empty string", () => {
+    expect(dataViewIdFromState(readAppState("#/?_a=(index:42)"))).toBeUndefined();
+    expect(dataViewIdFromState(readAppState("#/?_a=(index:'')"))).toBeUndefined();
+    expect(dataViewIdFromState(readAppState("#/?_a=(dataSource:'x',index:dv)"))).toBe("dv");
+    expect(dataViewIdFromState(readAppState("#/?_a=(dataSource:!(a),index:dv)"))).toBe("dv");
+  });
+
+  it("does not treat odd shapes as ES|QL", () => {
+    expect(isEsqlState(readAppState("#/?_a=(dataSource:esql,query:'x')"))).toBe(false);
   });
 });

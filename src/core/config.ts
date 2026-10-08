@@ -1,17 +1,8 @@
 // Configuration schema, validation and lookups (spec §8).
 import { z } from "zod";
-import { isHttpUrlTemplate } from "./template";
+import { isHttpUrl, isHttpUrlTemplate } from "./template";
 
 z.config({ jitless: true }); // MV3 forbids eval; skip zod's Function("") fast-path probe
-
-function isHttpUrl(value: string): boolean {
-  try {
-    const url = new URL(value);
-    return url.protocol === "http:" || url.protocol === "https:";
-  } catch {
-    return false;
-  }
-}
 
 const conditionSchema = z.object({
   field: z.string().min(1),
@@ -71,6 +62,26 @@ export const configSchema = z
         seen.add(id);
       });
     }
+    const urls = new Set<string>();
+    config.environments.forEach((environment, index) => {
+      const key = kibanaUrlKey(environment.kibanaUrl);
+      if (key === null) return;
+      if (urls.has(key)) {
+        ctx.addIssue({ code: "custom", message: "Duplicate Kibana URL", path: ["environments", index, "kibanaUrl"], input: environment.kibanaUrl });
+      }
+      urls.add(key);
+    });
+    config.actions.forEach((action, actionIndex) => {
+      action.conditions.forEach((condition, conditionIndex) => {
+        if (condition.op === "exists" || condition.value !== undefined) return;
+        ctx.addIssue({
+          code: "custom",
+          message: "value is required for this operator",
+          path: ["actions", actionIndex, "conditions", conditionIndex, "value"],
+          input: condition,
+        });
+      });
+    });
   });
 
 export type Config = z.infer<typeof configSchema>;
@@ -83,13 +94,38 @@ export type ParseResult = { ok: true; config: Config } | { ok: false; errors: st
 
 export function parseConfig(input: unknown): ParseResult {
   const result = configSchema.safeParse(input);
-  if (result.success) return { ok: true, config: result.data };
+  if (result.success) return { ok: true, config: withKnownEnvironments(result.data) };
   return {
     ok: false,
     errors: result.error.issues.map(
       (issue) => `${issue.path.map(String).join(".") || "(root)"}: ${issue.message}`,
     ),
   };
+}
+
+/**
+ * Drops environment ids that no environment has (removed environments, hand-edited imports).
+ * An action left with none would widen to every environment, so it is disabled instead.
+ */
+function withKnownEnvironments(config: Config): Config {
+  const known = new Set(config.environments.map((environment) => environment.id));
+  return {
+    ...config,
+    actions: config.actions.map((action) => {
+      const environmentIds = action.environmentIds.filter((id) => known.has(id));
+      if (environmentIds.length === action.environmentIds.length) return action;
+      return { ...action, environmentIds, enabled: action.enabled && environmentIds.length > 0 };
+    }),
+  };
+}
+
+/** Origin plus base path, so "https://X.test/" and "https://x.test" count as the same Kibana. */
+function kibanaUrlKey(kibanaUrl: string): string | null {
+  try {
+    return `${new URL(kibanaUrl).origin}${basePathOf(kibanaUrl)}`;
+  } catch {
+    return null; // an invalid URL is reported by its own rule; superRefine may still run
+  }
 }
 
 export const DEFAULT_MASK_PATTERNS = ["*authorization*", "*password*", "*token*", "*secret*", "*cookie*"];
@@ -132,6 +168,11 @@ export function activeEnvironment(config: Config, href: string): Environment | u
     }
   }
   return best;
+}
+
+/** "https://x/kibana/" → "/kibana"; "https://x" → "". Throws on an invalid URL. */
+export function basePathOf(kibanaUrl: string): string {
+  return new URL(kibanaUrl).pathname.replace(/\/+$/, "");
 }
 
 /** Host permission pattern for an environment (spec §9). Throws on an invalid URL. */

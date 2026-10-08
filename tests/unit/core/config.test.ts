@@ -4,6 +4,7 @@ import {
   type Config,
   actionsForEnvironment,
   activeEnvironment,
+  basePathOf,
   emptyConfig,
   originPattern,
   parseConfig,
@@ -123,5 +124,40 @@ describe("actionsForEnvironment", () => {
 describe("zod runtime config", () => {
   it("runs jitless: MV3 forbids eval, so zod must not probe Function(\"\")", () => {
     expect(z.config().jitless).toBe(true);
+  });
+});
+
+describe("parseConfig rules added in Plan 2", () => {
+  it("requires a value for every operator except exists", () => {
+    const config = validConfig();
+    config.actions[0] = { ...config.actions[0]!, conditions: [{ field: "level", op: "equals" }] };
+    expect(errorsOf(config)).toContain("actions.0.conditions.0.value: value is required for this operator");
+    config.actions[0] = { ...config.actions[0]!, conditions: [{ field: "level", op: "exists" }] };
+    expect(parseConfig(config).ok).toBe(true);
+  });
+
+  it("rejects two environments with the same Kibana URL", () => {
+    const config = validConfig();
+    config.environments.push({ id: "copy", name: "Copy", kibanaUrl: "https://KIBANA.example.com/" });
+    expect(errorsOf(config)).toContain("environments.1.kibanaUrl: Duplicate Kibana URL");
+  });
+
+  it("drops unknown environment ids and disables an action left with none", () => {
+    const config = validConfig();
+    config.actions[0] = { ...config.actions[0]!, environmentIds: ["prod", "gone"] };
+    config.actions[1] = { ...config.actions[1]!, environmentIds: ["gone"] };
+    const result = parseConfig(config);
+    expect(result.ok && result.config.actions.map(({ environmentIds, enabled }) => ({ environmentIds, enabled }))).toEqual([
+      { environmentIds: ["prod"], enabled: true },
+      { environmentIds: [], enabled: false },
+    ]);
+  });
+});
+
+describe("basePathOf", () => {
+  it("returns the URL path without trailing slashes", () => {
+    expect(basePathOf("https://example.com")).toBe("");
+    expect(basePathOf("https://example.com/kibana/")).toBe("/kibana");
+    expect(basePathOf("https://example.com/app/kibana")).toBe("/app/kibana");
   });
 });

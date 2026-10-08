@@ -1,6 +1,16 @@
 import { describe, expect, it } from "vitest";
 import { type Config, emptyConfig } from "../../../src/core/config";
-import { newEnvironment, withActionsJson, withEnvironment, withoutEnvironment } from "../../../src/options/model";
+import {
+  newAction,
+  newEnvironment,
+  parseImport,
+  unusedOrigins,
+  withAction,
+  withCopySettings,
+  withEnvironment,
+  withoutAction,
+  withoutEnvironment,
+} from "../../../src/options/model";
 
 const action = {
   id: "admin",
@@ -39,28 +49,105 @@ describe("withEnvironment", () => {
 });
 
 describe("withoutEnvironment", () => {
-  it("removes the environment and leaves actions untouched", () => {
+  it("removes the environment and disables an action that was scoped only to it", () => {
     const config = {
       ...emptyConfig(),
       environments: [newEnvironment("A", "https://a.example.com", "e1"), newEnvironment("B", "https://b.example.com", "e2")],
-      actions: [action],
+      actions: [action, { ...action, id: "both", environmentIds: ["e1", "e2"] }],
     } as Config;
-    const next = withoutEnvironment(config, "e1");
-    expect(next.environments.map((environment) => environment.id)).toEqual(["e2"]);
-    expect(next.actions).toEqual(config.actions);
+    const result = withoutEnvironment(config, "e1");
+    if (!result.ok) throw new Error(result.errors.join("; "));
+    expect(result.config.environments.map((environment) => environment.id)).toEqual(["e2"]);
+    expect(result.config.actions.map(({ id, environmentIds, enabled }) => ({ id, environmentIds, enabled }))).toEqual([
+      { id: "admin", environmentIds: [], enabled: false },
+      { id: "both", environmentIds: ["e2"], enabled: true },
+    ]);
   });
 });
 
-describe("withActionsJson", () => {
-  it("replaces the actions with a valid JSON array", () => {
-    const result = withActionsJson(emptyConfig(), JSON.stringify([action]));
-    expect(result.ok && result.config.actions).toEqual([action]);
+describe("actions", () => {
+  const base = (): Config => ({ ...emptyConfig(), environments: [newEnvironment("A", "https://a.example.com", "e1")] });
+
+  it("creates blank link and Discover actions", () => {
+    expect(newAction("link", "x")).toEqual({
+      id: "x",
+      kind: "link",
+      label: "",
+      enabled: true,
+      environmentIds: [],
+      conditions: [],
+      urlTemplate: "https://",
+    });
+    expect(newAction("discover", "y")).toEqual({
+      id: "y",
+      kind: "discover",
+      label: "",
+      enabled: true,
+      environmentIds: [],
+      conditions: [],
+      queryTemplate: "",
+    });
   });
 
-  it("reports JSON syntax errors and schema errors", () => {
-    const syntax = withActionsJson(emptyConfig(), "[{");
-    expect(!syntax.ok && syntax.errors[0]).toMatch(/^actions: /);
-    const schema = withActionsJson(emptyConfig(), JSON.stringify([{ ...action, urlTemplate: "javascript:alert(1)" }]));
-    expect(!schema.ok && schema.errors).toContain("actions.0.urlTemplate: must start with http:// or https://");
+  it("appends a new action and replaces one with the same id in place", () => {
+    const added = withAction(base(), { ...newAction("link", "x"), label: "Admin" });
+    if (!added.ok) throw new Error(added.errors.join("; "));
+    const second = withAction(added.config, { ...newAction("discover", "y"), label: "Logs" });
+    if (!second.ok) throw new Error(second.errors.join("; "));
+    const replaced = withAction(second.config, { ...second.config.actions[0]!, label: "Admin 2" });
+    expect(replaced.ok && replaced.config.actions.map((action) => action.label)).toEqual(["Admin 2", "Logs"]);
+  });
+
+  it("reports schema errors for an invalid action", () => {
+    const result = withAction(base(), newAction("link", "x"));
+    expect(!result.ok && result.errors.some((error) => error.startsWith("actions.0.label:"))).toBe(true);
+  });
+
+  it("removes an action by id", () => {
+    const added = withAction(base(), { ...newAction("link", "x"), label: "Admin" });
+    if (!added.ok) throw new Error(added.errors.join("; "));
+    const removed = withoutAction(added.config, "x");
+    expect(removed.ok && removed.config.actions).toEqual([]);
+  });
+});
+
+describe("withCopySettings", () => {
+  it("reads one entry per line and drops blank lines", () => {
+    const result = withCopySettings(emptyConfig(), " level \n\nmessage\n", "*token*\n  *secret*  ");
+    expect(result.ok && result.config.copy).toEqual({ markdownFields: ["level", "message"], maskPatterns: ["*token*", "*secret*"] });
+  });
+});
+
+describe("parseImport", () => {
+  it("accepts an exported config", () => {
+    const config = { ...emptyConfig(), environments: [newEnvironment("A", "https://a.example.com", "e1")] };
+    expect(parseImport(JSON.stringify(config, null, 2))).toEqual({ ok: true, config });
+  });
+
+  it("repairs actions scoped to environments the file does not have", () => {
+    const result = parseImport(JSON.stringify({ ...emptyConfig(), actions: [action] }));
+    expect(result.ok && result.config.actions[0]).toMatchObject({ environmentIds: [], enabled: false });
+  });
+
+  it("rejects bad JSON and invalid configs with field paths", () => {
+    expect(parseImport("{").ok).toBe(false);
+    const result = parseImport(JSON.stringify({ ...emptyConfig(), schemaVersion: 2 }));
+    expect(!result.ok && result.errors[0]).toMatch(/^schemaVersion: /);
+  });
+});
+
+describe("unusedOrigins", () => {
+  it("lists permission patterns that only the removed environments needed", () => {
+    const before = {
+      ...emptyConfig(),
+      environments: [
+        newEnvironment("A", "https://a.example.com", "e1"),
+        newEnvironment("A2", "https://a.example.com/kibana", "e2"),
+        newEnvironment("B", "http://b.example.com:5601", "e3"),
+      ],
+    };
+    const keepFirst = { ...before, environments: [before.environments[0]!] };
+    expect(unusedOrigins(before, keepFirst)).toEqual(["http://b.example.com:5601/*"]);
+    expect(unusedOrigins(before, { ...before, environments: [] })).toEqual(["https://a.example.com/*", "http://b.example.com:5601/*"]);
   });
 });

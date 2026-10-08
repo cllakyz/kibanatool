@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { Action, LinkAction } from "../../../src/core/config";
-import { buildLinkButtons } from "../../../src/core/link-actions";
+import { buildLinkButtons, resolveLinkAction } from "../../../src/core/link-actions";
 
 const link = (overrides: Partial<LinkAction> = {}): LinkAction => ({
   id: "a",
@@ -43,5 +43,27 @@ describe("buildLinkButtons", () => {
 
   it("drops a resolved URL that is not http(s) even if the template skipped validation", () => {
     expect(buildLinkButtons([link({ urlTemplate: "{target}" })], { target: "javascript:alert(1)" })).toEqual([]);
+  });
+});
+
+describe("resolveLinkAction", () => {
+  it("explains why an action is hidden", () => {
+    expect(resolveLinkAction(link({ enabled: false }), { user_id: 1 })).toEqual({ ok: false, reason: "disabled" });
+    expect(resolveLinkAction(link({ conditions: [{ field: "level", op: "exists" }] }), { user_id: 1 })).toEqual({
+      ok: false,
+      reason: "conditions",
+    });
+    expect(resolveLinkAction(link(), {})).toEqual({ ok: false, reason: "missingValue" });
+    expect(resolveLinkAction(link(), { user_id: 1 })).toEqual({ ok: true, url: "https://x.test/users/1" });
+  });
+
+  it("rejects a resolved URL that does not parse, e.g. a bad value in the host", () => {
+    const action = link({ urlTemplate: "https://{host}/x" });
+    expect(resolveLinkAction(action, { host: "a b" })).toEqual({ ok: false, reason: "invalidUrl" });
+    expect(resolveLinkAction(action, { host: "admin.test" })).toEqual({ ok: true, url: "https://admin.test/x" });
+  });
+
+  it("treats an empty array as a missing value", () => {
+    expect(resolveLinkAction(link(), { user_id: [] })).toEqual({ ok: false, reason: "missingValue" });
   });
 });

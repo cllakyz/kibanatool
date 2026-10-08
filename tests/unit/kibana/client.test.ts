@@ -131,3 +131,34 @@ describe("getVersion", () => {
     await expect(createKibanaClient({ prefix: "", fetch: failing.fetch }).getVersion()).resolves.toBeUndefined();
   });
 });
+
+describe("timeouts and odd bodies", () => {
+  it("abandons a hung request as network and retries it on the next call", async () => {
+    let attempt = 0;
+    const fetch = (_url: string, init?: RequestInit): Promise<Response> =>
+      attempt++ === 0
+        ? new Promise<Response>((_resolve, reject) => init?.signal?.addEventListener("abort", () => reject(init.signal?.reason)))
+        : Promise.resolve(searchOk());
+    const client = createKibanaClient({ prefix: "", fetch, timeoutMs: 20 });
+    expect(await kindOf(client.fetchDoc("app_log", "abc"))).toBe("network");
+    await expect(client.fetchDoc("app_log", "abc")).resolves.toEqual(HIT);
+  });
+
+  it("reports incompatible for a JSON null body", async () => {
+    const { fetch } = fakeFetch(() => json(null));
+    expect(await kindOf(createKibanaClient({ prefix: "", fetch }).fetchDoc("i", "d"))).toBe("incompatible");
+    expect(await kindOf(createKibanaClient({ prefix: "", fetch }).getDataView("dv"))).toBe("incompatible");
+  });
+});
+
+describe("getVersion caching", () => {
+  it("asks once per page and retries after a failure", async () => {
+    let attempt = 0;
+    const { fetch, calls } = fakeFetch(() => (attempt++ === 0 ? json({}, 503) : json({ version: { number: "8.19.23" } })));
+    const client = createKibanaClient({ prefix: "", fetch });
+    await expect(client.getVersion()).resolves.toBeUndefined();
+    await expect(client.getVersion()).resolves.toBe("8.19.23");
+    await expect(client.getVersion()).resolves.toBe("8.19.23");
+    expect(calls).toHaveLength(2);
+  });
+});
