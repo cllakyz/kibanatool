@@ -17,16 +17,6 @@ export function withoutEnvironment(config: Config, environmentId: string): Parse
   });
 }
 
-export function withActionsJson(config: Config, text: string): ParseResult {
-  let actions: unknown;
-  try {
-    actions = JSON.parse(text);
-  } catch (error) {
-    return { ok: false, errors: [`actions: ${(error as Error).message}`] };
-  }
-  return parseConfig({ ...config, actions });
-}
-
 /** A blank action for the editor; the label must be filled in before it validates. */
 export function newAction(kind: Action["kind"], id: string = crypto.randomUUID()): Action {
   const base = { id, label: "", enabled: true, environmentIds: [], conditions: [] };

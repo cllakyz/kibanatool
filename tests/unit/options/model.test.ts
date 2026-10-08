@@ -6,7 +6,6 @@ import {
   parseImport,
   unusedOrigins,
   withAction,
-  withActionsJson,
   withCopySettings,
   withEnvironment,
   withoutAction,
@@ -63,21 +62,6 @@ describe("withoutEnvironment", () => {
       { id: "admin", environmentIds: [], enabled: false },
       { id: "both", environmentIds: ["e2"], enabled: true },
     ]);
-  });
-});
-
-describe("withActionsJson", () => {
-  it("replaces the actions with a valid JSON array", () => {
-    const config = { ...emptyConfig(), environments: [newEnvironment("A", "https://a.example.com", "e1")] };
-    const result = withActionsJson(config, JSON.stringify([action]));
-    expect(result.ok && result.config.actions).toEqual([action]);
-  });
-
-  it("reports JSON syntax errors and schema errors", () => {
-    const syntax = withActionsJson(emptyConfig(), "[{");
-    expect(!syntax.ok && syntax.errors[0]).toMatch(/^actions: /);
-    const schema = withActionsJson(emptyConfig(), JSON.stringify([{ ...action, urlTemplate: "javascript:alert(1)" }]));
-    expect(!schema.ok && schema.errors).toContain("actions.0.urlTemplate: must start with http:// or https://");
   });
 });
 

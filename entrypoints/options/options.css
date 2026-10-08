@@ -20,3 +20,9 @@ button.link { background: none; color: #bd271e; }
 .warning { background: #fff9e8; border: 1px solid #f5a700; }
 .error { background: #fbebeb; border: 1px solid #bd271e; }
 .notice { background: #e6f9f7; border: 1px solid #017d73; }
+label.inline { display: inline-flex; flex-direction: row; align-items: center; gap: 6px; margin: 4px 12px 4px 0; font-weight: 400; }
+fieldset { margin: 12px 0; border: 1px solid #e3e8f0; border-radius: 6px; }
+legend { padding: 0 4px; font-weight: 600; }
+.badge { padding: 0 6px; border-radius: 4px; background: #e9edf3; font-size: 12px; }
+.editor { margin-top: 12px; padding: 12px; border: 1px solid #d3dae6; border-radius: 6px; background: #fbfcfd; }
+.preview { margin: 8px 0 0; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 12px; word-break: break-all; }
