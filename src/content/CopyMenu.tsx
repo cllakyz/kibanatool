@@ -37,7 +37,14 @@ export function CopyMenu({ items, onCopy }: { items: CopyItem[]; onCopy: (text: 
               role="menuitem"
               onClick={() => {
                 setOpen(false);
-                onCopy(item.text());
+                let text: string | null;
+                try {
+                  text = item.text();
+                } catch (error) {
+                  console.debug("[kibanatool] copy text failed:", error);
+                  text = null;
+                }
+                onCopy(text);
               }}
             >
               {item.label}

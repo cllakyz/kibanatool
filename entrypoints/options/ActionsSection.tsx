@@ -39,7 +39,11 @@ export function ActionsSection({ config, onSave }: SectionProps) {
             <button type="button" onClick={() => setDraft(action)}>
               {t("optionsEdit")}
             </button>
-            <button type="button" className="link" onClick={() => void submit(withoutAction(config, action.id))}>
+            <button type="button" className="link" onClick={() => {
+                if (draft?.id === action.id) setDraft(null);
+                void submit(withoutAction(config, action.id));
+              }}
+            >
               {t("optionsRemove")}
             </button>
           </li>

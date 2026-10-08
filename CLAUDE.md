@@ -31,7 +31,7 @@ Dev Kibana stacks: `./docker/up.sh 8|9` starts Kibana 8.19.23 on :18601 or 9.5.5
 1. A debounced MutationObserver calls `findDetailViews` (`src/adapters/detect.ts`). It does nothing outside Discover and in ES|QL mode.
 2. Adapters find open detail views. The 7.17 adapter (`legacy-table.ts`) looks for expanded `docTableDetailsRow` rows. The 8.x/9.x adapter (`data-grid.ts`) looks for the `docViewerFlyout` flyout. Each view yields a `DocIdentity` (`dataViewId`, `_index`, `_id`). The identity comes from Kibana's own links, decoded in `src/kibana/locator.ts`: the 7.17 `#/doc/<dv>/<index>?id=` href, or the 8.x/9.x `DISCOVER_SINGLE_DOC_LOCATOR` `lz` param. If neither link is there, the adapter reads the `tableDocViewRow-_id/_index-value` rows instead.
 3. `reconcileMounts` (`src/content/mounts.ts`) keeps exactly one `<kibanatool-bar>` host per detail container. Each host gets a shadow root with its own React root.
-4. `ActionBar` calls `client.fetchDoc` (`src/kibana/client.ts`), then `flattenDoc` → `buildLinkButtons` (`src/core/`).
+4. `ActionBar` fetches the raw doc (`client.fetchDoc`) and the time fields of the data views it needs (`src/content/bar-data.ts`), then renders link buttons (`buildLinkButtons`), Discover buttons (`buildDiscoverButtons`, which keep the current `_g.time` from the `hash` prop when no window applies), a "JSON" panel for fields holding JSON text (`src/core/json-tree.ts`, `JsonView`) and the "⋯" copy menu (masked Markdown via `src/core/markdown.ts`, the single-doc link, and the view with fixed time via `src/core/datemath.ts`). Clipboard writes go through `src/content/clipboard.ts` (async clipboard, then an `execCommand` fallback inside the shadow root).
 
 **Layers:**
 - `src/core/` is pure logic with no browser APIs: the config schema (zod), field flattening (which also expands JSON-string values), `{path|fallback}` templates, and conditions.
@@ -49,9 +49,10 @@ Dev Kibana stacks: `./docker/up.sh 8|9` starts Kibana 8.19.23 on :18601 or 9.5.5
 - The locator `lz` param must be decoded with `decompressFromBase64`. The URI-safe decoder silently corrupts it.
 - The content script must never break Kibana. Keep errors contained and log them only with `console.debug("[kibanatool]", …)`.
 - Render log values through React only; never use `innerHTML`. URL template values go through `encodeURIComponent`, and only `http(s)` templates are accepted.
+- Settings validation repairs, it does not reject, unknown environmentIds: parseConfig drops them and disables an action left with none (an empty list would mean "all environments").
 - A new UI string needs a key in the `MessageKey` union in `src/i18n.ts` and an entry in both `public/_locales/en/messages.json` and `public/_locales/tr/messages.json`.
 - Unit tests run in the `node` environment by default. DOM tests opt in per file with `// @vitest-environment happy-dom`. Tests use fake `fetch`/`scripting`/`permissions` objects (see the `*Like` interfaces), not WXT mocks.
 
 ## Docs
 
-Code comments cite the design spec by section (`spec §5.1`). The spec and plans live in `docs/superpowers/`, which is gitignored, local-only and written in Turkish, so a fresh clone won't have them. `docs/verification/` is tracked. Plan 1 (link actions) is done. Plan 2 will add discover actions, copy/mask, a JSON view and the full options UI. Plan 3 will add the Playwright e2e matrix, CI and the store release.
+Code comments cite the design spec by section (`spec §5.1`). The spec and plans live in `docs/superpowers/`, which is gitignored, local-only and written in Turkish, so a fresh clone won't have them. `docs/verification/` is tracked. Plans 1 (link actions) and 2 (Discover actions, copy/mask, JSON view, full options page) are done. Plan 3 will add the Playwright e2e matrix, CI and the store release.

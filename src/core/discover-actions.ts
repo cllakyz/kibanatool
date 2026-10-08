@@ -17,12 +17,12 @@ const ZONELESS = /^\d{4}-\d{2}-\d{2}[T ]\d{2}:\d{2}(:\d{2}(\.\d+)?)?$/;
 /** Epoch milliseconds of a time field value. Elasticsearch reads a date without a zone as UTC; Date.parse would not. */
 export function logTimeMs(value: unknown): number | undefined {
   if (Array.isArray(value)) return logTimeMs(value[0]);
-  if (typeof value === "number") return Number.isFinite(value) ? value : undefined;
+  const valid = (ms: number) => (Number.isFinite(new Date(ms).getTime()) ? ms : undefined);
+  if (typeof value === "number") return valid(value);
   if (typeof value !== "string") return undefined;
   const text = value.trim();
-  if (/^\d+$/.test(text)) return Number(text);
-  const time = Date.parse(ZONELESS.test(text) ? `${text.replace(" ", "T")}Z` : text);
-  return Number.isNaN(time) ? undefined : time;
+  if (/^\d+$/.test(text)) return valid(Number(text));
+  return valid(Date.parse(ZONELESS.test(text) ? `${text.replace(" ", "T")}Z` : text));
 }
 
 export type QueryResolution = { ok: true; query: string } | { ok: false; reason: Exclude<HiddenReason, "invalidUrl"> };

@@ -10,10 +10,14 @@ export function CopySection({ config, onSave }: SectionProps) {
   const { errors, saved, submit } = useSubmit(onSave);
 
   // Follow the stored values, e.g. after an import.
+  const storedFields = config.copy.markdownFields.join("\n");
+  const storedPatterns = config.copy.maskPatterns.join("\n");
+
+  // Follow the stored values (e.g. after an import) without wiping unsaved edits on unrelated saves.
   useEffect(() => {
-    setFields(config.copy.markdownFields.join("\n"));
-    setPatterns(config.copy.maskPatterns.join("\n"));
-  }, [config.copy]);
+    setFields(storedFields);
+    setPatterns(storedPatterns);
+  }, [storedFields, storedPatterns]);
 
   return (
     <section aria-labelledby="copy-title">

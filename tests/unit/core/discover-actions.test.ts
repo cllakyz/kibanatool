@@ -48,6 +48,11 @@ describe("kqlQuote", () => {
 });
 
 describe("logTimeMs", () => {
+  it("returns undefined for epoch values outside the Date range", () => {
+    expect(logTimeMs(1e20)).toBeUndefined();
+    expect(logTimeMs("99999999999999999")).toBeUndefined();
+  });
+
   it("reads Monolog times with microseconds and an offset", () => {
     expect(logTimeMs("2026-08-12T10:00:00.123456+03:00")).toBe(Date.UTC(2026, 7, 12, 7, 0, 0, 123));
   });
