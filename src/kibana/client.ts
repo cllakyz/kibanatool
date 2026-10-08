@@ -34,29 +34,36 @@ export const DOC_FETCH_HEADERS = {
   "content-type": "application/json",
 };
 
+/** A request that has not answered by then is abandoned and reported as "network". */
+export const REQUEST_TIMEOUT_MS = 15_000;
+
 function errorFor(status: number): KibanaError {
   if (status === 401 || status === 403) return new KibanaError("forbidden", `HTTP ${status}`, status);
   if (status === 400 || status === 404) return new KibanaError("incompatible", `HTTP ${status}`, status);
   return new KibanaError("server", `HTTP ${status}`, status);
 }
 
-/** A 2xx body that is not JSON (e.g. an SSO page) is an unexpected response, not a raw SyntaxError. */
-async function readJson<T>(response: Response): Promise<T> {
+/** A 2xx body that is not a JSON object (an SSO page, `null`) is an unexpected response, not a TypeError. */
+async function readJson<T extends object>(response: Response): Promise<T> {
+  let body: unknown;
   try {
-    return (await response.json()) as T;
+    body = await response.json();
   } catch {
     throw new KibanaError("incompatible", "Unexpected response");
   }
+  if (typeof body !== "object" || body === null) throw new KibanaError("incompatible", "Unexpected response");
+  return body as T;
 }
 
-export function createKibanaClient(options: { prefix: string; fetch: FetchFn }): KibanaClient {
-  const { prefix, fetch } = options;
+export function createKibanaClient(options: { prefix: string; fetch: FetchFn; timeoutMs?: number }): KibanaClient {
+  const { prefix, fetch, timeoutMs = REQUEST_TIMEOUT_MS } = options;
   const docs = new Map<string, Promise<RawHit>>();
   const dataViews = new Map<string, Promise<DataViewInfo>>();
+  let version: Promise<string | undefined> | undefined;
 
   async function request(path: string, init?: RequestInit): Promise<Response> {
     try {
-      return await fetch(prefix + path, { credentials: "same-origin", ...init });
+      return await fetch(prefix + path, { credentials: "same-origin", signal: AbortSignal.timeout(timeoutMs), ...init });
     } catch {
       throw new KibanaError("network", "Kibana is unreachable");
     }
@@ -103,18 +110,24 @@ export function createKibanaClient(options: { prefix: string; fetch: FetchFn }):
     return { title: view.title, timeFieldName: view.timeFieldName || undefined };
   }
 
+  async function loadVersion(): Promise<string | undefined> {
+    try {
+      const response = await request("/api/status");
+      if (!response.ok) return undefined;
+      return (await readJson<{ version?: { number?: string } }>(response)).version?.number;
+    } catch {
+      return undefined;
+    }
+  }
+
   return {
     fetchDoc: (index, id) => cached(docs, `${index}/${id}`, () => loadDoc(index, id)),
     getDataView: (id) => cached(dataViews, id, () => loadDataView(id)),
     async getVersion() {
-      try {
-        const response = await request("/api/status");
-        if (!response.ok) return undefined;
-        const body = (await response.json()) as { version?: { number?: string } };
-        return body.version?.number;
-      } catch {
-        return undefined;
-      }
+      version ??= loadVersion();
+      const number = await version;
+      if (number === undefined) version = undefined; // a failed lookup is retried next time
+      return number;
     },
   };
 }

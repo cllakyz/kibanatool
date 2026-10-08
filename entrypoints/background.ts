@@ -8,7 +8,8 @@ export default defineBackground(() => {
 
   const run = async (): Promise<void> => {
     try {
-      const { config } = await store.load();
+      const { config, errors } = await store.load();
+      if (errors.length > 0) console.warn("[kibanatool] stored settings are invalid; running with empty settings:", errors);
       await syncContentScripts(config, { scripting: browser.scripting, permissions: browser.permissions });
     } catch (error) {
       console.error("[kibanatool] content script sync failed", error);

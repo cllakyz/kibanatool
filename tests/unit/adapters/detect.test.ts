@@ -12,12 +12,12 @@ describe("findDetailViews", () => {
   });
 
   it("finds views only on Discover", () => {
-    expect(findDetailViews(document, { pathname: "/s/team/app/discover", hash: "#/" })).toHaveLength(1);
-    expect(findDetailViews(document, { pathname: "/app/dashboards", hash: "#/" })).toEqual([]);
+    expect(findDetailViews(document, { pathname: "/s/team/app/discover", hash: "#/" }, "/s/team")).toHaveLength(1);
+    expect(findDetailViews(document, { pathname: "/app/dashboards", hash: "#/" }, "")).toEqual([]);
   });
 
   it("stays inactive in ES|QL mode", () => {
-    expect(findDetailViews(document, { pathname: "/app/discover", hash: "#/?_a=(query:(esql:'FROM logs-*'))" })).toEqual([]);
+    expect(findDetailViews(document, { pathname: "/app/discover", hash: "#/?_a=(query:(esql:'FROM logs-*'))" }, "")).toEqual([]);
   });
 
   it("passes the URL data view as the fallback", () => {
@@ -26,7 +26,7 @@ describe("findDetailViews", () => {
         <span data-test-subj="tableDocViewRow-_id-value">L2</span>
         <span data-test-subj="tableDocViewRow-_index-value">monolog</span>
       </div></td></tr></tbody></table>`;
-    const views = findDetailViews(document, { pathname: "/app/discover", hash: "#/?_a=(index:'dv-url')" });
+    const views = findDetailViews(document, { pathname: "/app/discover", hash: "#/?_a=(index:'dv-url')" }, "");
     expect(views[0]!.identity).toEqual({ dataViewId: "dv-url", index: "monolog", id: "L2" });
   });
 });

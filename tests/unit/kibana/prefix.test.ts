@@ -13,13 +13,21 @@ describe("kibanaPrefix", () => {
     expect(kibanaPrefix("/login")).toBeNull();
     expect(kibanaPrefix("/")).toBeNull();
   });
+
+  it("starts looking after the environment's base path", () => {
+    expect(kibanaPrefix("/app/kibana/app/discover", "/app/kibana")).toBe("/app/kibana");
+    expect(kibanaPrefix("/app/kibana/s/team/app/discover", "/app/kibana")).toBe("/app/kibana/s/team");
+    expect(kibanaPrefix("/kibana/app/discover", "/kibana")).toBe("/kibana");
+    expect(kibanaPrefix("/other/app/discover", "/kibana")).toBeNull();
+  });
 });
 
 describe("isDiscoverPath", () => {
-  it("detects Discover under any prefix", () => {
-    expect(isDiscoverPath("/app/discover")).toBe(true);
-    expect(isDiscoverPath("/kibana/s/team/app/discover")).toBe(true);
-    expect(isDiscoverPath("/app/dashboards")).toBe(false);
-    expect(isDiscoverPath("/login")).toBe(false);
+  it("detects Discover under the given prefix", () => {
+    expect(isDiscoverPath("/app/discover", "")).toBe(true);
+    expect(isDiscoverPath("/kibana/s/team/app/discover", "/kibana/s/team")).toBe(true);
+    expect(isDiscoverPath("/app/kibana/app/discover", "/app/kibana")).toBe(true);
+    expect(isDiscoverPath("/app/dashboards", "")).toBe(false);
+    expect(isDiscoverPath("/app/kibana/app/dashboards", "/app/kibana")).toBe(false);
   });
 });

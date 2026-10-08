@@ -7,7 +7,7 @@ import type { DetailView } from "../src/adapters/types";
 import { ActionBar } from "../src/content/ActionBar";
 import { type Mount, type MountHandle, reconcileMounts } from "../src/content/mounts";
 import { BAR_CSS } from "../src/content/styles";
-import { type Config, actionsForEnvironment, activeEnvironment } from "../src/core/config";
+import { type Config, actionsForEnvironment, activeEnvironment, basePathOf } from "../src/core/config";
 import { createKibanaClient } from "../src/kibana/client";
 import { kibanaPrefix } from "../src/kibana/prefix";
 import { createConfigStore, isConfigChange } from "../src/storage";
@@ -20,10 +20,14 @@ export default defineUnlistedScript(() => {
 });
 
 async function start(): Promise<void> {
-  const prefix = kibanaPrefix(location.pathname);
-  if (prefix === null) return;
   const store = createConfigStore(browser.storage.local);
   let config: Config = (await store.load()).config;
+  const startEnvironment = activeEnvironment(config, location.href);
+  // The base path may itself contain "/app/" (spec §6.1), so the search starts after it.
+  const found = kibanaPrefix(location.pathname, startEnvironment ? basePathOf(startEnvironment.kibanaUrl) : "");
+  if (found === null) return;
+  // Typed binding: hoisted function declarations below (run, createMount) do not see narrowing.
+  const prefix: string = found;
   const client = createKibanaClient({ prefix, fetch: (input, init) => window.fetch(input, init) });
   const mounts = new Map<Element, Mount>();
 
@@ -60,7 +64,7 @@ async function start(): Promise<void> {
 
   function run(): void {
     try {
-      const views = activeEnvironment(config, location.href) ? findDetailViews(document, location) : [];
+      const views = activeEnvironment(config, location.href) ? findDetailViews(document, location, prefix) : [];
       reconcileMounts(views, mounts, createMount, document);
     } catch (error) {
       console.debug(LOG, "reconcile failed:", error);

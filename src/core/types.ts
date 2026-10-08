@@ -13,3 +13,9 @@ export interface RawHit {
   _index: string;
   _source?: Record<string, unknown>;
 }
+
+/** Discover's `_g.time`: relative ("now-15m") or absolute ISO dates. */
+export interface TimeRange {
+  from: string;
+  to: string;
+}
