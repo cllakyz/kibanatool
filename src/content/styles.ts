@@ -53,8 +53,8 @@ export const BAR_CSS = `
 .kt-number, .kt-boolean { color: #0061a6; }
 .kt-null, .kt-summary { color: #69707d; }
 .kt-row-actions {
-  display: inline-flex; gap: 4px; margin-left: auto; visibility: hidden;
+  display: inline-flex; gap: 4px; margin-left: auto; opacity: 0;
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
 }
-.kt-row:hover .kt-row-actions, .kt-row:focus-within .kt-row-actions { visibility: visible; }
+.kt-row:hover .kt-row-actions, .kt-row:focus-within .kt-row-actions { opacity: 1; }
 `;
