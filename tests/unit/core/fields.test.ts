@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { flattenDoc, formatValue, isMissing, parseJsonText } from "../../../src/core/fields";
+import { flattenDoc, flattenSource, formatValue, isMissing, parseJsonText } from "../../../src/core/fields";
 
 const hit = (source: Record<string, unknown>) => ({ _id: "id-1", _index: "logs-a", _source: source });
 
@@ -97,5 +97,13 @@ describe("isMissing with arrays", () => {
     expect(isMissing([])).toBe(true);
     expect(isMissing([""])).toBe(false);
     expect(isMissing([0])).toBe(false);
+  });
+});
+
+describe("flattenSource", () => {
+  it("can keep JSON text unexpanded and never adds _id/_index", () => {
+    const source = { context: { body: JSON.stringify({ amount: 5 }) }, level: 200 };
+    expect({ ...flattenSource(source, false) }).toEqual({ "context.body": '{"amount":5}', level: 200 });
+    expect({ ...flattenSource(source) }).toEqual({ "context.body": '{"amount":5}', "context.body.amount": 5, level: 200 });
   });
 });
