@@ -35,5 +35,20 @@
   "markdownOpenInKibana": { "message": "Kibana'da aç" },
   "noticeCopied": { "message": "Kopyalandı" },
   "noticeCopyFailed": { "message": "Kopyalanamadı" },
-  "noticeTimeNotConverted": { "message": "Zaman aralığı sabit tarihlere çevrilemedi" }
+  "noticeTimeNotConverted": { "message": "Zaman aralığı sabit tarihlere çevrilemedi" },
+  "jsonButton": { "message": "JSON" },
+  "jsonChooseField": { "message": "Bir alan seç" },
+  "jsonBack": { "message": "Tüm alanlar" },
+  "jsonClose": { "message": "Kapat" },
+  "jsonSearch": { "message": "Anahtar ve değerlerde ara" },
+  "jsonPrevious": { "message": "Önceki eşleşme" },
+  "jsonNext": { "message": "Sonraki eşleşme" },
+  "jsonMatchCount": {
+    "message": "$CURRENT$ / $TOTAL$",
+    "placeholders": { "current": { "content": "$1", "example": "2" }, "total": { "content": "$2", "example": "5" } }
+  },
+  "jsonNoMatches": { "message": "Eşleşme yok" },
+  "jsonToggle": { "message": "Aç/kapa" },
+  "jsonCopyValue": { "message": "Değeri kopyala" },
+  "jsonCopyPath": { "message": "Yolu kopyala" }
 }

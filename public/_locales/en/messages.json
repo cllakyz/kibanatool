@@ -35,5 +35,20 @@
   "markdownOpenInKibana": { "message": "Open in Kibana" },
   "noticeCopied": { "message": "Copied" },
   "noticeCopyFailed": { "message": "Could not copy" },
-  "noticeTimeNotConverted": { "message": "Could not convert the time range to fixed dates" }
+  "noticeTimeNotConverted": { "message": "Could not convert the time range to fixed dates" },
+  "jsonButton": { "message": "JSON" },
+  "jsonChooseField": { "message": "Choose a field" },
+  "jsonBack": { "message": "All fields" },
+  "jsonClose": { "message": "Close" },
+  "jsonSearch": { "message": "Search keys and values" },
+  "jsonPrevious": { "message": "Previous match" },
+  "jsonNext": { "message": "Next match" },
+  "jsonMatchCount": {
+    "message": "$CURRENT$ of $TOTAL$",
+    "placeholders": { "current": { "content": "$1", "example": "2" }, "total": { "content": "$2", "example": "5" } }
+  },
+  "jsonNoMatches": { "message": "No matches" },
+  "jsonToggle": { "message": "Expand or collapse" },
+  "jsonCopyValue": { "message": "Copy value" },
+  "jsonCopyPath": { "message": "Copy path" }
 }

@@ -3,6 +3,7 @@ import { type SyntheticEvent, useEffect, useMemo, useRef, useState } from "react
 import type { Action, Config } from "../core/config";
 import { type DiscoverButton, buildDiscoverButtons } from "../core/discover-actions";
 import { flattenDoc } from "../core/fields";
+import { jsonTextFields } from "../core/json-tree";
 import { type LinkButton, buildLinkButtons } from "../core/link-actions";
 import { buildMarkdown } from "../core/markdown";
 import type { DocIdentity, RawHit } from "../core/types";
@@ -13,6 +14,7 @@ import { fixedTimeUrl, singleDocPath } from "../kibana/url";
 import { loadTimeFields, timeFieldTargets } from "./bar-data";
 import { copyText } from "./clipboard";
 import { type CopyItem, CopyMenu } from "./CopyMenu";
+import { JsonView } from "./JsonView";
 
 type State =
   | { status: "loading" }
@@ -37,6 +39,7 @@ export function ActionBar({ identity, actions, client, prefix, hash, copy }: Act
   const [state, setState] = useState<State>({ status: "loading" });
   const [notice, setNotice] = useState<MessageKey | null>(null);
   const rootRef = useRef<HTMLDivElement>(null);
+  const [jsonOpen, setJsonOpen] = useState(false);
   const { dataViewId, index, id } = identity;
 
   useEffect(() => {
@@ -75,6 +78,8 @@ export function ActionBar({ identity, actions, client, prefix, hash, copy }: Act
       }),
     };
   }, [state, actions, prefix, dataViewId, hash]);
+
+  const jsonFields = useMemo(() => (state.status === "ready" ? jsonTextFields(state.hit._source ?? {}) : []), [state]);
 
   if (state.status !== "ready") {
     return (
@@ -144,6 +149,11 @@ export function ActionBar({ identity, actions, client, prefix, hash, copy }: Act
             </span>
           ),
         )}
+        {jsonFields.length > 0 && (
+          <button type="button" className="kt-ghost" aria-expanded={jsonOpen} onClick={() => setJsonOpen(!jsonOpen)}>
+            {t("jsonButton")}
+          </button>
+        )}
         {notice && (
           <span className="kt-muted" role="status">
             {t(notice)}
@@ -151,6 +161,9 @@ export function ActionBar({ identity, actions, client, prefix, hash, copy }: Act
         )}
         <CopyMenu items={copyItems} onCopy={copyToClipboard} />
       </div>
+      {jsonOpen && jsonFields.length > 0 && (
+        <JsonView fields={jsonFields} onCopy={copyToClipboard} onClose={() => setJsonOpen(false)} />
+      )}
     </div>
   );
 }
