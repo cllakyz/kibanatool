@@ -128,7 +128,11 @@ export function App() {
               <button
                 type="button"
                 className="link"
-                onClick={() => void persist(withoutEnvironment(current, environment.id))}
+                onClick={() => {
+                  const result = withoutEnvironment(current, environment.id);
+                  if (result.ok) void persist(result.config);
+                  else setErrors(result.errors);
+                }}
               >
                 {t("optionsRemove")}
               </button>

@@ -9,9 +9,9 @@ export function isPlainObject(value: unknown): value is Record<string, unknown> 
   return typeof value === "object" && value !== null && !Array.isArray(value);
 }
 
-/** Spec §7.1: undefined, null and "" mean "no value"; 0 and false are values. */
+/** Spec §7.1: undefined, null, "" and [] mean "no value"; 0 and false are values. */
 export function isMissing(value: unknown): boolean {
-  return value === undefined || value === null || value === "";
+  return value === undefined || value === null || value === "" || (Array.isArray(value) && value.length === 0);
 }
 
 /** Primitives as text, primitive arrays joined with ",", everything else as JSON. */

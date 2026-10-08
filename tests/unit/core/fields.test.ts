@@ -91,3 +91,11 @@ describe("parseJsonText", () => {
     expect(parseJsonText("{bad")).toBeUndefined();
   });
 });
+
+describe("isMissing with arrays", () => {
+  it("treats an empty array as no value, like an empty string", () => {
+    expect(isMissing([])).toBe(true);
+    expect(isMissing([""])).toBe(false);
+    expect(isMissing([0])).toBe(false);
+  });
+});

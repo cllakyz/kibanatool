@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { isHttpUrlTemplate, lookup, parsePlaceholders, resolveTemplate } from "../../../src/core/template";
+import { isHttpUrl, isHttpUrlTemplate, lookup, parsePlaceholders, resolveTemplate } from "../../../src/core/template";
 
 const enc = encodeURIComponent;
 
@@ -75,5 +75,21 @@ describe("isHttpUrlTemplate", () => {
     expect(isHttpUrlTemplate("javascript:alert(1)")).toBe(false);
     expect(isHttpUrlTemplate("ftp://x.test")).toBe(false);
     expect(isHttpUrlTemplate("{url}")).toBe(false);
+  });
+});
+
+describe("lookup own keys", () => {
+  it("ignores keys inherited from Object.prototype", () => {
+    expect(lookup({}, ["constructor", "toString"])).toBeNull();
+  });
+});
+
+describe("isHttpUrl", () => {
+  it("accepts only parsable http(s) URLs", () => {
+    expect(isHttpUrl("https://x.test/a")).toBe(true);
+    expect(isHttpUrl("http://localhost:9601")).toBe(true);
+    expect(isHttpUrl("https://a%20b/x")).toBe(false);
+    expect(isHttpUrl("javascript:alert(1)")).toBe(false);
+    expect(isHttpUrl("x.test")).toBe(false);
   });
 });

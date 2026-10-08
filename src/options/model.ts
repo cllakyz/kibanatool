@@ -9,9 +9,12 @@ export function withEnvironment(config: Config, environment: Environment): Parse
   return parseConfig({ ...config, environments: [...config.environments, environment] });
 }
 
-/** Actions keep their environmentIds: an action scoped only to a removed environment simply stops showing. */
-export function withoutEnvironment(config: Config, environmentId: string): Config {
-  return { ...config, environments: config.environments.filter((environment) => environment.id !== environmentId) };
+/** parseConfig drops the removed id from actions and disables actions that were scoped only to it. */
+export function withoutEnvironment(config: Config, environmentId: string): ParseResult {
+  return parseConfig({
+    ...config,
+    environments: config.environments.filter((environment) => environment.id !== environmentId),
+  });
 }
 
 export function withActionsJson(config: Config, text: string): ParseResult {

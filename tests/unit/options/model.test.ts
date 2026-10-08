@@ -39,21 +39,26 @@ describe("withEnvironment", () => {
 });
 
 describe("withoutEnvironment", () => {
-  it("removes the environment and leaves actions untouched", () => {
+  it("removes the environment and disables an action that was scoped only to it", () => {
     const config = {
       ...emptyConfig(),
       environments: [newEnvironment("A", "https://a.example.com", "e1"), newEnvironment("B", "https://b.example.com", "e2")],
-      actions: [action],
+      actions: [action, { ...action, id: "both", environmentIds: ["e1", "e2"] }],
     } as Config;
-    const next = withoutEnvironment(config, "e1");
-    expect(next.environments.map((environment) => environment.id)).toEqual(["e2"]);
-    expect(next.actions).toEqual(config.actions);
+    const result = withoutEnvironment(config, "e1");
+    if (!result.ok) throw new Error(result.errors.join("; "));
+    expect(result.config.environments.map((environment) => environment.id)).toEqual(["e2"]);
+    expect(result.config.actions.map(({ id, environmentIds, enabled }) => ({ id, environmentIds, enabled }))).toEqual([
+      { id: "admin", environmentIds: [], enabled: false },
+      { id: "both", environmentIds: ["e2"], enabled: true },
+    ]);
   });
 });
 
 describe("withActionsJson", () => {
   it("replaces the actions with a valid JSON array", () => {
-    const result = withActionsJson(emptyConfig(), JSON.stringify([action]));
+    const config = { ...emptyConfig(), environments: [newEnvironment("A", "https://a.example.com", "e1")] };
+    const result = withActionsJson(config, JSON.stringify([action]));
     expect(result.ok && result.config.actions).toEqual([action]);
   });
 
