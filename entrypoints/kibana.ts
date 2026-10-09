@@ -12,6 +12,7 @@ import { createKibanaClient } from "../src/kibana/client";
 import { kibanaPrefix } from "../src/kibana/prefix";
 import { createConfigStore, isConfigChange } from "../src/storage";
 import { themeBehind } from "../src/theme";
+import { reportTheme } from "../src/toolbar-icon";
 
 const LOG = "[kibanatool]";
 
@@ -21,6 +22,7 @@ export default defineUnlistedScript(() => {
 });
 
 async function start(): Promise<void> {
+  reportTheme((message) => browser.runtime.sendMessage(message), window.matchMedia("(prefers-color-scheme: dark)"));
   const store = createConfigStore(browser.storage.local);
   let config: Config = (await store.load()).config;
   const startEnvironment = activeEnvironment(config, location.href);
