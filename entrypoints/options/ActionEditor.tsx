@@ -1,11 +1,13 @@
 // Form editor for one action, with a live preview against a pasted sample log (spec §9).
 import { type FormEvent, useState } from "react";
 import type { ConditionOp } from "../../src/core/conditions";
-import type { Action, Environment } from "../../src/core/config";
+import type { Action, DiscoverAction, Environment } from "../../src/core/config";
 import type { HiddenReason } from "../../src/core/link-actions";
 import { type MessageKey, t } from "../../src/i18n";
 import { describePassive } from "../../src/passive-text";
+import { variableWarnings } from "../../src/options/model";
 import { type SampleResult, parseSample, previewAction } from "../../src/options/preview";
+import { VariableWarnings } from "./feedback";
 
 const OPERATORS: Record<ConditionOp, MessageKey> = {
   exists: "optionsOpExists",
@@ -87,14 +89,7 @@ export function ActionEditor({ action, environments, onChange, onSave, onCancel 
             {t("optionsQueryTemplate")}
             <input spellCheck={false} value={action.queryTemplate} onChange={(event) => update({ queryTemplate: event.target.value })} />
           </label>
-          <label>
-            {t("optionsDataViewId")}
-            <input
-              spellCheck={false}
-              value={action.dataViewId ?? ""}
-              onChange={(event) => update({ dataViewId: event.target.value.trim() || undefined })}
-            />
-          </label>
+          <TargetDataView action={action} update={update} />
           <label>
             {t("optionsWindowMinutes")}
             <input
@@ -108,6 +103,9 @@ export function ActionEditor({ action, environments, onChange, onSave, onCancel 
           </label>
         </>
       )}
+      <p>
+        <VariableWarnings warnings={variableWarnings(environments, action)} />
+      </p>
       <fieldset>
         <legend>{t("optionsConditions")}</legend>
         {action.conditions.map((condition, index) => (
@@ -196,5 +194,41 @@ function describePreview(action: Action, sample: SampleResult, environment: Envi
   if (action.kind === "link") return `${t("optionsPreviewShown")} ${preview.text}`;
   const query = preview.text === "" ? t("optionsPreviewEmptyQuery") : preview.text;
   const range = action.windowMinutes === undefined ? "" : ` · ${t("optionsPreviewWindow", String(action.windowMinutes))}`;
-  return `${t("optionsPreviewShown")} ${query}${range}`;
+  const target = action.dataViewName === undefined ? "" : ` · ${t("optionsPreviewDataViewName", action.dataViewName)}`;
+  return `${t("optionsPreviewShown")} ${query}${range}${target}`;
+}
+
+type TargetKind = "name" | "id";
+
+/** Plan 4 spec §6: the target data view by name (default) or ID. Kept as typed; withAction trims it when saved. */
+function TargetDataView({ action, update }: { action: DiscoverAction; update: (patch: Partial<DiscoverAction>) => void }) {
+  const [kind, setKind] = useState<TargetKind>(action.dataViewId !== undefined ? "id" : "name");
+  const value = (kind === "name" ? action.dataViewName : action.dataViewId) ?? "";
+  const set = (target: TargetKind, text: string): void =>
+    update(
+      target === "name"
+        ? { dataViewName: text === "" ? undefined : text, dataViewId: undefined }
+        : { dataViewId: text === "" ? undefined : text, dataViewName: undefined },
+    );
+  return (
+    <fieldset>
+      <legend>{t("optionsTargetDataView")}</legend>
+      {(["name", "id"] as const).map((target) => (
+        <label className="inline" key={target}>
+          <input
+            type="radio"
+            name="targetKind"
+            value={target}
+            checked={kind === target}
+            onChange={() => {
+              setKind(target);
+              set(target, value);
+            }}
+          />
+          {t(target === "name" ? "optionsTargetByName" : "optionsTargetById")}
+        </label>
+      ))}
+      <input name="dataView" aria-label={t("optionsTargetDataView")} spellCheck={false} value={value} onChange={(event) => set(kind, event.target.value)} />
+    </fieldset>
+  );
 }

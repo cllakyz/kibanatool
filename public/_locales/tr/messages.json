@@ -80,9 +80,8 @@
   "optionsLabel": { "message": "Etiket" },
   "optionsEnabled": { "message": "Açık" },
   "optionsActionEnvironments": { "message": "Ortamlar (hiçbiri seçili değilse: hepsi)" },
-  "optionsUrlTemplate": { "message": "URL şablonu" },
+  "optionsUrlTemplate": { "message": "URL şablonu: {alan} logdan, {env.ad} ortamdan gelir, örn. {env.adminUrl}/users/{user_id}" },
   "optionsQueryTemplate": { "message": "KQL sorgu şablonu; değerler otomatik tırnaklanır, örn. user_id:{user_id}" },
-  "optionsDataViewId": { "message": "Data view kimliği (boş: açık logun data view'ı)" },
   "optionsWindowMinutes": { "message": "Log zamanından önce ve sonra kaç dakika (boş: mevcut zaman aralığı korunur)" },
   "optionsConditions": { "message": "Koşullar (hepsi sağlanmalı)" },
   "optionsConditionField": { "message": "Alan" },
@@ -133,5 +132,20 @@
   "optionsVariablesHelp": { "message": "Şablonlarda {env.ad} olarak kullanılır. Her ortamın kendi değeri vardır; boş hücre o ortamda tanımsız demektir. Değeri olmayan satırlar kaydedilmez." },
   "optionsVariableName": { "message": "Değişken" },
   "optionsAddVariable": { "message": "Değişken ekle" },
-  "optionsVariablesNoEnvironments": { "message": "Önce bir ortam ekleyin." }
+  "optionsVariablesNoEnvironments": { "message": "Önce bir ortam ekleyin." },
+  "optionsTargetDataView": { "message": "Hedef data view (boş: açık logun data view'ı)" },
+  "optionsTargetByName": { "message": "Ad ya da index deseni" },
+  "optionsTargetById": { "message": "Kimlik" },
+  "optionsPreviewDataViewName": {
+    "message": "$NAME$, Discover'da çözülür",
+    "placeholders": { "name": { "content": "$1", "example": "player_login_log" } }
+  },
+  "optionsWarnMissingVariable": {
+    "message": "$ENV$: $NAME$ tanımlı değil",
+    "placeholders": { "env": { "content": "$1", "example": "Prod" }, "name": { "content": "$2", "example": "adminUrl" } }
+  },
+  "optionsWarnInvalidVariable": {
+    "message": "$ENV$: $NAME$ bir http(s) adresi değil",
+    "placeholders": { "env": { "content": "$1", "example": "Prod" }, "name": { "content": "$2", "example": "adminUrl" } }
+  }
 }

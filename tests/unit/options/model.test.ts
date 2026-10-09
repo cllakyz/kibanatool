@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { type Config, emptyConfig } from "../../../src/core/config";
+import { type Action, type Config, type Environment, emptyConfig } from "../../../src/core/config";
 import {
   newAction,
   newEnvironment,
@@ -8,6 +8,7 @@ import {
   withAction,
   type VariableRow,
   variableRows,
+  variableWarnings,
   withCopySettings,
   withEnvironment,
   withVariables,
@@ -216,5 +217,63 @@ describe("variables table", () => {
     });
     const invalid = withVariables(twoEnvironments(), [{ name: "a.b", values: { alpha: "x" } }]);
     expect(!invalid.ok && invalid.errors[0]).toMatch(/^environments\.0\.variables\.a\.b: /);
+  });
+});
+
+describe("variableWarnings", () => {
+  const environments: Environment[] = [
+    { id: "alpha", name: "Alpha", kibanaUrl: "https://elk.alpha.test", variables: { adminUrl: "https://admin.alpha.test", app: "api" } },
+    { id: "prod", name: "Prod", kibanaUrl: "https://elk.prod.test", variables: { adminUrl: "admin.prod.test" } },
+  ];
+  const linkAction = (urlTemplate: string, environmentIds: string[] = []): Action => ({
+    id: "l",
+    kind: "link",
+    label: "L",
+    enabled: true,
+    environmentIds,
+    conditions: [],
+    urlTemplate,
+  });
+
+  it("lists missing variables and a leading one that is not http(s), per environment the action applies to", () => {
+    expect(variableWarnings(environments, linkAction("{env.adminUrl}/u/{user_id}?app={env.app}"))).toEqual([
+      { environment: "Prod", variable: "app", kind: "missing" },
+      { environment: "Prod", variable: "adminUrl", kind: "invalid" },
+    ]);
+    expect(variableWarnings(environments, linkAction("{env.adminUrl}/u/{env.app}", ["alpha"]))).toEqual([]);
+  });
+
+  it("checks Discover queries for missing variables only, once per name", () => {
+    const query: Action = {
+      id: "d",
+      kind: "discover",
+      label: "D",
+      enabled: true,
+      environmentIds: [],
+      conditions: [],
+      queryTemplate: "app:{env.app} or app2:{env.app}",
+    };
+    expect(variableWarnings(environments, query)).toEqual([{ environment: "Prod", variable: "app", kind: "missing" }]);
+  });
+
+  it("ignores placeholders that also have a field path", () => {
+    expect(variableWarnings(environments, linkAction("https://{context.host|env.host}/x"))).toEqual([]);
+  });
+});
+
+describe("withAction target data view", () => {
+  const base = (): Config => ({ ...emptyConfig(), environments: [newEnvironment("A", "https://a.example.com", "e1")] });
+
+  it("trims the target when saved, keeps inner spaces, and drops an empty one", () => {
+    // Review Focus 3: the editor keeps what was typed; only saving trims.
+    const saved = (action: Action) => {
+      const result = withAction(base(), action);
+      if (!result.ok) throw new Error(result.errors.join("; "));
+      return result.config.actions[0];
+    };
+    expect(saved({ ...newAction("discover", "d"), label: "D", dataViewName: "  App logs " } as Action)).toMatchObject({
+      dataViewName: "App logs",
+    });
+    expect(saved({ ...newAction("discover", "d"), label: "D", dataViewId: "   " } as Action)).not.toHaveProperty("dataViewId");
   });
 });
