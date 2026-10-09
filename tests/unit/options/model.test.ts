@@ -182,6 +182,12 @@ describe("variables table", () => {
     ]);
   });
 
+  it("does not read inherited keys when an environment id is constructor", () => {
+    const config = twoEnvironments();
+    config.environments[0]!.id = "constructor";
+    expect(variablesOf(withVariables(config, [{ name: "a", values: {} }]))).toEqual([{}, {}]);
+  });
+
   it("reads only an environment's own keys, so a variable named constructor is empty elsewhere", () => {
     // Review Focus 2: without Object.hasOwn the prod cell would be Object.prototype.constructor.
     const config = twoEnvironments();

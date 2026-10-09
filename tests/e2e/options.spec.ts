@@ -99,7 +99,7 @@ test("keeps the inner space of a target data view name typed in the editor", asy
 });
 
 test("imports a version 1 settings file and stores it as version 2", async ({ context, extension, configure }) => {
-  await configure();
+  await configure({ ...e2eConfig(), actions: [] }); // differs from what the import must produce
   const options = await openOptions(context, extension.id);
   const transfer = options.locator('section[aria-labelledby="transfer-title"]');
   const { environments, ...rest } = e2eConfig();

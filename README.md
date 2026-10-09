@@ -39,7 +39,7 @@ a bar above it with:
 - A Discover action opens the data view of the open log, or the one under **Target data view**: a display
   name or an index pattern (e.g. `*_log`), looked up in the current space, or an ID. If no data view or more
   than one matches the name, the button is greyed out.
-- Values are URL-encoded in links and quoted for KQL in Discover queries.
+- Field values are URL-encoded in links and quoted for KQL in Discover queries.
 - Conditions (`exists`, `equals`, `notEquals`, `contains`, `startsWith`) must all hold for the button to show.
 
 ### Example actions

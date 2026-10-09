@@ -95,7 +95,7 @@ export function withVariables(config: Config, rows: VariableRow[]): ParseResult 
       ...environment,
       variables: Object.fromEntries(
         kept.flatMap((row) => {
-          const value = (row.values[environment.id] ?? "").trim();
+          const value = (Object.hasOwn(row.values, environment.id) ? (row.values[environment.id] ?? "") : "").trim();
           return value === "" ? [] : [[row.name, value]];
         }),
       ),

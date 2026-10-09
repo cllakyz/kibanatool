@@ -43,7 +43,7 @@ Dev Kibana stacks: `./docker/up.sh 7|8|9` starts Kibana 7.17.29 on :17601 under 
 - `z.config({ jitless: true })` in `src/core/config.ts` must stay. MV3 CSP forbids eval.
 - The locator `lz` param must be decoded with `decompressFromBase64`. The URI-safe decoder silently corrupts it.
 - The content script must never break Kibana. Keep errors contained and log them only with `console.debug("[kibanatool]", …)`.
-- Render log values through React only; never use `innerHTML`. URL template values go through `encodeURIComponent`, and only `http(s)` templates are accepted.
+- Render log values through React only; never use `innerHTML`. Log field values in URL templates go through `encodeURIComponent`, and templates must start with `http(s)://` or an `{env.…}` placeholder.
 - Settings validation repairs, it does not reject, unknown environmentIds: parseConfig drops them and disables an action left with none (an empty list would mean "all environments").
 - `{env.<name>}` placeholder paths are environment variables, never log fields. Their values go into link URLs unencoded (they come from the user's settings, not the log); field values are always encoded.
 - A settings schema change bumps `schemaVersion` and converts older input inside `parseConfig`. `storage.ts` turns anything `parseConfig` rejects into the empty config, so a missing conversion silently wipes stored settings.

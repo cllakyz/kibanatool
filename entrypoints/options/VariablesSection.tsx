@@ -50,7 +50,7 @@ export function VariablesSection({ config, onSave }: SectionProps) {
                       />
                     </td>
                     {config.environments.map((environment) => {
-                      const value = row.values[environment.id] ?? "";
+                      const value = Object.hasOwn(row.values, environment.id) ? (row.values[environment.id] ?? "") : "";
                       return (
                         <td key={environment.id} className={value.trim() === "" ? "unset" : undefined}>
                           <input
