@@ -7,20 +7,25 @@ import { jsonTextFields } from "../core/json-tree";
 import { type LinkButton, buildLinkButtons } from "../core/link-actions";
 import { buildMarkdown } from "../core/markdown";
 import type { PassiveReason } from "../core/passive";
-import type { DocIdentity, RawHit } from "../core/types";
+import type { DataViewSummary, DocIdentity, RawHit } from "../core/types";
 import { type MessageKey, t } from "../i18n";
 import { type KibanaClient, KibanaError } from "../kibana/client";
 import { readGlobalTime } from "../kibana/discover-state";
 import { fixedTimeUrl, singleDocPath } from "../kibana/url";
 import { describePassive } from "../passive-text";
-import { loadTimeFields, timeFieldTargets } from "./bar-data";
+import { loadDataViews, loadTimeFields, timeFieldTargets } from "./bar-data";
 import { copyText } from "./clipboard";
 import { type CopyItem, CopyMenu } from "./CopyMenu";
 import { JsonView } from "./JsonView";
 
 type State =
   | { status: "loading" }
-  | { status: "ready"; hit: RawHit; timeFields: ReadonlyMap<string, string | undefined> }
+  | {
+      status: "ready";
+      hit: RawHit;
+      timeFields: ReadonlyMap<string, string | undefined>;
+      dataViews: readonly DataViewSummary[] | null;
+    }
   | { status: "error"; message: string };
 
 export interface ActionBarProps {
@@ -49,9 +54,14 @@ export function ActionBar({ identity, actions, client, prefix, hash, copy, envir
   useEffect(() => {
     let cancelled = false;
     setState({ status: "loading" });
-    Promise.all([client.fetchDoc(index, id), loadTimeFields(client, timeFieldTargets(actions, dataViewId))]).then(
-      ([hit, timeFields]) => {
-        if (!cancelled) setState({ status: "ready", hit, timeFields });
+    const barData = async () => {
+      const dataViews = await loadDataViews(client, actions);
+      const timeFields = await loadTimeFields(client, timeFieldTargets(actions, dataViewId, dataViews));
+      return { dataViews, timeFields };
+    };
+    Promise.all([client.fetchDoc(index, id), barData()]).then(
+      ([hit, { dataViews, timeFields }]) => {
+        if (!cancelled) setState({ status: "ready", hit, timeFields, dataViews });
       },
       async (error: unknown) => {
         const message = await describeError(error, client);
@@ -80,6 +90,7 @@ export function ActionBar({ identity, actions, client, prefix, hash, copy, envir
         currentTime: readGlobalTime(hash),
         timeFields: state.timeFields,
         variables: environment.variables,
+        dataViews: state.dataViews,
       }),
     };
   }, [state, actions, prefix, dataViewId, hash, environment]);

@@ -1,5 +1,6 @@
 // Talks to the user's Kibana with the user's own session (spec §6).
-import type { RawHit } from "../core/types";
+import { isPlainObject } from "../core/fields";
+import type { DataViewSummary, RawHit } from "../core/types";
 
 export type KibanaErrorKind = "forbidden" | "notFound" | "incompatible" | "server" | "network";
 
@@ -23,6 +24,8 @@ export interface KibanaClient {
   fetchDoc(index: string, id: string): Promise<RawHit>;
   getDataView(id: string): Promise<DataViewInfo>;
   getVersion(): Promise<string | undefined>;
+  /** The open space's data views (Plan 4 spec §5.2). */
+  listDataViews(): Promise<DataViewSummary[]>;
 }
 
 export type FetchFn = (input: string, init?: RequestInit) => Promise<Response>;
@@ -58,10 +61,25 @@ async function readJson<T extends object>(response: Response): Promise<T> {
   return body as T;
 }
 
+/** Entries with a string id and title; anything else in the list is skipped. */
+function summaries(
+  list: unknown,
+  read: (item: Record<string, unknown>) => { id: unknown; title: unknown; name?: unknown },
+): DataViewSummary[] {
+  if (!Array.isArray(list)) throw new KibanaError("incompatible", "Unexpected data view list");
+  return list.flatMap((item): DataViewSummary[] => {
+    if (!isPlainObject(item)) return [];
+    const { id, title, name } = read(item);
+    if (typeof id !== "string" || typeof title !== "string") return [];
+    return [typeof name === "string" && name !== "" ? { id, title, name } : { id, title }];
+  });
+}
+
 export function createKibanaClient(options: { prefix: string; fetch: FetchFn; timeoutMs?: number }): KibanaClient {
   const { prefix, fetch, timeoutMs = REQUEST_TIMEOUT_MS } = options;
   const docs = new Map<string, Promise<RawHit>>();
   const dataViews = new Map<string, Promise<DataViewInfo>>();
+  const lists = new Map<string, Promise<DataViewSummary[]>>();
   let version: Promise<string | undefined> | undefined;
 
   async function request(path: string, init?: RequestInit): Promise<Response> {
@@ -113,6 +131,23 @@ export function createKibanaClient(options: { prefix: string; fetch: FetchFn; ti
     return { title: view.title, timeFieldName: view.timeFieldName || undefined };
   }
 
+  async function loadDataViewList(): Promise<DataViewSummary[]> {
+    let response = await request("/api/data_views");
+    if (response.status === 404) {
+      // 7.17 has no data views API. Its saved objects carry the index pattern as title, and no name.
+      response = await request("/api/saved_objects/_find?type=index-pattern&fields=title&per_page=10000");
+      if (!response.ok) throw errorFor(response.status);
+      const body = await readJson<{ saved_objects?: unknown }>(response);
+      return summaries(body.saved_objects, (item) => ({
+        id: item.id,
+        title: isPlainObject(item.attributes) ? item.attributes.title : undefined,
+      }));
+    }
+    if (!response.ok) throw errorFor(response.status);
+    const body = await readJson<{ data_view?: unknown }>(response);
+    return summaries(body.data_view, (item) => ({ id: item.id, title: item.title, name: item.name }));
+  }
+
   async function loadVersion(): Promise<string | undefined> {
     try {
       const response = await request("/api/status");
@@ -126,6 +161,7 @@ export function createKibanaClient(options: { prefix: string; fetch: FetchFn; ti
   return {
     fetchDoc: (index, id) => cached(docs, `${index}/${id}`, () => loadDoc(index, id)),
     getDataView: (id) => cached(dataViews, id, () => loadDataView(id)),
+    listDataViews: () => cached(lists, "all", loadDataViewList),
     async getVersion() {
       version ??= loadVersion();
       const number = await version;

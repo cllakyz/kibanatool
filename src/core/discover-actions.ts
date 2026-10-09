@@ -2,11 +2,12 @@
 import { discoverUrl } from "../kibana/url";
 import type { Action, DiscoverAction } from "./config";
 import { evaluateConditions } from "./conditions";
+import { discoverTarget } from "./data-view-names";
 import type { FieldMap } from "./fields";
 import type { HiddenReason } from "./link-actions";
 import type { PassiveReason } from "./passive";
 import { type Variables, fillTemplate } from "./template";
-import type { TimeRange } from "./types";
+import type { DataViewSummary, TimeRange } from "./types";
 
 /** `12345` → `"12345"`: KQL quoting with `\` and `"` escaped. */
 export function kqlQuote(value: string): string {
@@ -54,6 +55,8 @@ export interface DiscoverContext {
   timeFields: ReadonlyMap<string, string | undefined>;
   /** The open environment's variables (Plan 4). */
   variables: Variables;
+  /** The open space's data views, for actions that name theirs; null when the list could not be read. */
+  dataViews: readonly DataViewSummary[] | null;
 }
 
 export type DiscoverButton = { id: string; label: string; url: string } | { id: string; label: string; passive: PassiveReason };
@@ -63,7 +66,10 @@ export function buildDiscoverButtons(actions: Action[], fields: FieldMap, contex
     if (action.kind !== "discover") return [];
     const resolved = resolveDiscoverQuery(action, fields, context.variables);
     if (!resolved.ok) return "passive" in resolved ? [{ id: action.id, label: action.label, passive: resolved.passive }] : [];
-    const dataViewId = action.dataViewId ?? context.dataViewId;
+    // Plan 4 spec §5.3: the name is looked at only for an action that would otherwise show.
+    const target = discoverTarget(action, context.dataViewId, context.dataViews);
+    if (!target.ok) return [{ id: action.id, label: action.label, passive: target.passive }];
+    const dataViewId = target.id;
     const range =
       action.windowMinutes === undefined
         ? undefined
