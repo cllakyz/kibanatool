@@ -24,6 +24,7 @@ for (const key of ["optional_permissions", "web_accessible_resources", "external
 for (const size of ["16", "32", "48", "128"]) {
   const icon = manifest.icons?.[size];
   if (!icon || !existsSync(`${dir}/${icon}`)) errors.push(`icons.${size} is missing (npm run icons)`);
+  if (!existsSync(`${dir}/icon-dark/${size}.png`)) errors.push(`icon-dark/${size}.png is missing (npm run icons)`);
 }
 if (!existsSync(`${dir}/kibana.js`)) {
   errors.push("kibana.js (unlisted content script) is missing from the build output");

@@ -29,7 +29,7 @@ export function CopySection({ config, onSave }: SectionProps) {
         {t("optionsMaskPatterns")}
         <textarea rows={5} spellCheck={false} value={patterns} onChange={(event) => setPatterns(event.target.value)} />
       </label>
-      <button type="button" onClick={() => void submit(withCopySettings(config, fields, patterns))}>
+      <button type="button" className="primary" onClick={() => void submit(withCopySettings(config, fields, patterns))}>
         {t("optionsSave")}
       </button>
       <Feedback errors={errors} saved={saved} />
