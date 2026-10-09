@@ -128,5 +128,10 @@
   },
   "passiveDataViewLookupFailed": { "message": "Could not read the data view list" },
   "optionsPreviewPassive": { "message": "Passive:" },
-  "optionsPreviewEnvironment": { "message": "Preview environment" }
+  "optionsPreviewEnvironment": { "message": "Preview environment" },
+  "optionsVariables": { "message": "Variables" },
+  "optionsVariablesHelp": { "message": "Use them in templates as {env.name}. Each environment has its own value; an empty cell means the variable is not set there. Rows without a value are not saved." },
+  "optionsVariableName": { "message": "Variable" },
+  "optionsAddVariable": { "message": "Add variable" },
+  "optionsVariablesNoEnvironments": { "message": "Add an environment first." }
 }

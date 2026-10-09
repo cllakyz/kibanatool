@@ -45,6 +45,52 @@ export function withCopySettings(config: Config, markdownFields: string, maskPat
   return parseConfig({ ...config, copy: { markdownFields: lines(markdownFields), maskPatterns: lines(maskPatterns) } });
 }
 
+/** One row of the variables table (Plan 4 spec §6): a name and its value per environment id. */
+export interface VariableRow {
+  name: string;
+  values: Record<string, string>;
+}
+
+/** Every variable name of any environment, sorted, with each environment's value ("" when not set). */
+export function variableRows(config: Config): VariableRow[] {
+  const names = [...new Set(config.environments.flatMap((environment) => Object.keys(environment.variables)))].sort();
+  return names.map((name) => ({
+    name,
+    values: Object.fromEntries(
+      // Own keys only: a variable named "constructor" in one environment must read as empty in the others.
+      config.environments.map((environment) => [
+        environment.id,
+        Object.hasOwn(environment.variables, name) ? (environment.variables[name] ?? "") : "",
+      ]),
+    ),
+  }));
+}
+
+/** Writes the table back: names and values trimmed, empty values left out, rows with neither dropped. */
+export function withVariables(config: Config, rows: VariableRow[]): ParseResult {
+  const kept = rows
+    .map((row) => ({ name: row.name.trim(), values: row.values }))
+    .filter((row) => row.name !== "" || Object.values(row.values).some((value) => value.trim() !== ""));
+  const names = new Set<string>();
+  for (const row of kept) {
+    if (row.name === "") return { ok: false, errors: ["variables: a row with values has no name"] };
+    if (names.has(row.name)) return { ok: false, errors: [`variables: duplicate name "${row.name}"`] };
+    names.add(row.name);
+  }
+  return parseConfig({
+    ...config,
+    environments: config.environments.map((environment) => ({
+      ...environment,
+      variables: Object.fromEntries(
+        kept.flatMap((row) => {
+          const value = (row.values[environment.id] ?? "").trim();
+          return value === "" ? [] : [[row.name, value]];
+        }),
+      ),
+    })),
+  });
+}
+
 /** Spec §8: the file is validated as a whole; the caller previews it and replaces the settings. */
 export function parseImport(text: string): ParseResult {
   let input: unknown;

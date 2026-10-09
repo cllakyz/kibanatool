@@ -128,5 +128,10 @@
   },
   "passiveDataViewLookupFailed": { "message": "Data view listesi alınamadı" },
   "optionsPreviewPassive": { "message": "Pasif:" },
-  "optionsPreviewEnvironment": { "message": "Önizleme ortamı" }
+  "optionsPreviewEnvironment": { "message": "Önizleme ortamı" },
+  "optionsVariables": { "message": "Değişkenler" },
+  "optionsVariablesHelp": { "message": "Şablonlarda {env.ad} olarak kullanılır. Her ortamın kendi değeri vardır; boş hücre o ortamda tanımsız demektir. Değeri olmayan satırlar kaydedilmez." },
+  "optionsVariableName": { "message": "Değişken" },
+  "optionsAddVariable": { "message": "Değişken ekle" },
+  "optionsVariablesNoEnvironments": { "message": "Önce bir ortam ekleyin." }
 }

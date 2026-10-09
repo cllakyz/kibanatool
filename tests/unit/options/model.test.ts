@@ -6,8 +6,11 @@ import {
   parseImport,
   unusedOrigins,
   withAction,
+  type VariableRow,
+  variableRows,
   withCopySettings,
   withEnvironment,
+  withVariables,
   withoutAction,
   withoutEnvironment,
 } from "../../../src/options/model";
@@ -155,5 +158,63 @@ describe("unusedOrigins", () => {
     const wildcards = ["https://*/*", "http://*/*", "*://*/*", "https://*.example.com/*"];
     expect(unusedOrigins(wildcards, emptyConfig())).toEqual([]);
     expect(unusedOrigins([...wildcards, "http://b.example.com:5601/*"], emptyConfig())).toEqual(["http://b.example.com:5601/*"]);
+  });
+});
+
+describe("variables table", () => {
+  const twoEnvironments = (): Config => ({
+    ...emptyConfig(),
+    environments: [
+      { id: "alpha", name: "Alpha", kibanaUrl: "https://elk.alpha.test", variables: { adminUrl: "https://admin.alpha.test", only: "a" } },
+      { id: "prod", name: "Prod", kibanaUrl: "https://elk.prod.test", variables: { adminUrl: "https://admin.prod.test" } },
+    ],
+  });
+  const variablesOf = (result: ReturnType<typeof withVariables>) => {
+    if (!result.ok) throw new Error(result.errors.join("; "));
+    return result.config.environments.map((environment) => environment.variables);
+  };
+
+  it("lists every name once, sorted, with each environment's value or an empty one", () => {
+    expect(variableRows(twoEnvironments())).toEqual([
+      { name: "adminUrl", values: { alpha: "https://admin.alpha.test", prod: "https://admin.prod.test" } },
+      { name: "only", values: { alpha: "a", prod: "" } },
+    ]);
+  });
+
+  it("reads only an environment's own keys, so a variable named constructor is empty elsewhere", () => {
+    // Review Focus 2: without Object.hasOwn the prod cell would be Object.prototype.constructor.
+    const config = twoEnvironments();
+    config.environments[0]!.variables = { constructor: "c" };
+    config.environments[1]!.variables = {};
+    expect(variableRows(config)).toEqual([{ name: "constructor", values: { alpha: "c", prod: "" } }]);
+  });
+
+  it("writes rows back trimmed, leaves empty values out and drops blank rows", () => {
+    const rows: VariableRow[] = [
+      { name: " paymentUrl ", values: { alpha: " https://pay.alpha.test ", prod: "  " } },
+      { name: "", values: {} },
+    ];
+    expect(variablesOf(withVariables(twoEnvironments(), rows))).toEqual([{ paymentUrl: "https://pay.alpha.test" }, {}]);
+  });
+
+  it("renames and removes a variable in every environment", () => {
+    const [admin] = variableRows(twoEnvironments());
+    expect(variablesOf(withVariables(twoEnvironments(), [{ ...admin!, name: "admin" }]))).toEqual([
+      { admin: "https://admin.alpha.test" },
+      { admin: "https://admin.prod.test" },
+    ]);
+  });
+
+  it("rejects duplicate names, a row with values but no name, and names the schema does not allow", () => {
+    expect(withVariables(twoEnvironments(), [{ name: "a", values: {} }, { name: " a", values: { alpha: "1" } }])).toEqual({
+      ok: false,
+      errors: ['variables: duplicate name "a"'],
+    });
+    expect(withVariables(twoEnvironments(), [{ name: " ", values: { alpha: "x" } }])).toEqual({
+      ok: false,
+      errors: ["variables: a row with values has no name"],
+    });
+    const invalid = withVariables(twoEnvironments(), [{ name: "a.b", values: { alpha: "x" } }]);
+    expect(!invalid.ok && invalid.errors[0]).toMatch(/^environments\.0\.variables\.a\.b: /);
   });
 });
