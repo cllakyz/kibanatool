@@ -63,7 +63,7 @@ export function TransferSection({ onSave, exportValue }: SectionProps & { export
         <div className="warning">
           <p>{t("optionsImportPreview", String(pending.environments.length), String(pending.actions.length))}</p>
           <div className="row">
-            <button type="button" onClick={replace}>
+            <button type="button" className="primary" onClick={replace}>
               {t("optionsImportConfirm")}
             </button>
             <button type="button" className="link" onClick={() => setPending(null)}>

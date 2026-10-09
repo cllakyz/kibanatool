@@ -174,7 +174,7 @@ export function ActionEditor({ action, environments, onChange, onSave, onCancel 
         )}
       </fieldset>
       <div className="row">
-        <button type="submit">{t("optionsSave")}</button>
+        <button type="submit" className="primary">{t("optionsSave")}</button>
         <button type="button" className="link" onClick={onCancel}>
           {t("optionsCancel")}
         </button>

@@ -11,6 +11,7 @@ import { type Action, type Config, actionsForEnvironment, activeEnvironment, bas
 import { createKibanaClient } from "../src/kibana/client";
 import { kibanaPrefix } from "../src/kibana/prefix";
 import { createConfigStore, isConfigChange } from "../src/storage";
+import { themeBehind } from "../src/theme";
 
 const LOG = "[kibanatool]";
 
@@ -50,6 +51,9 @@ async function start(): Promise<void> {
     let loggedMissing = false;
     return {
       render(view: DetailView) {
+        // The host is placed by now; Kibana's theme only changes with a reload, but a bar can move.
+        const theme = themeBehind(host);
+        if (host.dataset.ktTheme !== theme) host.dataset.ktTheme = theme;
         const identity = view.identity;
         if (!identity && !loggedMissing) {
           loggedMissing = true;
