@@ -19,3 +19,10 @@ export interface TimeRange {
   from: string;
   to: string;
 }
+
+/** One entry of a space's data view list (Plan 4 spec §5.2). `name` exists on 8.x/9.x only. */
+export interface DataViewSummary {
+  id: string;
+  title: string;
+  name?: string;
+}

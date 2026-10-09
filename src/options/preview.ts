@@ -3,6 +3,8 @@ import type { Action } from "../core/config";
 import { resolveDiscoverQuery } from "../core/discover-actions";
 import { type FieldMap, flattenDoc, isPlainObject } from "../core/fields";
 import { type HiddenReason, resolveLinkAction } from "../core/link-actions";
+import type { PassiveReason } from "../core/passive";
+import type { Variables } from "../core/template";
 
 export type SampleResult = { ok: true; fields: FieldMap } | { ok: false; error: string };
 
@@ -21,14 +23,15 @@ export function parseSample(text: string): SampleResult {
   return { ok: true, fields: flattenDoc(hit) };
 }
 
-export type Preview = { shown: true; text: string } | { shown: false; reason: HiddenReason };
+export type Preview =
+  | { shown: true; text: string }
+  | { shown: false; reason: HiddenReason }
+  | { shown: false; passive: PassiveReason };
 
-/** The link URL or KQL query the bar would use, or why it would show nothing. */
-export function previewAction(action: Action, fields: FieldMap): Preview {
-  if (action.kind === "link") {
-    const result = resolveLinkAction(action, fields);
-    return result.ok ? { shown: true, text: result.url } : { shown: false, reason: result.reason };
-  }
-  const result = resolveDiscoverQuery(action, fields);
-  return result.ok ? { shown: true, text: result.query } : { shown: false, reason: result.reason };
+/** The link URL or KQL query the bar would use with `variables`, or why it would show nothing or a passive button. */
+export function previewAction(action: Action, fields: FieldMap, variables: Variables): Preview {
+  const result =
+    action.kind === "link" ? resolveLinkAction(action, fields, variables) : resolveDiscoverQuery(action, fields, variables);
+  if (result.ok) return { shown: true, text: "url" in result ? result.url : result.query };
+  return "passive" in result ? { shown: false, passive: result.passive } : { shown: false, reason: result.reason };
 }

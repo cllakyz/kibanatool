@@ -80,9 +80,8 @@
   "optionsLabel": { "message": "Label" },
   "optionsEnabled": { "message": "Enabled" },
   "optionsActionEnvironments": { "message": "Environments (none selected: all)" },
-  "optionsUrlTemplate": { "message": "URL template" },
+  "optionsUrlTemplate": { "message": "URL template: {field} comes from the log, {env.name} from the environment, e.g. {env.adminUrl}/users/{user_id}" },
   "optionsQueryTemplate": { "message": "KQL query template; values are quoted for you, e.g. user_id:{user_id}" },
-  "optionsDataViewId": { "message": "Data view ID (empty: the data view of the open log)" },
   "optionsWindowMinutes": { "message": "Minutes before and after the log's time (empty: keep the current time range)" },
   "optionsConditions": { "message": "Conditions (all must hold)" },
   "optionsConditionField": { "message": "Field" },
@@ -109,5 +108,44 @@
   "optionsHiddenDisabled": { "message": "Hidden: the action is disabled" },
   "optionsHiddenConditions": { "message": "Hidden: a condition does not hold for this log" },
   "optionsHiddenMissingValue": { "message": "Hidden: a placeholder has no value in this log" },
-  "optionsHiddenInvalidUrl": { "message": "Hidden: the result is not a valid http(s) URL" }
+  "optionsHiddenInvalidUrl": { "message": "Hidden: the result is not a valid http(s) URL" },
+  "passiveMissingVariable": {
+    "message": "$NAME$ is not set for the $ENV$ environment",
+    "placeholders": { "env": { "content": "$1", "example": "Prod" }, "name": { "content": "$2", "example": "adminUrl" } }
+  },
+  "passiveInvalidVariable": {
+    "message": "$NAME$ is not an http(s) address in the $ENV$ environment",
+    "placeholders": { "env": { "content": "$1", "example": "Prod" }, "name": { "content": "$2", "example": "adminUrl" } }
+  },
+  "passiveDataViewNotFound": {
+    "message": "No data view named \"$NAME$\" in this space",
+    "placeholders": { "name": { "content": "$1", "example": "player_login_log" } }
+  },
+  "passiveDataViewAmbiguous": {
+    "message": "$COUNT$ data views match \"$NAME$\"",
+    "placeholders": { "name": { "content": "$1", "example": "app_log" }, "count": { "content": "$2", "example": "2" } }
+  },
+  "passiveDataViewLookupFailed": { "message": "Could not read the data view list" },
+  "optionsPreviewPassive": { "message": "Passive:" },
+  "optionsPreviewEnvironment": { "message": "Preview environment" },
+  "optionsVariables": { "message": "Variables" },
+  "optionsVariablesHelp": { "message": "Use them in templates as {env.name}. Each environment has its own value; an empty cell means the variable is not set there. Rows without a value are not saved." },
+  "optionsVariableName": { "message": "Variable" },
+  "optionsAddVariable": { "message": "Add variable" },
+  "optionsVariablesNoEnvironments": { "message": "Add an environment first." },
+  "optionsTargetDataView": { "message": "Target data view (empty: the data view of the open log)" },
+  "optionsTargetByName": { "message": "Name or index pattern" },
+  "optionsTargetById": { "message": "ID" },
+  "optionsPreviewDataViewName": {
+    "message": "$NAME$, resolved in Discover",
+    "placeholders": { "name": { "content": "$1", "example": "player_login_log" } }
+  },
+  "optionsWarnMissingVariable": {
+    "message": "$ENV$: $NAME$ is not set",
+    "placeholders": { "env": { "content": "$1", "example": "Prod" }, "name": { "content": "$2", "example": "adminUrl" } }
+  },
+  "optionsWarnInvalidVariable": {
+    "message": "$ENV$: $NAME$ is not an http(s) address",
+    "placeholders": { "env": { "content": "$1", "example": "Prod" }, "name": { "content": "$2", "example": "adminUrl" } }
+  }
 }

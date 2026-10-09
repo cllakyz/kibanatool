@@ -184,3 +184,47 @@ describe("timeouts while the body is read", () => {
     expect(await kindOf(client.fetchDoc("app_log", "abc"))).toBe("network");
   });
 });
+
+describe("listDataViews", () => {
+  it("reads /api/data_views on 8.x/9.x, keeping display names and skipping odd entries", async () => {
+    const { fetch, calls } = fakeFetch(() =>
+      json({ data_view: [{ id: "app-log", title: "app_log", name: "app_log" }, { id: "all", title: "*_log", name: "" }, { title: "no id" }, null] }),
+    );
+    const client = createKibanaClient({ prefix: "/s/team", fetch });
+    await expect(client.listDataViews()).resolves.toEqual([
+      { id: "app-log", title: "app_log", name: "app_log" },
+      { id: "all", title: "*_log" },
+    ]);
+    expect(calls.map((call) => call.url)).toEqual(["/s/team/api/data_views"]);
+  });
+
+  it("falls back to the saved objects API on 404 (7.17), where data views have no name", async () => {
+    const { fetch, calls } = fakeFetch((url) =>
+      url.endsWith("/api/data_views")
+        ? json({ message: "Not Found" }, 404)
+        : json({ saved_objects: [{ id: "app-log", attributes: { title: "app_log" } }, { id: "x", attributes: "broken" }] }),
+    );
+    const client = createKibanaClient({ prefix: "/kibana", fetch });
+    await expect(client.listDataViews()).resolves.toEqual([{ id: "app-log", title: "app_log" }]);
+    expect(calls.map((call) => call.url)).toEqual([
+      "/kibana/api/data_views",
+      "/kibana/api/saved_objects/_find?type=index-pattern&fields=title&per_page=10000",
+    ]);
+  });
+
+  it("asks once per page and retries after a failure", async () => {
+    let fail = true;
+    const { fetch, calls } = fakeFetch(() => (fail ? json({}, 500) : json({ data_view: [] })));
+    const client = createKibanaClient({ prefix: "", fetch });
+    expect(await kindOf(client.listDataViews())).toBe("server");
+    fail = false;
+    await expect(client.listDataViews()).resolves.toEqual([]);
+    await client.listDataViews();
+    expect(calls).toHaveLength(2);
+  });
+
+  it("reports incompatible when the list is not an array", async () => {
+    const { fetch } = fakeFetch(() => json({ data_view: "nope" }));
+    expect(await kindOf(createKibanaClient({ prefix: "", fetch }).listDataViews())).toBe("incompatible");
+  });
+});

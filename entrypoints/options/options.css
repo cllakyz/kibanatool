@@ -27,3 +27,9 @@ legend { padding: 0 4px; font-weight: 600; }
 .badge { padding: 0 6px; border-radius: 4px; background: #e9edf3; font-size: 12px; }
 .editor { margin-top: 12px; padding: 12px; border: 1px solid #d3dae6; border-radius: 6px; background: #fbfcfd; }
 .preview { margin: 8px 0 0; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 12px; word-break: break-all; }
+.table-scroll { overflow-x: auto; }
+.variables { width: 100%; border-collapse: collapse; }
+.variables th { padding: 4px; text-align: left; font-weight: 600; white-space: nowrap; }
+.variables td { padding: 4px; }
+.variables input { width: 100%; min-width: 140px; }
+.variables td.unset input { border-color: #f5a700; background: #fff9e8; }

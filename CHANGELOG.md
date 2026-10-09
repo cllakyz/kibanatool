@@ -18,4 +18,10 @@ First public release, for Kibana 7.17, 8.x and 9.x in Chrome.
 - JSON view for fields that hold JSON text: a tree with search, and copying a value or its path.
 - Options page: environments with per-site access, an action editor with a live preview, copy and masking
   settings, export and import.
+- Environment variables: `{env.name}` placeholders take each environment's own value, set in a variables
+  table on the options page, so one set of actions works in every Kibana. A button whose variable is not set
+  is greyed out with the reason.
+- Discover actions can name their target data view (display name or index pattern) instead of an ID; the
+  name is looked up in the current space.
+- Settings files are version 2; settings from pre-release builds (version 1) are converted when loaded.
 - English and Turkish.

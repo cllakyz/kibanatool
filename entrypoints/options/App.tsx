@@ -1,4 +1,4 @@
-// Options page (spec §9): environments, actions, copy and masking, export and import.
+// Options page (spec §9): environments, variables, actions, copy and masking, export and import.
 import { useEffect, useState } from "react";
 import { browser } from "wxt/browser";
 import { type Config, emptyConfig } from "../../src/core/config";
@@ -9,6 +9,7 @@ import { ActionsSection } from "./ActionsSection";
 import { CopySection } from "./CopySection";
 import { EnvironmentsSection } from "./EnvironmentsSection";
 import { TransferSection } from "./TransferSection";
+import { VariablesSection } from "./VariablesSection";
 
 const store = createConfigStore(browser.storage.local);
 
@@ -70,6 +71,7 @@ export function App() {
         </div>
       )}
       <EnvironmentsSection {...props} />
+      <VariablesSection {...props} />
       <ActionsSection {...props} />
       <CopySection {...props} />
       <TransferSection {...props} exportValue={invalid ?? current} />

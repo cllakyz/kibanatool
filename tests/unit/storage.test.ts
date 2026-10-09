@@ -17,7 +17,7 @@ function fakeArea(initial: Record<string, unknown> = {}) {
 
 const config: Config = {
   ...emptyConfig(),
-  environments: [{ id: "local", name: "Local", kibanaUrl: "http://localhost:9601" }],
+  environments: [{ id: "local", name: "Local", kibanaUrl: "http://localhost:9601", variables: {} }],
 };
 
 describe("createConfigStore", () => {
@@ -31,6 +31,15 @@ describe("createConfigStore", () => {
     await store.save(config);
     expect(area.data.get(CONFIG_KEY)).toEqual(config);
     await expect(store.load()).resolves.toEqual({ config, errors: [] });
+  });
+
+  it("loads a stored version 1 config as version 2 instead of the empty config", async () => {
+    const stored = {
+      ...config,
+      schemaVersion: 1,
+      environments: [{ id: "local", name: "Local", kibanaUrl: "http://localhost:9601" }],
+    };
+    await expect(createConfigStore(fakeArea({ [CONFIG_KEY]: stored })).load()).resolves.toEqual({ config, errors: [] });
   });
 
   it("falls back to the empty config and reports errors for a corrupt stored value", async () => {
@@ -47,7 +56,7 @@ describe("createConfigStore", () => {
 
   it("refuses to save an invalid config", async () => {
     const area = fakeArea();
-    const invalid = { ...config, environments: [{ id: "x", name: "X", kibanaUrl: "nope" }] };
+    const invalid = { ...config, environments: [{ id: "x", name: "X", kibanaUrl: "nope", variables: {} }] };
     await expect(createConfigStore(area).save(invalid)).rejects.toThrow(/Invalid config/);
     expect(area.data.has(CONFIG_KEY)).toBe(false);
   });

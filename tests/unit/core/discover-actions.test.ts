@@ -28,6 +28,8 @@ const context = (overrides: Partial<DiscoverContext> = {}): DiscoverContext => (
     ["app-log", "datetime"],
     ["all-logs", undefined],
   ]),
+  variables: {},
+  dataViews: [],
   ...overrides,
 });
 
@@ -82,23 +84,23 @@ describe("logTimeMs", () => {
 
 describe("resolveDiscoverQuery", () => {
   it("quotes placeholder values for KQL", () => {
-    expect(resolveDiscoverQuery(discover({ queryTemplate: "note:{note}" }), fields)).toEqual({
+    expect(resolveDiscoverQuery(discover({ queryTemplate: "note:{note}" }), fields, {})).toEqual({
       ok: true,
       query: 'note:"say \\"hi\\" \\\\o/"',
     });
   });
 
   it("hides like link actions: disabled, failing conditions, missing values", () => {
-    expect(resolveDiscoverQuery(discover({ enabled: false }), fields)).toEqual({ ok: false, reason: "disabled" });
-    expect(resolveDiscoverQuery(discover({ conditions: [{ field: "level", op: "exists" }] }), fields)).toEqual({
+    expect(resolveDiscoverQuery(discover({ enabled: false }), fields, {})).toEqual({ ok: false, reason: "disabled" });
+    expect(resolveDiscoverQuery(discover({ conditions: [{ field: "level", op: "exists" }] }), fields, {})).toEqual({
       ok: false,
       reason: "conditions",
     });
-    expect(resolveDiscoverQuery(discover({ queryTemplate: "x:{missing}" }), fields)).toEqual({ ok: false, reason: "missingValue" });
+    expect(resolveDiscoverQuery(discover({ queryTemplate: "x:{missing}" }), fields, {})).toEqual({ ok: false, reason: "missingValue" });
   });
 
   it("allows an empty query", () => {
-    expect(resolveDiscoverQuery(discover({ queryTemplate: "  " }), fields)).toEqual({ ok: true, query: "" });
+    expect(resolveDiscoverQuery(discover({ queryTemplate: "  " }), fields, {})).toEqual({ ok: true, query: "" });
   });
 });
 
@@ -124,7 +126,7 @@ describe("buildDiscoverButtons", () => {
 
   it("disables a window-only action when no time is available", () => {
     const action = discover({ queryTemplate: "", windowMinutes: 5 });
-    const disabled = [{ id: "same-user", label: "Same user", disabled: "noTime" }];
+    const disabled = [{ id: "same-user", label: "Same user", passive: { kind: "noTime" } }];
     expect(buildDiscoverButtons([action], { user_id: 1 }, context())).toEqual(disabled);
     expect(buildDiscoverButtons([action], fields, context({ timeFields: new Map() }))).toEqual(disabled);
   });
@@ -141,5 +143,65 @@ describe("buildDiscoverButtons", () => {
       discover({ id: "ok" }),
     ];
     expect(buildDiscoverButtons(actions, fields, context()).map((button) => button.id)).toEqual(["ok"]);
+  });
+});
+
+describe("Discover actions with environment variables", () => {
+  it("quotes variables like fields and shows a passive button when one is missing", () => {
+    const action = discover({ queryTemplate: "app_name:{env.app} and user_id:{user_id}" });
+    expect(resolveDiscoverQuery(action, fields, { app: "bitalih api" })).toEqual({
+      ok: true,
+      query: 'app_name:"bitalih api" and user_id:"12345"',
+    });
+    expect(buildDiscoverButtons([action], fields, context())).toEqual([
+      { id: "same-user", label: "Same user", passive: { kind: "missingVariable", variable: "app" } },
+    ]);
+  });
+});
+
+describe("buildDiscoverButtons with a data view name", () => {
+  const views = [
+    { id: "app-log", title: "app_log", name: "app_log" },
+    { id: "app-log-named", title: "app_log", name: "App logs" },
+    { id: "all-logs", title: "*_log" },
+  ];
+
+  it("opens the data view whose display name or index pattern matches", () => {
+    const [byName] = buildDiscoverButtons([discover({ dataViewName: "App logs" })], fields, context({ dataViews: views }));
+    expect(state(byName).a).toMatchObject({ index: "app-log-named" });
+    const [byPattern] = buildDiscoverButtons([discover({ dataViewName: "*_log" })], fields, context({ dataViews: views }));
+    expect(state(byPattern).a).toMatchObject({ index: "all-logs" });
+  });
+
+  it("shows a passive button when the name matches none or several, or the list failed", () => {
+    const passive = (reason: unknown) => [{ id: "same-user", label: "Same user", passive: reason }];
+    expect(buildDiscoverButtons([discover({ dataViewName: "app_log" })], fields, context({ dataViews: views }))).toEqual(
+      passive({ kind: "dataViewAmbiguous", name: "app_log", count: 2 }),
+    );
+    expect(buildDiscoverButtons([discover({ dataViewName: "App Logs" })], fields, context({ dataViews: views }))).toEqual(
+      passive({ kind: "dataViewNotFound", name: "App Logs" }),
+    );
+    expect(buildDiscoverButtons([discover({ dataViewName: "App logs" })], fields, context({ dataViews: null }))).toEqual(
+      passive({ kind: "dataViewLookupFailed" }),
+    );
+  });
+
+  it("hides an action whose query has no value before looking at its name", () => {
+    const action = discover({ dataViewName: "nope", queryTemplate: "x:{missing}" });
+    expect(buildDiscoverButtons([action], fields, context({ dataViews: views }))).toEqual([]);
+  });
+
+  it("centers the window on the time field of the data view the name resolves to", () => {
+    // Review Focus 5: the open data view (app-log) uses datetime, the named one createdAt.
+    const timeFields = new Map<string, string | undefined>([
+      ["app-log", "datetime"],
+      ["app-log-named", "createdAt"],
+    ]);
+    const [button] = buildDiscoverButtons(
+      [discover({ dataViewName: "App logs", windowMinutes: 5 })],
+      { ...fields, createdAt: "2026-08-12T12:00:00.000Z" },
+      context({ dataViews: views, timeFields }),
+    );
+    expect(state(button).time).toEqual({ from: "2026-08-12T11:55:00.000Z", to: "2026-08-12T12:05:00.000Z" });
   });
 });

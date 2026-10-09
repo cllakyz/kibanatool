@@ -39,16 +39,30 @@ describe("previewAction", () => {
   it("shows the resolved URL or KQL query", () => {
     const sample = parseSample('{"context": {"user_id": 7}, "user_id": "u \\"1\\""}');
     if (!sample.ok) throw new Error(sample.error);
-    expect(previewAction(link, sample.fields)).toEqual({ shown: true, text: "https://admin.test/users/u%20%221%22" });
-    expect(previewAction(discover, sample.fields)).toEqual({ shown: true, text: 'user_id:"u \\"1\\""' });
+    expect(previewAction(link, sample.fields, {})).toEqual({ shown: true, text: "https://admin.test/users/u%20%221%22" });
+    expect(previewAction(discover, sample.fields, {})).toEqual({ shown: true, text: 'user_id:"u \\"1\\""' });
   });
 
   it("explains why an action would be hidden", () => {
     const sample = parseSample('{"level": 200}');
     if (!sample.ok) throw new Error(sample.error);
-    expect(previewAction(link, sample.fields)).toEqual({ shown: false, reason: "missingValue" });
+    expect(previewAction(link, sample.fields, {})).toEqual({ shown: false, reason: "missingValue" });
     const onlyErrors: DiscoverAction = { ...discover, conditions: [{ field: "level", op: "equals", value: "400" }] };
-    expect(previewAction(onlyErrors, sample.fields)).toEqual({ shown: false, reason: "conditions" });
-    expect(previewAction({ ...link, enabled: false }, sample.fields)).toEqual({ shown: false, reason: "disabled" });
+    expect(previewAction(onlyErrors, sample.fields, {})).toEqual({ shown: false, reason: "conditions" });
+    expect(previewAction({ ...link, enabled: false }, sample.fields, {})).toEqual({ shown: false, reason: "disabled" });
+  });
+
+  it("uses the preview environment's variables and reports a passive button", () => {
+    const sample = parseSample('{"user_id": 7}');
+    if (!sample.ok) throw new Error(sample.error);
+    const withVariable: LinkAction = { ...link, urlTemplate: "{env.adminUrl}/users/{user_id}" };
+    expect(previewAction(withVariable, sample.fields, { adminUrl: "https://admin.alpha.test" })).toEqual({
+      shown: true,
+      text: "https://admin.alpha.test/users/7",
+    });
+    expect(previewAction(withVariable, sample.fields, {})).toEqual({
+      shown: false,
+      passive: { kind: "missingVariable", variable: "adminUrl" },
+    });
   });
 });

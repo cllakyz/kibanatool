@@ -31,10 +31,10 @@ async function start(): Promise<void> {
   const client = createKibanaClient({ prefix, fetch: (input, init) => window.fetch(input, init) });
   const mounts = new Map<Element, Mount>();
   // Recomputed only when the config changes: the bars refetch when this array changes identity.
+  let environment = activeEnvironment(config, location.href);
   let actions = currentActions();
 
   function currentActions(): Action[] {
-    const environment = activeEnvironment(config, location.href);
     return environment ? actionsForEnvironment(config, environment.id) : [];
   }
 
@@ -55,9 +55,10 @@ async function start(): Promise<void> {
           loggedMissing = true;
           console.debug(LOG, "no document identity in this detail view; bar hidden");
         }
+        const open = environment;
         // The copy menu needs no actions, so every identified log gets a bar.
         root.render(
-          identity
+          identity && open
             ? createElement(ActionBar, {
                 key: `${identity.index}/${identity.id}`,
                 identity,
@@ -66,6 +67,7 @@ async function start(): Promise<void> {
                 prefix,
                 hash: location.hash,
                 copy: config.copy,
+                environment: open,
               })
             : null,
         );
@@ -107,6 +109,7 @@ async function start(): Promise<void> {
       .load()
       .then((loaded) => {
         config = loaded.config;
+        environment = activeEnvironment(config, location.href);
         actions = currentActions();
         run();
       })

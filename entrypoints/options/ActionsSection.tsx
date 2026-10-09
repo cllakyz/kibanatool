@@ -2,9 +2,9 @@
 import { useState } from "react";
 import type { Action, Config } from "../../src/core/config";
 import { t } from "../../src/i18n";
-import { newAction, withAction, withoutAction } from "../../src/options/model";
+import { newAction, variableWarnings, withAction, withoutAction } from "../../src/options/model";
 import { ActionEditor } from "./ActionEditor";
-import { Feedback, type SectionProps, useSubmit } from "./feedback";
+import { Feedback, type SectionProps, VariableWarnings, useSubmit } from "./feedback";
 
 function environmentNames(config: Config, action: Action): string {
   if (action.environmentIds.length === 0) return t("optionsAllEnvironments");
@@ -38,6 +38,7 @@ export function ActionsSection({ config, onSave }: SectionProps) {
             <span className="badge">{t(action.kind === "link" ? "optionsKindLink" : "optionsKindDiscover")}</span>
             {!action.enabled && <span className="pending">{t("optionsDisabled")}</span>}
             <span className="muted">{environmentNames(config, action)}</span>
+            <VariableWarnings warnings={variableWarnings(config.environments, action)} />
             <button type="button" disabled={editing} aria-label={`${t("optionsEdit")}: ${action.label}`} onClick={() => setDraft(action)}>
               {t("optionsEdit")}
             </button>

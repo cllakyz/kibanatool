@@ -1,10 +1,13 @@
 // Form editor for one action, with a live preview against a pasted sample log (spec §9).
 import { type FormEvent, useState } from "react";
 import type { ConditionOp } from "../../src/core/conditions";
-import type { Action, Environment } from "../../src/core/config";
+import type { Action, DiscoverAction, Environment } from "../../src/core/config";
 import type { HiddenReason } from "../../src/core/link-actions";
 import { type MessageKey, t } from "../../src/i18n";
+import { describePassive } from "../../src/passive-text";
+import { variableWarnings } from "../../src/options/model";
 import { type SampleResult, parseSample, previewAction } from "../../src/options/preview";
+import { VariableWarnings } from "./feedback";
 
 const OPERATORS: Record<ConditionOp, MessageKey> = {
   exists: "optionsOpExists",
@@ -33,6 +36,10 @@ export interface ActionEditorProps {
 
 export function ActionEditor({ action, environments, onChange, onSave, onCancel }: ActionEditorProps) {
   const [sample, setSample] = useState("");
+  const [previewEnvironmentId, setPreviewEnvironmentId] = useState<string | undefined>(undefined);
+  const applicable =
+    action.environmentIds.length === 0 ? environments : environments.filter((environment) => action.environmentIds.includes(environment.id));
+  const previewEnvironment = applicable.find((environment) => environment.id === previewEnvironmentId) ?? applicable[0];
   const update = (patch: Partial<Action>): void => onChange({ ...action, ...patch } as Action);
 
   function setCondition(index: number, patch: Partial<Condition>): void {
@@ -82,14 +89,7 @@ export function ActionEditor({ action, environments, onChange, onSave, onCancel 
             {t("optionsQueryTemplate")}
             <input spellCheck={false} value={action.queryTemplate} onChange={(event) => update({ queryTemplate: event.target.value })} />
           </label>
-          <label>
-            {t("optionsDataViewId")}
-            <input
-              spellCheck={false}
-              value={action.dataViewId ?? ""}
-              onChange={(event) => update({ dataViewId: event.target.value.trim() || undefined })}
-            />
-          </label>
+          <TargetDataView action={action} update={update} />
           <label>
             {t("optionsWindowMinutes")}
             <input
@@ -103,6 +103,9 @@ export function ActionEditor({ action, environments, onChange, onSave, onCancel 
           </label>
         </>
       )}
+      <p>
+        <VariableWarnings warnings={variableWarnings(environments, action)} />
+      </p>
       <fieldset>
         <legend>{t("optionsConditions")}</legend>
         {action.conditions.map((condition, index) => (
@@ -152,9 +155,21 @@ export function ActionEditor({ action, environments, onChange, onSave, onCancel 
           {t("optionsPreviewSample")}
           <textarea rows={6} spellCheck={false} value={sample} onChange={(event) => setSample(event.target.value)} />
         </label>
+        {applicable.length > 0 && (
+          <label>
+            {t("optionsPreviewEnvironment")}
+            <select name="previewEnvironment" value={previewEnvironment?.id} onChange={(event) => setPreviewEnvironmentId(event.target.value)}>
+              {applicable.map((environment) => (
+                <option key={environment.id} value={environment.id}>
+                  {environment.name}
+                </option>
+              ))}
+            </select>
+          </label>
+        )}
         {sample.trim() !== "" && (
           <p className="preview" role="status">
-            {describePreview(action, parseSample(sample))}
+            {describePreview(action, parseSample(sample), previewEnvironment)}
           </p>
         )}
       </fieldset>
@@ -168,12 +183,52 @@ export function ActionEditor({ action, environments, onChange, onSave, onCancel 
   );
 }
 
-function describePreview(action: Action, sample: SampleResult): string {
+function describePreview(action: Action, sample: SampleResult, environment: Environment | undefined): string {
   if (!sample.ok) return t("optionsPreviewInvalid", sample.error);
-  const preview = previewAction(action, sample.fields);
-  if (!preview.shown) return t(HIDDEN[preview.reason]);
+  const preview = previewAction(action, sample.fields, environment?.variables ?? {});
+  if (!preview.shown) {
+    return "passive" in preview
+      ? `${t("optionsPreviewPassive")} ${describePassive(preview.passive, environment?.name ?? "")}`
+      : t(HIDDEN[preview.reason]);
+  }
   if (action.kind === "link") return `${t("optionsPreviewShown")} ${preview.text}`;
   const query = preview.text === "" ? t("optionsPreviewEmptyQuery") : preview.text;
   const range = action.windowMinutes === undefined ? "" : ` · ${t("optionsPreviewWindow", String(action.windowMinutes))}`;
-  return `${t("optionsPreviewShown")} ${query}${range}`;
+  const target = action.dataViewName === undefined ? "" : ` · ${t("optionsPreviewDataViewName", action.dataViewName)}`;
+  return `${t("optionsPreviewShown")} ${query}${range}${target}`;
+}
+
+type TargetKind = "name" | "id";
+
+/** Plan 4 spec §6: the target data view by name (default) or ID. Kept as typed; withAction trims it when saved. */
+function TargetDataView({ action, update }: { action: DiscoverAction; update: (patch: Partial<DiscoverAction>) => void }) {
+  const [kind, setKind] = useState<TargetKind>(action.dataViewId !== undefined ? "id" : "name");
+  const value = (kind === "name" ? action.dataViewName : action.dataViewId) ?? "";
+  const set = (target: TargetKind, text: string): void =>
+    update(
+      target === "name"
+        ? { dataViewName: text === "" ? undefined : text, dataViewId: undefined }
+        : { dataViewId: text === "" ? undefined : text, dataViewName: undefined },
+    );
+  return (
+    <fieldset>
+      <legend>{t("optionsTargetDataView")}</legend>
+      {(["name", "id"] as const).map((target) => (
+        <label className="inline" key={target}>
+          <input
+            type="radio"
+            name="targetKind"
+            value={target}
+            checked={kind === target}
+            onChange={() => {
+              setKind(target);
+              set(target, value);
+            }}
+          />
+          {t(target === "name" ? "optionsTargetByName" : "optionsTargetById")}
+        </label>
+      ))}
+      <input name="dataView" aria-label={t("optionsTargetDataView")} spellCheck={false} value={value} onChange={(event) => set(kind, event.target.value)} />
+    </fieldset>
+  );
 }

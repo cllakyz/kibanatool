@@ -2,6 +2,7 @@
 import { useState } from "react";
 import type { Config, ParseResult } from "../../src/core/config";
 import { t } from "../../src/i18n";
+import type { VariableWarning } from "../../src/options/model";
 
 /** Saves an already validated config; resolves to the errors to show (empty on success). */
 export type SaveConfig = (next: Config) => Promise<string[]>;
@@ -49,4 +50,17 @@ export function Feedback({ errors, saved }: { errors: string[]; saved: boolean }
       {t("optionsSavedReload")}
     </div>
   ) : null;
+}
+
+/** Plan 4 spec §6: variables an action needs but an environment lacks or holds as a non-http(s) base. */
+export function VariableWarnings({ warnings }: { warnings: VariableWarning[] }) {
+  return (
+    <>
+      {warnings.map((warning, index) => (
+        <span key={`${index}-${warning.variable}`} className="pending var-warning" data-variable={warning.variable}>
+          {t(warning.kind === "missing" ? "optionsWarnMissingVariable" : "optionsWarnInvalidVariable", warning.environment, warning.variable)}
+        </span>
+      ))}
+    </>
+  );
 }

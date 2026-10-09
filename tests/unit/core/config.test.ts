@@ -11,8 +11,8 @@ import {
 } from "../../../src/core/config";
 
 const validConfig = (): Config => ({
-  schemaVersion: 1,
-  environments: [{ id: "prod", name: "Prod", kibanaUrl: "https://kibana.example.com" }],
+  schemaVersion: 2,
+  environments: [{ id: "prod", name: "Prod", kibanaUrl: "https://kibana.example.com", variables: {} }],
   actions: [
     {
       id: "admin",
@@ -52,7 +52,7 @@ describe("parseConfig", () => {
   it("rejects non-http link templates with a field path", () => {
     const config = validConfig();
     config.actions[0] = { ...config.actions[0]!, urlTemplate: "javascript:alert(1)" } as Config["actions"][number];
-    expect(errorsOf(config)).toContain("actions.0.urlTemplate: must start with http:// or https://");
+    expect(errorsOf(config)).toContain("actions.0.urlTemplate: must start with http://, https:// or an {env.…} placeholder");
   });
 
   it("rejects duplicate ids", () => {
@@ -77,18 +77,15 @@ describe("parseConfig", () => {
     }
   });
 
-  it("rejects an unknown schemaVersion", () => {
-    expect(errorsOf({ ...validConfig(), schemaVersion: 2 })[0]).toMatch(/^schemaVersion: /);
-  });
 });
 
 describe("activeEnvironment", () => {
   const config: Config = {
     ...emptyConfig(),
     environments: [
-      { id: "root", name: "Root", kibanaUrl: "https://example.com" },
-      { id: "sub", name: "Sub", kibanaUrl: "https://example.com/kibana/" },
-      { id: "local", name: "Local", kibanaUrl: "http://localhost:9601" },
+      { id: "root", name: "Root", kibanaUrl: "https://example.com", variables: {} },
+      { id: "sub", name: "Sub", kibanaUrl: "https://example.com/kibana/", variables: {} },
+      { id: "local", name: "Local", kibanaUrl: "http://localhost:9601", variables: {} },
     ],
   };
 
@@ -138,7 +135,7 @@ describe("parseConfig rules added in Plan 2", () => {
 
   it("rejects two environments with the same Kibana URL", () => {
     const config = validConfig();
-    config.environments.push({ id: "copy", name: "Copy", kibanaUrl: "https://KIBANA.example.com/" });
+    config.environments.push({ id: "copy", name: "Copy", kibanaUrl: "https://KIBANA.example.com/", variables: {} });
     expect(errorsOf(config)).toContain("environments.1.kibanaUrl: Duplicate Kibana URL");
   });
 
@@ -159,5 +156,64 @@ describe("basePathOf", () => {
     expect(basePathOf("https://example.com")).toBe("");
     expect(basePathOf("https://example.com/kibana/")).toBe("/kibana");
     expect(basePathOf("https://example.com/app/kibana")).toBe("/app/kibana");
+  });
+});
+
+describe("parseConfig version 2 (Plan 4)", () => {
+  it("migrates a version 1 config: version 2, and environments without variables get none", () => {
+    const v1 = {
+      ...validConfig(),
+      schemaVersion: 1,
+      environments: [{ id: "prod", name: "Prod", kibanaUrl: "https://kibana.example.com" }],
+    };
+    expect(parseConfig(v1)).toEqual({ ok: true, config: validConfig() });
+  });
+
+  it("rejects versions other than 1 and 2", () => {
+    expect(errorsOf({ ...validConfig(), schemaVersion: 3 })[0]).toMatch(/^schemaVersion: /);
+    expect(errorsOf({ ...validConfig(), schemaVersion: 0 })[0]).toMatch(/^schemaVersion: /);
+  });
+
+  it("accepts environment variables and rejects a bad name or an empty value", () => {
+    const withVariables = (variables: Record<string, string>) => ({
+      ...validConfig(),
+      environments: [{ ...validConfig().environments[0]!, variables }],
+    });
+    expect(parseConfig(withVariables({ adminUrl: "https://admin.example.com", "app_name-2": "x" })).ok).toBe(true);
+    expect(errorsOf(withVariables({ "a.b": "x" }))[0]).toMatch(/^environments\.0\.variables\.a\.b: /);
+    expect(errorsOf(withVariables({ a: "" }))[0]).toMatch(/^environments\.0\.variables\.a: /);
+  });
+
+  it("drops a __proto__ variable without touching the prototype", () => {
+    const result = parseConfig(
+      JSON.parse(
+        '{"schemaVersion":2,"environments":[{"id":"p","name":"P","kibanaUrl":"https://k.test","variables":{"__proto__":"https://evil.test"}}],"actions":[],"copy":{"markdownFields":[],"maskPatterns":[]}}',
+      ),
+    );
+    if (!result.ok) throw new Error(result.errors.join("; "));
+    const variables = result.config.environments[0]!.variables;
+    expect(Object.keys(variables)).toEqual([]);
+    expect(Object.getPrototypeOf(variables)).toBe(Object.prototype);
+  });
+
+  it("accepts a link template that starts with a placeholder of variables only", () => {
+    const withTemplate = (urlTemplate: string): Config => {
+      const config = validConfig();
+      config.actions[0] = { ...config.actions[0]!, urlTemplate } as Config["actions"][number];
+      return config;
+    };
+    expect(parseConfig(withTemplate("{env.adminUrl}/users/{user_id}")).ok).toBe(true);
+    expect(parseConfig(withTemplate("{env.a|env.b}/x")).ok).toBe(true);
+    expect(errorsOf(withTemplate("{context.host|env.h}/x"))).toContain(
+      "actions.0.urlTemplate: must start with http://, https:// or an {env.…} placeholder",
+    );
+  });
+
+  it("accepts dataViewName and rejects it together with dataViewId", () => {
+    const config = validConfig();
+    config.actions[1] = { ...config.actions[1]!, dataViewName: "App logs" } as Config["actions"][number];
+    expect(parseConfig(config).ok).toBe(true);
+    config.actions[1] = { ...config.actions[1]!, dataViewId: "app-log" } as Config["actions"][number];
+    expect(errorsOf(config)).toContain("actions.1.dataViewName: dataViewId and dataViewName cannot both be set");
   });
 });
