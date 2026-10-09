@@ -13,12 +13,9 @@ remote code, no telemetry, local-only storage.
 
 ```bash
 npm install                 # postinstall runs `wxt prepare`, which generates .wxt/tsconfig.json (tsconfig extends it)
-npm test                    # vitest run, all unit tests
 npx vitest run tests/unit/core/template.test.ts   # one test file (add -t "<name>" for one test)
-npm run typecheck           # tsc --noEmit
 npm run build               # → .output/chrome-mv3 (load unpacked in chrome://extensions)
 npm run check:manifest      # run after build; fails if the manifest asks for more permissions than allowed
-npm run dev                 # WXT dev mode
 KT_STACK=9 npm run e2e      # builds, then runs tests/e2e against the running docker stack 7|8|9
 npm run icons               # re-render public/icon/*.png from assets/icon.svg
 npm run zip                 # store package: .output/kibanatool-<version>-chrome.zip
@@ -29,12 +26,6 @@ Dev Kibana stacks: `./docker/up.sh 7|8|9` starts Kibana 7.17.29 on :17601 under 
 ## Architecture
 
 **The content script is not in the manifest.** The manifest has only `storage` + `scripting` and `optional_host_permissions`. When the user adds a Kibana environment on the options page, the options page requests that origin. `entrypoints/background.ts` → `src/background/registration.ts` then registers `kibana.js` with `scripting.registerContentScripts` for the granted origins only. It re-syncs on install, startup, permission changes and config changes, one run at a time (`serialized`). `scripts/check-manifest.mjs` fails if `content_scripts` or `host_permissions` ever appear in the built manifest.
-
-**Runtime flow** (`entrypoints/kibana.ts`, a `defineUnlistedScript`):
-1. A debounced MutationObserver calls `findDetailViews` (`src/adapters/detect.ts`). It does nothing outside Discover and in ES|QL mode.
-2. Adapters find open detail views. The 7.17 adapter (`legacy-table.ts`) looks for expanded `docTableDetailsRow` rows. The 8.x/9.x adapter (`data-grid.ts`) looks for the `docViewerFlyout` flyout. Each view yields a `DocIdentity` (`dataViewId`, `_index`, `_id`). The identity comes from Kibana's own links, decoded in `src/kibana/locator.ts`: the 7.17 `#/doc/<dv>/<index>?id=` href, or the 8.x/9.x `DISCOVER_SINGLE_DOC_LOCATOR` `lz` param. If neither link is there, the adapter reads the `tableDocViewRow-_id/_index-value` rows instead.
-3. `reconcileMounts` (`src/content/mounts.ts`) keeps exactly one `<kibanatool-bar>` host per detail container. Each host gets a shadow root with its own React root.
-4. `ActionBar` fetches the raw doc (`client.fetchDoc`) and the time fields of the data views it needs (`src/content/bar-data.ts`), then renders link buttons (`buildLinkButtons`), Discover buttons (`buildDiscoverButtons`, which keep the current `_g.time` from the `hash` prop when no window applies), a "JSON" panel for fields holding JSON text (`src/core/json-tree.ts`, `JsonView`) and the "⋯" copy menu (masked Markdown via `src/core/markdown.ts`, the single-doc link, and the view with fixed time via `src/core/datemath.ts`). Clipboard writes go through `src/content/clipboard.ts` (async clipboard, then an `execCommand` fallback inside the shadow root).
 
 **Layers:**
 - `src/core/` is pure logic with no browser APIs: the config schema (zod), field flattening (which also expands JSON-string values), `{path|fallback}` templates, and conditions.
@@ -54,10 +45,7 @@ Dev Kibana stacks: `./docker/up.sh 7|8|9` starts Kibana 7.17.29 on :17601 under 
 - Render log values through React only; never use `innerHTML`. URL template values go through `encodeURIComponent`, and only `http(s)` templates are accepted.
 - Settings validation repairs, it does not reject, unknown environmentIds: parseConfig drops them and disables an action left with none (an empty list would mean "all environments").
 - A new UI string needs a key in the `MessageKey` union in `src/i18n.ts` and an entry in both `public/_locales/en/messages.json` and `public/_locales/tr/messages.json`.
-- Unit tests run in the `node` environment by default. DOM tests opt in per file with `// @vitest-environment happy-dom`. Tests use fake `fetch`/`scripting`/`permissions` objects (see the `*Like` interfaces), not WXT mocks.
-- E2E tests never assert localized text (Chromium on macOS takes the UI language from the OS). They use `data-test-subj`, roles, menu order and the action labels from `e2eConfig()`, and read time ranges from `_g.time` in the URL, not from the 9.x time picker.
 - `docker/seed.mjs` is a contract with `tests/e2e` (ids, values, times): change both together. `tests/fixtures/*.json` are captured from the stacks (`KT_CAPTURE=1 npm run e2e -- capture`); refresh them after a Kibana upgrade instead of editing them.
-- The e2e copy of the extension (`.output/e2e-extension`) lists the stack's origin under `host_permissions`, because Chrome's permission prompt cannot be automated. The prompt itself is checked by hand (`docs/verification/2026-10-plan-3.md`).
 
 ## Docs
 
