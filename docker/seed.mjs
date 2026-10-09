@@ -86,11 +86,11 @@ const status = await kb("GET", "/api/status");
 const major = Number(status.version.number.split(".")[0]);
 
 // 7.17 has no data views API; its index pattern API takes the same fields except `name`.
-async function dataView(space, id, title, timeFieldName) {
+async function dataView(space, id, title, timeFieldName, name = title) {
   const base = space ? `/s/${space}` : "";
   const [api, key] = major >= 8 ? ["/api/data_views/data_view", "data_view"] : ["/api/index_patterns/index_pattern", "index_pattern"];
   await kb("DELETE", `${base}${api}/${id}`, undefined, { allow: [404] });
-  await kb("POST", `${base}${api}`, { [key]: { id, title, timeFieldName, ...(major >= 8 ? { name: title } : {}) } });
+  await kb("POST", `${base}${api}`, { [key]: { id, title, timeFieldName, ...(major >= 8 ? { name } : {}) } });
 }
 async function space(id, extra = {}) {
   await kb("DELETE", `/api/spaces/space/${id}`, undefined, { allow: [404] });
@@ -101,6 +101,10 @@ async function space(id, extra = {}) {
 await dataView("", "app-log", "app_log", "datetime");
 await dataView("", "all-logs", "*_log");
 await dataView("", "logs", "logs-*", "@timestamp");
+if (major >= 8) {
+  // Plan 4: a display name that differs from its index pattern, which app-log has too (name match, ambiguity).
+  await dataView("", "app-log-named", "app_log", "datetime", "App logs");
+}
 await space("test");
 await dataView("test", "test-app-log", "app_log", "datetime");
 if (major >= 9) {

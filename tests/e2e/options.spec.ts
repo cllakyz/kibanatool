@@ -1,5 +1,6 @@
 import { readFile } from "node:fs/promises";
 import type { BrowserContext } from "@playwright/test";
+import type { Config } from "../../src/core/config";
 import { e2eConfig, expect, readStored, registeredMatches, test, writeStored } from "./fixtures";
 import { barLinks, openDoc } from "./kibana";
 import { stack } from "./stack";
@@ -54,4 +55,62 @@ test("exports a corrupt stored value as it is, so it can be repaired", async ({ 
   const transfer = options.locator('section[aria-labelledby="transfer-title"]');
   const [download] = await Promise.all([options.waitForEvent("download"), transfer.locator(".row > button").click()]);
   expect(JSON.parse(await readFile(await download.path(), "utf8"))).toEqual(corrupt);
+});
+
+test("edits environment variables in the table and clears the action's warning", async ({ context, extension, configure }) => {
+  const config = e2eConfig();
+  config.actions.push({
+    id: "needs-var",
+    kind: "link",
+    label: "Needs var",
+    enabled: true,
+    environmentIds: [],
+    conditions: [],
+    urlTemplate: "{env.adminUrl}/users/{user_id}",
+  });
+  await configure(config);
+  const options = await openOptions(context, extension.id);
+  const actions = options.locator('section[aria-labelledby="actions-title"]');
+  await expect(actions.locator('.var-warning[data-variable="adminUrl"]')).toHaveCount(1);
+
+  const variables = options.locator('section[aria-labelledby="variables-title"]');
+  await variables.locator(".row > button").first().click(); // "Add variable"
+  await variables.locator('input[name="variableName"]').fill("adminUrl");
+  await variables.locator('input[data-environment="stack"]').fill(" https://admin.example.com ");
+  await variables.locator(".row > button").nth(1).click(); // "Save"
+  await expect
+    .poll(async () => ((await readStored(extension.worker)) as Config).environments[0]?.variables)
+    .toEqual({ adminUrl: "https://admin.example.com" });
+  await expect(actions.locator(".var-warning")).toHaveCount(0);
+});
+
+test("keeps the inner space of a target data view name typed in the editor", async ({ context, extension, configure }) => {
+  await configure();
+  const options = await openOptions(context, extension.id);
+  const actions = options.locator('section[aria-labelledby="actions-title"]');
+  await actions.locator(".row > button").nth(1).click(); // "Add Discover action"
+  await actions.locator('input[name="label"]').fill("Named");
+  await expect(actions.locator('input[name="targetKind"][value="name"]')).toBeChecked();
+  await actions.locator('input[name="dataView"]').pressSequentially("  App logs ");
+  await actions.locator('.editor button[type="submit"]').click();
+  await expect
+    .poll(async () => ((await readStored(extension.worker)) as Config).actions.find((action) => action.label === "Named"))
+    .toMatchObject({ kind: "discover", dataViewName: "App logs" });
+});
+
+test("imports a version 1 settings file and stores it as version 2", async ({ context, extension, configure }) => {
+  await configure();
+  const options = await openOptions(context, extension.id);
+  const transfer = options.locator('section[aria-labelledby="transfer-title"]');
+  const { environments, ...rest } = e2eConfig();
+  const v1 = {
+    ...rest,
+    schemaVersion: 1,
+    environments: environments.map(({ id, name, kibanaUrl }) => ({ id, name, kibanaUrl })),
+  };
+  await transfer
+    .locator('input[type="file"]')
+    .setInputFiles({ name: "v1.json", mimeType: "application/json", buffer: Buffer.from(JSON.stringify(v1)) });
+  await transfer.locator(".warning button").first().click(); // "Replace settings"
+  await expect.poll(() => readStored(extension.worker)).toEqual(e2eConfig());
 });
