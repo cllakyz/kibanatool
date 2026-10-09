@@ -1,5 +1,6 @@
 // Configuration schema, validation and lookups (spec §8).
 import { z } from "zod";
+import { isPlainObject } from "./fields";
 import { isHttpUrl, isHttpUrlTemplate } from "./template";
 
 z.config({ jitless: true }); // MV3 forbids eval; skip zod's Function("") fast-path probe
@@ -21,7 +22,7 @@ const actionBase = {
 const linkActionSchema = z.object({
   ...actionBase,
   kind: z.literal("link"),
-  urlTemplate: z.string().refine(isHttpUrlTemplate, { error: "must start with http:// or https://" }),
+  urlTemplate: z.string().refine(isHttpUrlTemplate, { error: "must start with http://, https:// or an {env.…} placeholder" }),
 });
 
 const discoverActionSchema = z.object({
@@ -29,18 +30,24 @@ const discoverActionSchema = z.object({
   kind: z.literal("discover"),
   queryTemplate: z.string(),
   dataViewId: z.string().min(1).optional(),
+  dataViewName: z.string().min(1).optional(),
   windowMinutes: z.number().int().min(1).max(1440).optional(),
 });
+
+/** Plan 4 spec §3: variable names are letters, digits, `_` and `-`. */
+export const VARIABLE_NAME = /^[A-Za-z0-9_-]+$/;
 
 const environmentSchema = z.object({
   id: z.string().min(1),
   name: z.string().min(1),
   kibanaUrl: z.string().refine(isHttpUrl, { error: "must be a valid http(s) URL" }),
+  // Empty values are not stored; a missing record (version 1, a hand-written file) is none.
+  variables: z.record(z.string().regex(VARIABLE_NAME), z.string().min(1)).default({}),
 });
 
 export const configSchema = z
   .object({
-    schemaVersion: z.literal(1),
+    schemaVersion: z.literal(2),
     environments: z.array(environmentSchema),
     actions: z.array(z.discriminatedUnion("kind", [linkActionSchema, discoverActionSchema])),
     copy: z.object({
@@ -81,6 +88,14 @@ export const configSchema = z
           input: condition,
         });
       });
+      if (action.kind === "discover" && action.dataViewId !== undefined && action.dataViewName !== undefined) {
+        ctx.addIssue({
+          code: "custom",
+          message: "dataViewId and dataViewName cannot both be set",
+          path: ["actions", actionIndex, "dataViewName"],
+          input: action.dataViewName,
+        });
+      }
     });
   });
 
@@ -92,8 +107,18 @@ export type DiscoverAction = Extract<Action, { kind: "discover" }>;
 
 export type ParseResult = { ok: true; config: Config } | { ok: false; errors: string[] };
 
+export const SCHEMA_VERSION = 2;
+
+/**
+ * Plan 4 spec §3: version 1 had no variables and no dataViewName, so it only needs the new number. Done here,
+ * so both imported files and settings already in chrome.storage (storage.ts) are converted, not dropped.
+ */
+function migrate(input: unknown): unknown {
+  return isPlainObject(input) && input.schemaVersion === 1 ? { ...input, schemaVersion: SCHEMA_VERSION } : input;
+}
+
 export function parseConfig(input: unknown): ParseResult {
-  const result = configSchema.safeParse(input);
+  const result = configSchema.safeParse(migrate(input));
   if (result.success) return { ok: true, config: withKnownEnvironments(result.data) };
   return {
     ok: false,
@@ -132,7 +157,7 @@ export const DEFAULT_MASK_PATTERNS = ["*authorization*", "*password*", "*token*"
 
 export function emptyConfig(): Config {
   return {
-    schemaVersion: 1,
+    schemaVersion: SCHEMA_VERSION,
     environments: [],
     actions: [],
     copy: { markdownFields: [], maskPatterns: [...DEFAULT_MASK_PATTERNS] },

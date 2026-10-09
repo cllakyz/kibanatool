@@ -48,8 +48,26 @@ export function resolveTemplate(
   return missing ? null : result;
 }
 
+/** `env.<name>` paths name environment variables, never log fields (Plan 4 spec §4). */
+export const VARIABLE_PREFIX = "env.";
+
+export function isVariablePath(path: string): boolean {
+  return path.startsWith(VARIABLE_PREFIX);
+}
+
+const LEADING_PLACEHOLDER = new RegExp(`^${PLACEHOLDER.source}`);
+
+/** Paths of the placeholder `template` starts with, when they are all variables; null otherwise. */
+export function leadingVariablePaths(template: string): string[] | null {
+  const match = LEADING_PLACEHOLDER.exec(template.trim());
+  if (!match) return null;
+  const paths = (match[1] ?? "").split("|");
+  return paths.every(isVariablePath) ? paths : null;
+}
+
+/** Plan 4 spec §3: an http(s) template, or one whose base comes from a variable. */
 export function isHttpUrlTemplate(template: string): boolean {
-  return /^https?:\/\//i.test(template.trim());
+  return /^https?:\/\//i.test(template.trim()) || leadingVariablePaths(template) !== null;
 }
 
 export function isHttpUrl(value: string): boolean {

@@ -37,9 +37,9 @@ function fakes(options: { granted: string[]; registered?: boolean }) {
 const config: Config = {
   ...emptyConfig(),
   environments: [
-    { id: "a", name: "A", kibanaUrl: "https://kibana.example.com" },
-    { id: "b", name: "B", kibanaUrl: "https://kibana.example.com/other" },
-    { id: "c", name: "C", kibanaUrl: "http://localhost:9601" },
+    { id: "a", name: "A", kibanaUrl: "https://kibana.example.com", variables: {} },
+    { id: "b", name: "B", kibanaUrl: "https://kibana.example.com/other", variables: {} },
+    { id: "c", name: "C", kibanaUrl: "http://localhost:9601", variables: {} },
   ],
 };
 

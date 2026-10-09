@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { isHttpUrl, isHttpUrlTemplate, lookup, parsePlaceholders, resolveTemplate } from "../../../src/core/template";
+import { isHttpUrl, isHttpUrlTemplate, leadingVariablePaths, lookup, parsePlaceholders, resolveTemplate } from "../../../src/core/template";
 
 const enc = encodeURIComponent;
 
@@ -91,5 +91,23 @@ describe("isHttpUrl", () => {
     expect(isHttpUrl("https://a%20b/x")).toBe(false);
     expect(isHttpUrl("javascript:alert(1)")).toBe(false);
     expect(isHttpUrl("x.test")).toBe(false);
+  });
+});
+
+describe("leadingVariablePaths", () => {
+  it("returns the paths of a placeholder at the start that holds only env. paths", () => {
+    expect(leadingVariablePaths("{env.adminUrl}/users/{user_id}")).toEqual(["env.adminUrl"]);
+    expect(leadingVariablePaths("  {env.a|env.b}/x")).toEqual(["env.a", "env.b"]);
+    expect(leadingVariablePaths("{context.host|env.h}/x")).toBeNull();
+    expect(leadingVariablePaths("https://{env.host}/x")).toBeNull();
+    expect(leadingVariablePaths("{user_id}")).toBeNull();
+  });
+});
+
+describe("isHttpUrlTemplate with variables", () => {
+  it("accepts a template that starts with a variable placeholder", () => {
+    expect(isHttpUrlTemplate("{env.adminUrl}/users/{user_id}")).toBe(true);
+    expect(isHttpUrlTemplate("{user_id}/x")).toBe(false);
+    expect(isHttpUrlTemplate("{context.host|env.h}/x")).toBe(false);
   });
 });

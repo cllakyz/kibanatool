@@ -15,8 +15,8 @@ declare const chrome: {
 export function e2eConfig(): Config {
   const shared = { enabled: true, environmentIds: [], conditions: [] };
   return {
-    schemaVersion: 1,
-    environments: [{ id: "stack", name: `Kibana ${stack.version}`, kibanaUrl: stack.kibana }],
+    schemaVersion: 2,
+    environments: [{ id: "stack", name: `Kibana ${stack.version}`, kibanaUrl: stack.kibana, variables: {} }],
     actions: [
       { ...shared, id: "user", kind: "link", label: "User", urlTemplate: "https://admin.example.com/users/{user_id|user.id}" },
       {

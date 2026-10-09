@@ -2,7 +2,7 @@
 import { type Action, type Config, type Environment, type ParseResult, originPattern, parseConfig } from "../core/config";
 
 export function newEnvironment(name: string, kibanaUrl: string, id: string = crypto.randomUUID()): Environment {
-  return { id, name: name.trim(), kibanaUrl: kibanaUrl.trim() };
+  return { id, name: name.trim(), kibanaUrl: kibanaUrl.trim(), variables: {} };
 }
 
 export function withEnvironment(config: Config, environment: Environment): ParseResult {

@@ -1,6 +1,6 @@
 {
-  "schemaVersion": 1,
-  "environments": [{ "id": "prod", "name": "Production", "kibanaUrl": "https://kibana.example.com" }],
+  "schemaVersion": 2,
+  "environments": [{ "id": "prod", "name": "Production", "kibanaUrl": "https://kibana.example.com", "variables": {} }],
   "actions": [
     {
       "id": "admin-user",
