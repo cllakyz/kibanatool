@@ -4,7 +4,8 @@ import type { Action, DiscoverAction } from "./config";
 import { evaluateConditions } from "./conditions";
 import type { FieldMap } from "./fields";
 import type { HiddenReason } from "./link-actions";
-import { resolveTemplate } from "./template";
+import type { PassiveReason } from "./passive";
+import { type Variables, fillTemplate } from "./template";
 import type { TimeRange } from "./types";
 
 /** `12345` → `"12345"`: KQL quoting with `\` and `"` escaped. */
@@ -28,13 +29,19 @@ export function logTimeMs(value: unknown): number | undefined {
   return valid(Date.parse(ZONELESS.test(text) ? `${text.replace(" ", "T")}Z` : text));
 }
 
-export type QueryResolution = { ok: true; query: string } | { ok: false; reason: Exclude<HiddenReason, "invalidUrl"> };
+export type QueryResolution =
+  | { ok: true; query: string }
+  | { ok: false; reason: Exclude<HiddenReason, "invalidUrl"> }
+  | { ok: false; passive: PassiveReason };
 
-export function resolveDiscoverQuery(action: DiscoverAction, fields: FieldMap): QueryResolution {
+export function resolveDiscoverQuery(action: DiscoverAction, fields: FieldMap, variables: Variables): QueryResolution {
   if (!action.enabled) return { ok: false, reason: "disabled" };
   if (!evaluateConditions(action.conditions, fields)) return { ok: false, reason: "conditions" };
-  const query = resolveTemplate(action.queryTemplate.trim(), fields, kqlQuote);
-  return query === null ? { ok: false, reason: "missingValue" } : { ok: true, query };
+  const filled = fillTemplate(action.queryTemplate.trim(), fields, variables, { field: kqlQuote, variable: kqlQuote });
+  if (filled.ok) return { ok: true, query: filled.text };
+  return filled.reason === "missingVariable"
+    ? { ok: false, passive: { kind: "missingVariable", variable: filled.variable } }
+    : { ok: false, reason: "missingValue" };
 }
 
 export interface DiscoverContext {
@@ -45,17 +52,17 @@ export interface DiscoverContext {
   currentTime?: TimeRange;
   /** Time field per data view id; undefined when it has none or could not be read. */
   timeFields: ReadonlyMap<string, string | undefined>;
+  /** The open environment's variables (Plan 4). */
+  variables: Variables;
 }
 
-export type DiscoverButton =
-  | { id: string; label: string; url: string }
-  | { id: string; label: string; disabled: "noTime" };
+export type DiscoverButton = { id: string; label: string; url: string } | { id: string; label: string; passive: PassiveReason };
 
 export function buildDiscoverButtons(actions: Action[], fields: FieldMap, context: DiscoverContext): DiscoverButton[] {
   return actions.flatMap((action): DiscoverButton[] => {
     if (action.kind !== "discover") return [];
-    const resolved = resolveDiscoverQuery(action, fields);
-    if (!resolved.ok) return [];
+    const resolved = resolveDiscoverQuery(action, fields, context.variables);
+    if (!resolved.ok) return "passive" in resolved ? [{ id: action.id, label: action.label, passive: resolved.passive }] : [];
     const dataViewId = action.dataViewId ?? context.dataViewId;
     const range =
       action.windowMinutes === undefined
@@ -63,7 +70,7 @@ export function buildDiscoverButtons(actions: Action[], fields: FieldMap, contex
         : timeWindow(fields, context.timeFields.get(dataViewId), action.windowMinutes);
     // Spec §7.3: without a time, a window-only action would just reopen the current view.
     if (action.windowMinutes !== undefined && !range && resolved.query === "") {
-      return [{ id: action.id, label: action.label, disabled: "noTime" }];
+      return [{ id: action.id, label: action.label, passive: { kind: "noTime" } }];
     }
     const url = discoverUrl({ prefix: context.prefix, dataViewId, query: resolved.query, time: range ?? context.currentTime });
     return [{ id: action.id, label: action.label, url }];

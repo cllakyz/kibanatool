@@ -1,7 +1,21 @@
 import { describe, expect, it } from "vitest";
-import { isHttpUrl, isHttpUrlTemplate, leadingVariablePaths, lookup, parsePlaceholders, resolveTemplate } from "../../../src/core/template";
+import type { FieldMap } from "../../../src/core/fields";
+import {
+  fillTemplate,
+  isHttpUrl,
+  isHttpUrlTemplate,
+  leadingVariablePaths,
+  lookup,
+  parsePlaceholders,
+} from "../../../src/core/template";
 
 const enc = encodeURIComponent;
+
+/** The old field-only API as a test helper, so the cases below read as before. */
+function resolveTemplate(template: string, fields: FieldMap, encode: (value: string) => string): string | null {
+  const result = fillTemplate(template, fields, {}, { field: encode, variable: encode });
+  return result.ok ? result.text : null;
+}
 
 describe("resolveTemplate", () => {
   it("returns null when the encoder throws (e.g. a lone surrogate)", () => {
@@ -109,5 +123,58 @@ describe("isHttpUrlTemplate with variables", () => {
     expect(isHttpUrlTemplate("{env.adminUrl}/users/{user_id}")).toBe(true);
     expect(isHttpUrlTemplate("{user_id}/x")).toBe(false);
     expect(isHttpUrlTemplate("{context.host|env.h}/x")).toBe(false);
+  });
+});
+
+describe("fillTemplate with variables", () => {
+  const encoders = { field: encodeURIComponent, variable: (value: string) => value };
+  const variables = { adminUrl: "https://admin.alpha.test", app: "bitalih api" };
+
+  it("inserts variables as they are and encodes field values", () => {
+    expect(fillTemplate("{env.adminUrl}/users/{user_id}?q={q}", { user_id: 7, q: "a b" }, variables, encoders)).toEqual({
+      ok: true,
+      text: "https://admin.alpha.test/users/7?q=a%20b",
+    });
+  });
+
+  it("tries field and variable paths of a fallback left to right", () => {
+    const template = "https://{context.host|env.host}/x";
+    expect(fillTemplate(template, { "context.host": "h.test" }, { host: "d.test" }, encoders)).toEqual({ ok: true, text: "https://h.test/x" });
+    expect(fillTemplate(template, {}, { host: "d.test" }, encoders)).toEqual({ ok: true, text: "https://d.test/x" });
+  });
+
+  it("reports a missing variable by name, but a missing field first", () => {
+    expect(fillTemplate("{env.adminUrl}/u/{user_id}", { user_id: 1 }, {}, encoders)).toEqual({
+      ok: false,
+      reason: "missingVariable",
+      variable: "adminUrl",
+    });
+    expect(fillTemplate("{env.adminUrl}/u/{user_id}", {}, {}, encoders)).toEqual({ ok: false, reason: "missingValue" });
+    expect(fillTemplate("https://{context.host|env.host}/x", {}, {}, encoders)).toEqual({ ok: false, reason: "missingValue" });
+  });
+
+  it("treats an empty value and inherited keys as not set", () => {
+    expect(fillTemplate("{env.a}", {}, { a: "" }, encoders)).toEqual({ ok: false, reason: "missingVariable", variable: "a" });
+    expect(fillTemplate("{env.constructor}/{env.toString}", {}, {}, encoders)).toEqual({
+      ok: false,
+      reason: "missingVariable",
+      variable: "constructor",
+    });
+  });
+
+  it("never reads env. paths from the log", () => {
+    expect(fillTemplate("https://x.test/{env.name}", { "env.name": "from-log" }, {}, encoders)).toEqual({
+      ok: false,
+      reason: "missingVariable",
+      variable: "name",
+    });
+  });
+
+  it("applies the variable encoder to variables and the field encoder to fields", () => {
+    const quote = (value: string) => `"${value}"`;
+    expect(fillTemplate("app:{env.app} and u:{u}", { u: 1 }, variables, { field: quote, variable: quote })).toEqual({
+      ok: true,
+      text: 'app:"bitalih api" and u:"1"',
+    });
   });
 });

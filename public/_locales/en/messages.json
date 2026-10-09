@@ -109,5 +109,24 @@
   "optionsHiddenDisabled": { "message": "Hidden: the action is disabled" },
   "optionsHiddenConditions": { "message": "Hidden: a condition does not hold for this log" },
   "optionsHiddenMissingValue": { "message": "Hidden: a placeholder has no value in this log" },
-  "optionsHiddenInvalidUrl": { "message": "Hidden: the result is not a valid http(s) URL" }
+  "optionsHiddenInvalidUrl": { "message": "Hidden: the result is not a valid http(s) URL" },
+  "passiveMissingVariable": {
+    "message": "$NAME$ is not set for the $ENV$ environment",
+    "placeholders": { "env": { "content": "$1", "example": "Prod" }, "name": { "content": "$2", "example": "adminUrl" } }
+  },
+  "passiveInvalidVariable": {
+    "message": "$NAME$ is not an http(s) address in the $ENV$ environment",
+    "placeholders": { "env": { "content": "$1", "example": "Prod" }, "name": { "content": "$2", "example": "adminUrl" } }
+  },
+  "passiveDataViewNotFound": {
+    "message": "No data view named \"$NAME$\" in this space",
+    "placeholders": { "name": { "content": "$1", "example": "player_login_log" } }
+  },
+  "passiveDataViewAmbiguous": {
+    "message": "$COUNT$ data views match \"$NAME$\"",
+    "placeholders": { "name": { "content": "$1", "example": "app_log" }, "count": { "content": "$2", "example": "2" } }
+  },
+  "passiveDataViewLookupFailed": { "message": "Could not read the data view list" },
+  "optionsPreviewPassive": { "message": "Passive:" },
+  "optionsPreviewEnvironment": { "message": "Preview environment" }
 }

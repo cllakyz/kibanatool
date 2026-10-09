@@ -4,6 +4,7 @@ import type { ConditionOp } from "../../src/core/conditions";
 import type { Action, Environment } from "../../src/core/config";
 import type { HiddenReason } from "../../src/core/link-actions";
 import { type MessageKey, t } from "../../src/i18n";
+import { describePassive } from "../../src/passive-text";
 import { type SampleResult, parseSample, previewAction } from "../../src/options/preview";
 
 const OPERATORS: Record<ConditionOp, MessageKey> = {
@@ -33,6 +34,10 @@ export interface ActionEditorProps {
 
 export function ActionEditor({ action, environments, onChange, onSave, onCancel }: ActionEditorProps) {
   const [sample, setSample] = useState("");
+  const [previewEnvironmentId, setPreviewEnvironmentId] = useState<string | undefined>(undefined);
+  const applicable =
+    action.environmentIds.length === 0 ? environments : environments.filter((environment) => action.environmentIds.includes(environment.id));
+  const previewEnvironment = applicable.find((environment) => environment.id === previewEnvironmentId) ?? applicable[0];
   const update = (patch: Partial<Action>): void => onChange({ ...action, ...patch } as Action);
 
   function setCondition(index: number, patch: Partial<Condition>): void {
@@ -152,9 +157,21 @@ export function ActionEditor({ action, environments, onChange, onSave, onCancel 
           {t("optionsPreviewSample")}
           <textarea rows={6} spellCheck={false} value={sample} onChange={(event) => setSample(event.target.value)} />
         </label>
+        {applicable.length > 0 && (
+          <label>
+            {t("optionsPreviewEnvironment")}
+            <select name="previewEnvironment" value={previewEnvironment?.id} onChange={(event) => setPreviewEnvironmentId(event.target.value)}>
+              {applicable.map((environment) => (
+                <option key={environment.id} value={environment.id}>
+                  {environment.name}
+                </option>
+              ))}
+            </select>
+          </label>
+        )}
         {sample.trim() !== "" && (
           <p className="preview" role="status">
-            {describePreview(action, parseSample(sample))}
+            {describePreview(action, parseSample(sample), previewEnvironment)}
           </p>
         )}
       </fieldset>
@@ -168,10 +185,14 @@ export function ActionEditor({ action, environments, onChange, onSave, onCancel 
   );
 }
 
-function describePreview(action: Action, sample: SampleResult): string {
+function describePreview(action: Action, sample: SampleResult, environment: Environment | undefined): string {
   if (!sample.ok) return t("optionsPreviewInvalid", sample.error);
-  const preview = previewAction(action, sample.fields);
-  if (!preview.shown) return t(HIDDEN[preview.reason]);
+  const preview = previewAction(action, sample.fields, environment?.variables ?? {});
+  if (!preview.shown) {
+    return "passive" in preview
+      ? `${t("optionsPreviewPassive")} ${describePassive(preview.passive, environment?.name ?? "")}`
+      : t(HIDDEN[preview.reason]);
+  }
   if (action.kind === "link") return `${t("optionsPreviewShown")} ${preview.text}`;
   const query = preview.text === "" ? t("optionsPreviewEmptyQuery") : preview.text;
   const range = action.windowMinutes === undefined ? "" : ` · ${t("optionsPreviewWindow", String(action.windowMinutes))}`;

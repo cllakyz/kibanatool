@@ -109,5 +109,24 @@
   "optionsHiddenDisabled": { "message": "Gizli: aksiyon kapalı" },
   "optionsHiddenConditions": { "message": "Gizli: bu log için bir koşul sağlanmıyor" },
   "optionsHiddenMissingValue": { "message": "Gizli: bir yer tutucunun bu logda değeri yok" },
-  "optionsHiddenInvalidUrl": { "message": "Gizli: sonuç geçerli bir http(s) URL'i değil" }
+  "optionsHiddenInvalidUrl": { "message": "Gizli: sonuç geçerli bir http(s) URL'i değil" },
+  "passiveMissingVariable": {
+    "message": "$ENV$ ortamında $NAME$ tanımlı değil",
+    "placeholders": { "env": { "content": "$1", "example": "Prod" }, "name": { "content": "$2", "example": "adminUrl" } }
+  },
+  "passiveInvalidVariable": {
+    "message": "$ENV$ ortamında $NAME$ bir http(s) adresi değil",
+    "placeholders": { "env": { "content": "$1", "example": "Prod" }, "name": { "content": "$2", "example": "adminUrl" } }
+  },
+  "passiveDataViewNotFound": {
+    "message": "\"$NAME$\" adlı data view bu space'te yok",
+    "placeholders": { "name": { "content": "$1", "example": "player_login_log" } }
+  },
+  "passiveDataViewAmbiguous": {
+    "message": "\"$NAME$\" adıyla $COUNT$ data view eşleşti",
+    "placeholders": { "name": { "content": "$1", "example": "app_log" }, "count": { "content": "$2", "example": "2" } }
+  },
+  "passiveDataViewLookupFailed": { "message": "Data view listesi alınamadı" },
+  "optionsPreviewPassive": { "message": "Pasif:" },
+  "optionsPreviewEnvironment": { "message": "Önizleme ortamı" }
 }

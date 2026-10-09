@@ -1,16 +1,18 @@
 // The per-document action bar (spec §7.7): link actions, Discover actions, then the copy menu.
 import { type SyntheticEvent, useEffect, useMemo, useRef, useState } from "react";
-import type { Action, Config } from "../core/config";
+import type { Action, Config, Environment } from "../core/config";
 import { type DiscoverButton, buildDiscoverButtons } from "../core/discover-actions";
 import { flattenDoc } from "../core/fields";
 import { jsonTextFields } from "../core/json-tree";
 import { type LinkButton, buildLinkButtons } from "../core/link-actions";
 import { buildMarkdown } from "../core/markdown";
+import type { PassiveReason } from "../core/passive";
 import type { DocIdentity, RawHit } from "../core/types";
 import { type MessageKey, t } from "../i18n";
 import { type KibanaClient, KibanaError } from "../kibana/client";
 import { readGlobalTime } from "../kibana/discover-state";
 import { fixedTimeUrl, singleDocPath } from "../kibana/url";
+import { describePassive } from "../passive-text";
 import { loadTimeFields, timeFieldTargets } from "./bar-data";
 import { copyText } from "./clipboard";
 import { type CopyItem, CopyMenu } from "./CopyMenu";
@@ -30,12 +32,14 @@ export interface ActionBarProps {
   /** location.hash: Discover links keep the current time range when no window applies. */
   hash: string;
   copy: Config["copy"];
+  /** The open environment: its variables fill {env.…}, its name explains passive buttons (Plan 4). */
+  environment: Environment;
 }
 
 /** Kibana would see these events on the host element otherwise (e.g. arrow keys move the 8.x/9.x flyout). */
 const keepInside = (event: SyntheticEvent): void => event.stopPropagation();
 
-export function ActionBar({ identity, actions, client, prefix, hash, copy }: ActionBarProps) {
+export function ActionBar({ identity, actions, client, prefix, hash, copy, environment }: ActionBarProps) {
   const [state, setState] = useState<State>({ status: "loading" });
   const [notice, setNotice] = useState<MessageKey | null>(null);
   const rootRef = useRef<HTMLDivElement>(null);
@@ -69,15 +73,16 @@ export function ActionBar({ identity, actions, client, prefix, hash, copy }: Act
     if (state.status !== "ready") return { links: [], discover: [] };
     const fields = flattenDoc(state.hit);
     return {
-      links: buildLinkButtons(actions, fields),
+      links: buildLinkButtons(actions, fields, environment.variables),
       discover: buildDiscoverButtons(actions, fields, {
         prefix,
         dataViewId,
         currentTime: readGlobalTime(hash),
         timeFields: state.timeFields,
+        variables: environment.variables,
       }),
     };
-  }, [state, actions, prefix, dataViewId, hash]);
+  }, [state, actions, prefix, dataViewId, hash, environment]);
 
   const jsonFields = useMemo(() => (state.status === "ready" ? jsonTextFields(state.hit._source ?? {}) : []), [state]);
 
@@ -130,23 +135,32 @@ export function ActionBar({ identity, actions, client, prefix, hash, copy }: Act
     { label: t("menuCopyFixedView"), text: () => fixedTimeUrl(location.href, new Date()) },
   ];
 
+  // Plan 4 spec §5.3: greyed out, with the reason as its tooltip.
+  const passiveButton = (button: { id: string; label: string; passive: PassiveReason }) => (
+    <span key={button.id} className="kt-btn kt-disabled" aria-disabled="true" tabIndex={0} title={describePassive(button.passive, environment.name)}>
+      {button.label}
+    </span>
+  );
+
   return (
     <div className="kt-root" ref={rootRef} onClick={keepInside} onKeyDown={keepInside}>
       <div className="kt-bar">
-        {buttons.links.map((button) => (
-          <a key={button.id} className="kt-btn" href={button.url} target="_blank" rel="noopener noreferrer">
-            {button.label}
-          </a>
-        ))}
+        {buttons.links.map((button) =>
+          "url" in button ? (
+            <a key={button.id} className="kt-btn" href={button.url} target="_blank" rel="noopener noreferrer">
+              {button.label}
+            </a>
+          ) : (
+            passiveButton(button)
+          ),
+        )}
         {buttons.discover.map((button) =>
           "url" in button ? (
             <a key={button.id} className="kt-btn kt-discover" href={button.url} target="_blank" rel="noopener noreferrer">
               {button.label}
             </a>
           ) : (
-            <span key={button.id} className="kt-btn kt-disabled" aria-disabled="true" tabIndex={0} title={t("discoverNoTime")}>
-              {button.label}
-            </span>
+            passiveButton(button)
           ),
         )}
         {jsonFields.length > 0 && (

@@ -28,6 +28,7 @@ const context = (overrides: Partial<DiscoverContext> = {}): DiscoverContext => (
     ["app-log", "datetime"],
     ["all-logs", undefined],
   ]),
+  variables: {},
   ...overrides,
 });
 
@@ -82,23 +83,23 @@ describe("logTimeMs", () => {
 
 describe("resolveDiscoverQuery", () => {
   it("quotes placeholder values for KQL", () => {
-    expect(resolveDiscoverQuery(discover({ queryTemplate: "note:{note}" }), fields)).toEqual({
+    expect(resolveDiscoverQuery(discover({ queryTemplate: "note:{note}" }), fields, {})).toEqual({
       ok: true,
       query: 'note:"say \\"hi\\" \\\\o/"',
     });
   });
 
   it("hides like link actions: disabled, failing conditions, missing values", () => {
-    expect(resolveDiscoverQuery(discover({ enabled: false }), fields)).toEqual({ ok: false, reason: "disabled" });
-    expect(resolveDiscoverQuery(discover({ conditions: [{ field: "level", op: "exists" }] }), fields)).toEqual({
+    expect(resolveDiscoverQuery(discover({ enabled: false }), fields, {})).toEqual({ ok: false, reason: "disabled" });
+    expect(resolveDiscoverQuery(discover({ conditions: [{ field: "level", op: "exists" }] }), fields, {})).toEqual({
       ok: false,
       reason: "conditions",
     });
-    expect(resolveDiscoverQuery(discover({ queryTemplate: "x:{missing}" }), fields)).toEqual({ ok: false, reason: "missingValue" });
+    expect(resolveDiscoverQuery(discover({ queryTemplate: "x:{missing}" }), fields, {})).toEqual({ ok: false, reason: "missingValue" });
   });
 
   it("allows an empty query", () => {
-    expect(resolveDiscoverQuery(discover({ queryTemplate: "  " }), fields)).toEqual({ ok: true, query: "" });
+    expect(resolveDiscoverQuery(discover({ queryTemplate: "  " }), fields, {})).toEqual({ ok: true, query: "" });
   });
 });
 
@@ -124,7 +125,7 @@ describe("buildDiscoverButtons", () => {
 
   it("disables a window-only action when no time is available", () => {
     const action = discover({ queryTemplate: "", windowMinutes: 5 });
-    const disabled = [{ id: "same-user", label: "Same user", disabled: "noTime" }];
+    const disabled = [{ id: "same-user", label: "Same user", passive: { kind: "noTime" } }];
     expect(buildDiscoverButtons([action], { user_id: 1 }, context())).toEqual(disabled);
     expect(buildDiscoverButtons([action], fields, context({ timeFields: new Map() }))).toEqual(disabled);
   });
@@ -141,5 +142,18 @@ describe("buildDiscoverButtons", () => {
       discover({ id: "ok" }),
     ];
     expect(buildDiscoverButtons(actions, fields, context()).map((button) => button.id)).toEqual(["ok"]);
+  });
+});
+
+describe("Discover actions with environment variables", () => {
+  it("quotes variables like fields and shows a passive button when one is missing", () => {
+    const action = discover({ queryTemplate: "app_name:{env.app} and user_id:{user_id}" });
+    expect(resolveDiscoverQuery(action, fields, { app: "bitalih api" })).toEqual({
+      ok: true,
+      query: 'app_name:"bitalih api" and user_id:"12345"',
+    });
+    expect(buildDiscoverButtons([action], fields, context())).toEqual([
+      { id: "same-user", label: "Same user", passive: { kind: "missingVariable", variable: "app" } },
+    ]);
   });
 });
