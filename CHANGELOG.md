@@ -25,7 +25,7 @@ First public release, for Kibana 7.17, 8.x and 9.x in Chrome.
   name is looked up in the current space.
 - Settings files are version 2; settings from pre-release builds (version 1) are converted when loaded.
 - English and Turkish.
-- The look of Kibana 9's Borealis theme, in light and dark. The options page follows the system's dark mode;
-  the action bar follows the Kibana page it sits on (7.17, 8.x and 9.x).
+- The look of Kibana 9's Borealis theme, in light and dark, with the icon in its colors. The options page
+  follows the system's dark mode; the action bar follows the Kibana page it sits on (7.17, 8.x and 9.x).
 - Text and form controls meet WCAG AA contrast in both themes: text at 4.5:1, input borders, the focus ring
   and the unset-variable and current-match marks at 3:1.
