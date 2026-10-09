@@ -1,6 +1,13 @@
 {
   "schemaVersion": 2,
-  "environments": [{ "id": "prod", "name": "Production", "kibanaUrl": "https://kibana.example.com", "variables": {} }],
+  "environments": [
+    {
+      "id": "prod",
+      "name": "Production",
+      "kibanaUrl": "https://kibana.example.com",
+      "variables": { "adminUrl": "https://admin.example.com", "jiraUrl": "https://acme.atlassian.net" }
+    }
+  ],
   "actions": [
     {
       "id": "admin-user",
@@ -9,7 +16,7 @@
       "enabled": true,
       "environmentIds": [],
       "conditions": [],
-      "urlTemplate": "https://admin.example.com/users/{user_id|context.user_id|user.id}"
+      "urlTemplate": "{env.adminUrl}/users/{user_id|context.user_id|user.id}"
     },
     {
       "id": "sentry",
@@ -27,7 +34,7 @@
       "enabled": true,
       "environmentIds": [],
       "conditions": [],
-      "urlTemplate": "https://acme.atlassian.net/issues/?jql=text%20~%20{user_id|user.id}"
+      "urlTemplate": "{env.jiraUrl}/issues/?jql=text%20~%20{user_id|user.id}"
     },
     {
       "id": "user-logs",
@@ -37,6 +44,17 @@
       "environmentIds": [],
       "conditions": [],
       "queryTemplate": "user_id:{user_id}"
+    },
+    {
+      "id": "user-everywhere",
+      "kind": "discover",
+      "label": "This user in all logs",
+      "enabled": true,
+      "environmentIds": [],
+      "conditions": [],
+      "queryTemplate": "user_id:{user_id}",
+      "dataViewName": "*_log",
+      "windowMinutes": 60
     },
     {
       "id": "around",

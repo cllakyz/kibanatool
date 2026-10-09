@@ -33,6 +33,7 @@ Dev Kibana stacks: `./docker/up.sh 7|8|9` starts Kibana 7.17.29 on :17601 under 
 - `src/adapters/` only reads the DOM.
 - `src/storage.ts` is the only place that touches `chrome.storage`. It validates config on both load and save. A corrupt stored config becomes the empty config.
 - `activeEnvironment` picks the environment with the longest matching `kibanaUrl` base path.
+- Discover actions may name their target data view (`dataViewName`). The bar reads the open space's data view list once per page (`/api/data_views`, or `saved_objects/_find` on 7.17), only when an action needs it.
 
 ## Traps
 
@@ -44,6 +45,8 @@ Dev Kibana stacks: `./docker/up.sh 7|8|9` starts Kibana 7.17.29 on :17601 under 
 - The content script must never break Kibana. Keep errors contained and log them only with `console.debug("[kibanatool]", …)`.
 - Render log values through React only; never use `innerHTML`. URL template values go through `encodeURIComponent`, and only `http(s)` templates are accepted.
 - Settings validation repairs, it does not reject, unknown environmentIds: parseConfig drops them and disables an action left with none (an empty list would mean "all environments").
+- `{env.<name>}` placeholder paths are environment variables, never log fields. Their values go into link URLs unencoded (they come from the user's settings, not the log); field values are always encoded.
+- A settings schema change bumps `schemaVersion` and converts older input inside `parseConfig`. `storage.ts` turns anything `parseConfig` rejects into the empty config, so a missing conversion silently wipes stored settings.
 - A new UI string needs a key in the `MessageKey` union in `src/i18n.ts` and an entry in both `public/_locales/en/messages.json` and `public/_locales/tr/messages.json`.
 - `docker/seed.mjs` is a contract with `tests/e2e` (ids, values, times): change both together. `tests/fixtures/*.json` are captured from the stacks (`KT_CAPTURE=1 npm run e2e -- capture`); refresh them after a Kibana upgrade instead of editing them.
 

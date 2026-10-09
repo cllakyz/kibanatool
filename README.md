@@ -22,15 +22,23 @@ a bar above it with:
 2. Click the toolbar icon to open the options.
 3. **Environments:** add your Kibana address, e.g. `https://kibana.example.com` or `https://example.com/kibana`.
    Chrome asks for access to that site; the extension runs nowhere else.
-4. **Actions:** add link or Discover actions, and paste a sample log into the preview to see the result.
+4. **Variables:** values that differ per environment, like your admin panel's address. Each row is a
+   variable, each column an environment; use them in templates as `{env.name}`.
+5. **Actions:** add link or Discover actions, and paste a sample log into the preview to see the result.
    Or import [`examples/kibanatool-settings.json`](examples/kibanatool-settings.json) under **Export and import** and edit it.
-5. Reload your Kibana tab and open a log.
+6. Reload your Kibana tab and open a log.
 
 ### Placeholders and conditions
 
 - `{field}` is a field of the raw log. Nested fields use dots (`context.user_id`), and fields that hold JSON
   text can be read inside too (`context.body.amount`).
 - `{a|b|c}` uses the first field that has a value. If none has one, the button is hidden.
+- `{env.name}` is a variable of the environment you are in (see **Variables**), e.g. `{env.adminUrl}/users/{user_id}`.
+  It goes into links as it is and is quoted like a field in KQL. A link may start with one if its value is an
+  `http(s)` address. If the environment does not set it, the button is greyed out and its tooltip says why.
+- A Discover action opens the data view of the open log, or the one under **Target data view**: a display
+  name or an index pattern (e.g. `*_log`), looked up in the current space, or an ID. If no data view or more
+  than one matches the name, the button is greyed out.
 - Values are URL-encoded in links and quoted for KQL in Discover queries.
 - Conditions (`exists`, `equals`, `notEquals`, `contains`, `startsWith`) must all hold for the button to show.
 
@@ -40,10 +48,11 @@ These are in [`examples/kibanatool-settings.json`](examples/kibanatool-settings.
 
 | Label | Kind | Template |
 |---|---|---|
-| User in admin | Link | `https://admin.example.com/users/{user_id\|context.user_id\|user.id}` |
+| User in admin | Link | `{env.adminUrl}/users/{user_id\|context.user_id\|user.id}` |
 | Sentry | Link, only when `level_name` is `ERROR` | `https://acme.sentry.io/issues/?query={message}` |
-| Jira | Link | `https://acme.atlassian.net/issues/?jql=text%20~%20{user_id\|user.id}` |
+| Jira | Link | `{env.jiraUrl}/issues/?jql=text%20~%20{user_id\|user.id}` |
 | This user's logs | Discover | `user_id:{user_id}` |
+| This user in all logs | Discover on the `*_log` data view, 60-minute window | `user_id:{user_id}` |
 | ±5 minutes | Discover, 5-minute window | empty query |
 
 ### Copy and masking
