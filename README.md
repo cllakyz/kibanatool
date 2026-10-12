@@ -13,7 +13,7 @@ a bar above it with:
 - **Link actions** that jump to another system with a value from the log, e.g. `https://admin.example.com/users/{user_id}`.
 - **Discover actions** that open related logs in a new tab: the same user's logs, or everything ±5 minutes around this log.
 - **JSON**: fields that hold JSON text, such as a request body, as a tree you can search and copy from.
-- **⋯** to copy the log as Markdown with sensitive fields masked, a link to the log, or the current view with its time range fixed.
+- **⋯** to copy the log as Markdown with sensitive fields and values masked, a link to the log, or the current view with its time range fixed.
 
 ## Set up
 
@@ -59,7 +59,18 @@ These are in [`examples/kibanatool-settings.json`](examples/kibanatool-settings.
 
 "Copy as Markdown" masks every field whose path matches a pattern under **Copy and masking** (by default
 `*authorization*`, `*password*`, `*token*`, `*secret*` and `*cookie*`), keys inside JSON text included.
-Masking applies to what you copy; the screen and your link templates are not changed.
+
+It also looks inside every value, so XML and plain-text bodies that a field name cannot reach are covered
+too, and replaces each of these with `***`. Each kind can be turned off under **Mask inside values**:
+
+- Turkish IBANs: `TR` and 24 digits, with or without a space before each group of four.
+- Turkish ID numbers (TCKN): 11 digits with a valid checksum.
+- Turkish mobile numbers: `5xx xxx xx xx`, with or without `+90`, `90` or `0` in front.
+- Card numbers: Visa, Mastercard, Amex and Troy numbers with a valid Luhn digit.
+
+A number glued to a letter or another digit is left alone, so IDs inside longer codes are not touched.
+Masking applies to what you copy; the screen and your link templates are not changed. It is a best effort:
+read the copy before you share it.
 
 ## Privacy
 
