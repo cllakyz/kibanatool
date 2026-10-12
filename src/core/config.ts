@@ -2,6 +2,7 @@
 import { z } from "zod";
 import { isPlainObject } from "./fields";
 import { isHttpUrl, isHttpUrlTemplate } from "./template";
+import { VALUE_MASK_KINDS } from "./value-mask";
 
 z.config({ jitless: true }); // MV3 forbids eval; skip zod's Function("") fast-path probe
 
@@ -47,12 +48,13 @@ const environmentSchema = z.object({
 
 export const configSchema = z
   .object({
-    schemaVersion: z.literal(2),
+    schemaVersion: z.literal(3),
     environments: z.array(environmentSchema),
     actions: z.array(z.discriminatedUnion("kind", [linkActionSchema, discoverActionSchema])),
     copy: z.object({
       markdownFields: z.array(z.string()),
       maskPatterns: z.array(z.string()),
+      valueMasks: z.array(z.enum(VALUE_MASK_KINDS)),
     }),
   })
   .superRefine((config, ctx) => {
@@ -107,14 +109,17 @@ export type DiscoverAction = Extract<Action, { kind: "discover" }>;
 
 export type ParseResult = { ok: true; config: Config } | { ok: false; errors: string[] };
 
-export const SCHEMA_VERSION = 2;
+export const SCHEMA_VERSION = 3;
 
 /**
- * Plan 4 spec §3: version 1 had no variables and no dataViewName, so it only needs the new number. Done here,
- * so both imported files and settings already in chrome.storage (storage.ts) are converted, not dropped.
+ * Converts older settings, so both imported files and settings already in chrome.storage (storage.ts) load
+ * instead of being dropped. Version 1 had no variables and no dataViewName (Plan 4 spec §3); the schema
+ * defaults the variables. Versions 1 and 2 had no valueMasks, so they get every kind (Plan 5 spec §6).
  */
 function migrate(input: unknown): unknown {
-  return isPlainObject(input) && input.schemaVersion === 1 ? { ...input, schemaVersion: SCHEMA_VERSION } : input;
+  if (!isPlainObject(input) || (input.schemaVersion !== 1 && input.schemaVersion !== 2)) return input;
+  const copy = isPlainObject(input.copy) ? { ...input.copy, valueMasks: [...VALUE_MASK_KINDS] } : input.copy;
+  return { ...input, schemaVersion: SCHEMA_VERSION, copy };
 }
 
 export function parseConfig(input: unknown): ParseResult {
@@ -160,7 +165,7 @@ export function emptyConfig(): Config {
     schemaVersion: SCHEMA_VERSION,
     environments: [],
     actions: [],
-    copy: { markdownFields: [], maskPatterns: [...DEFAULT_MASK_PATTERNS] },
+    copy: { markdownFields: [], maskPatterns: [...DEFAULT_MASK_PATTERNS], valueMasks: [...VALUE_MASK_KINDS] },
   };
 }
 

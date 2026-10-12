@@ -1,5 +1,5 @@
 {
-  "schemaVersion": 2,
+  "schemaVersion": 3,
   "environments": [
     {
       "id": "prod",
@@ -69,6 +69,7 @@
   ],
   "copy": {
     "markdownFields": [],
-    "maskPatterns": ["*authorization*", "*password*", "*token*", "*secret*", "*cookie*"]
+    "maskPatterns": ["*authorization*", "*password*", "*token*", "*secret*", "*cookie*"],
+    "valueMasks": ["iban", "tckn", "gsm", "card"]
   }
 }

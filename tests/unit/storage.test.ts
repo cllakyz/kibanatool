@@ -33,13 +33,27 @@ describe("createConfigStore", () => {
     await expect(store.load()).resolves.toEqual({ config, errors: [] });
   });
 
-  it("loads a stored version 1 config as version 2 instead of the empty config", async () => {
+  it("loads a stored version 1 config as version 3 instead of the empty config", async () => {
     const stored = {
       ...config,
       schemaVersion: 1,
       environments: [{ id: "local", name: "Local", kibanaUrl: "http://localhost:9601" }],
+      copy: { markdownFields: config.copy.markdownFields, maskPatterns: config.copy.maskPatterns },
     };
     await expect(createConfigStore(fakeArea({ [CONFIG_KEY]: stored })).load()).resolves.toEqual({ config, errors: [] });
+  });
+
+  it("loads a stored version 2 config as version 3 with every value mask on", async () => {
+    // Plan 5 Review Focus 1: the team's settings in chrome.storage are version 2 when the update arrives.
+    const stored = {
+      ...config,
+      schemaVersion: 2,
+      copy: { markdownFields: ["level"], maskPatterns: ["*iban*"] },
+    };
+    await expect(createConfigStore(fakeArea({ [CONFIG_KEY]: stored })).load()).resolves.toEqual({
+      config: { ...config, copy: { markdownFields: ["level"], maskPatterns: ["*iban*"], valueMasks: ["iban", "tckn", "gsm", "card"] } },
+      errors: [],
+    });
   });
 
   it("falls back to the empty config and reports errors for a corrupt stored value", async () => {

@@ -54,7 +54,7 @@ const lines = (text: string): string[] =>
 
 /** Both lists are edited as text, one entry per line. */
 export function withCopySettings(config: Config, markdownFields: string, maskPatterns: string): ParseResult {
-  return parseConfig({ ...config, copy: { markdownFields: lines(markdownFields), maskPatterns: lines(maskPatterns) } });
+  return parseConfig({ ...config, copy: { ...config.copy, markdownFields: lines(markdownFields), maskPatterns: lines(maskPatterns) } });
 }
 
 /** One row of the variables table (Plan 4 spec §6): a name and its value per environment id. */

@@ -2,6 +2,7 @@
 import { resolve } from "node:path";
 import { type BrowserContext, type Page, type Worker, chromium, expect, test as base } from "@playwright/test";
 import { type Config, DEFAULT_MASK_PATTERNS } from "../../src/core/config";
+import { VALUE_MASK_KINDS } from "../../src/core/value-mask";
 import { CONFIG_KEY } from "../../src/storage";
 import { EXTENSION_DIR, stack } from "./stack";
 
@@ -15,7 +16,7 @@ declare const chrome: {
 export function e2eConfig(): Config {
   const shared = { enabled: true, environmentIds: [], conditions: [] };
   return {
-    schemaVersion: 2,
+    schemaVersion: 3,
     environments: [{ id: "stack", name: `Kibana ${stack.version}`, kibanaUrl: stack.kibana, variables: {} }],
     actions: [
       { ...shared, id: "user", kind: "link", label: "User", urlTemplate: "https://admin.example.com/users/{user_id|user.id}" },
@@ -30,7 +31,7 @@ export function e2eConfig(): Config {
       { ...shared, id: "same-user", kind: "discover", label: "Same user ±5", queryTemplate: "user_id:{user_id}", windowMinutes: 5 },
       { ...shared, id: "window", kind: "discover", label: "±5 minutes", queryTemplate: "", windowMinutes: 5 },
     ],
-    copy: { markdownFields: [], maskPatterns: [...DEFAULT_MASK_PATTERNS] },
+    copy: { markdownFields: [], maskPatterns: [...DEFAULT_MASK_PATTERNS], valueMasks: [...VALUE_MASK_KINDS] },
   };
 }
 
