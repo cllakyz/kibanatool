@@ -82,7 +82,7 @@ export function VariablesSection({ config, onSave }: SectionProps) {
             <button type="button" onClick={() => setRows([...rows, { name: "", values: {} }])}>
               {t("optionsAddVariable")}
             </button>
-            <button type="button" onClick={() => void submit(withVariables(config, rows))}>
+            <button type="button" className="primary" onClick={() => void submit(withVariables(config, rows))}>
               {t("optionsSave")}
             </button>
           </div>

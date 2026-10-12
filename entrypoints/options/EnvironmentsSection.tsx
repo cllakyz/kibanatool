@@ -116,7 +116,7 @@ export function EnvironmentsSection({ config, onSave }: SectionProps) {
             onChange={(event) => setUrl(event.target.value)}
           />
         </label>
-        <button type="submit">{t("optionsAdd")}</button>
+        <button type="submit" className="primary">{t("optionsAdd")}</button>
       </form>
       <Feedback errors={errors} saved={saved} />
     </section>

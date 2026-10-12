@@ -2,6 +2,7 @@ import { defineBackground } from "#imports";
 import { browser } from "wxt/browser";
 import { serialized, syncContentScripts } from "../src/background/registration";
 import { createConfigStore, isConfigChange } from "../src/storage";
+import { iconPaths, isThemeMessage } from "../src/toolbar-icon";
 
 export default defineBackground(() => {
   const store = createConfigStore(browser.storage.local);
@@ -26,4 +27,9 @@ export default defineBackground(() => {
     if (isConfigChange(changes, areaName)) void sync();
   });
   browser.action.onClicked.addListener(() => void browser.runtime.openOptionsPage());
+  // Our pages report the browser's color scheme (src/toolbar-icon.ts); anything else is ignored.
+  browser.runtime.onMessage.addListener((message, sender) => {
+    if (sender.id !== browser.runtime.id || !isThemeMessage(message)) return;
+    browser.action.setIcon({ path: iconPaths(message.dark) }).catch((error: unknown) => console.error("[kibanatool] icon switch failed", error));
+  });
 });
