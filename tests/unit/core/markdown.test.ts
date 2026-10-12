@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { type MarkdownOptions, buildMarkdown } from "../../../src/core/markdown";
+import { VALUE_MASK_KINDS } from "../../../src/core/value-mask";
 
 const hit = {
   _id: "A1",
@@ -19,6 +20,7 @@ const options = (overrides: Partial<MarkdownOptions> = {}): MarkdownOptions => (
   timeField: "datetime",
   fields: [],
   maskPatterns: ["*authorization*"],
+  valueMasks: [],
   docUrl: "http://k/app/discover#/doc/dv/app_log?id=A1",
   linkLabel: "Open in Kibana",
   ...overrides,
@@ -101,5 +103,60 @@ describe("buildMarkdown with a listed parent field", () => {
   it("keeps parentheses in the log link from ending the Markdown link", () => {
     const markdown = buildMarkdown(options({ docUrl: "http://k/app/discover#/doc/dv/logs(1)?id=a(b)" }));
     expect(markdown.split("\n").at(-1)).toBe("[Open in Kibana](http://k/app/discover#/doc/dv/logs%281%29?id=a%28b%29)");
+  });
+});
+
+// Synthetic values only (Plan 5 spec §9.1).
+describe("buildMarkdown with value masks (Plan 5 spec §5)", () => {
+  const payment = {
+    _id: "10000000146",
+    _index: "pay-5550000000",
+    _source: {
+      datetime: "2026-08-12T10:00:00+03:00",
+      request: "<a><tckn>10000000146</tckn><iban>TR00 0000 0000 0000 0000 0000 01</iban><n>150</n></a>",
+      body: JSON.stringify({ pidNo: 10000000146, phone: "+90 555 000 00 00", note: "ok" }),
+      iban: "TR000000000000000000000001",
+    },
+  };
+  const masked = (overrides: Partial<MarkdownOptions> = {}): string[] =>
+    buildMarkdown(
+      options({ hit: payment, maskPatterns: ["*iban*"], valueMasks: [...VALUE_MASK_KINDS], docUrl: "u?id=10000000146", ...overrides }),
+    ).split("\n");
+
+  it("masks the values inside XML and JSON text, keeps the rest, and leaves the header and the link alone", () => {
+    expect(masked()).toEqual([
+      "**pay-5550000000** · 2026-08-12T10:00:00+03:00",
+      "- `body`:",
+      "  ```json",
+      "  {",
+      '    "pidNo": "***",',
+      '    "phone": "***",',
+      '    "note": "ok"',
+      "  }",
+      "  ```",
+      "- `datetime`: 2026-08-12T10:00:00+03:00",
+      "- `iban`: ***",
+      "- `request`: <a><tckn>***</tckn><iban>***</iban><n>150</n></a>",
+      "[Open in Kibana](u?id=10000000146)",
+    ]);
+  });
+
+  it("masks a listed JSON sub-path that holds a number, and a listed _id", () => {
+    // Plan 5 Review Focus 4: copy.markdownFields may name a path inside JSON text, or _id.
+    expect(masked({ fields: ["_id", "body.pidNo", "body.note"] })).toEqual([
+      "**pay-5550000000** · 2026-08-12T10:00:00+03:00",
+      "- `_id`: ***",
+      "- `body.pidNo`: ***",
+      "- `body.note`: ok",
+      "[Open in Kibana](u?id=10000000146)",
+    ]);
+  });
+
+  it("copies the values as before when every kind is off", () => {
+    // Plan 5 Review Focus 5.
+    const lines = masked({ valueMasks: [] });
+    expect(lines).toContain("- `request`: <a><tckn>10000000146</tckn><iban>TR00 0000 0000 0000 0000 0000 01</iban><n>150</n></a>");
+    expect(lines).toContain('    "pidNo": 10000000146,');
+    expect(lines).toContain("- `iban`: ***"); // the field-name mask still applies
   });
 });

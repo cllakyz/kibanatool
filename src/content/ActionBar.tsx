@@ -138,6 +138,7 @@ export function ActionBar({ identity, actions, client, prefix, hash, copy, envir
           timeField: timeFields.get(dataViewId),
           fields: copy.markdownFields,
           maskPatterns: copy.maskPatterns,
+          valueMasks: copy.valueMasks,
           docUrl: docUrl(),
           linkLabel: t("markdownOpenInKibana"),
         }),
