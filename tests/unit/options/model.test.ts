@@ -118,12 +118,21 @@ describe("actions", () => {
 
 describe("withCopySettings", () => {
   it("reads one entry per line and drops blank lines", () => {
-    const result = withCopySettings(emptyConfig(), " level \n\nmessage\n", "*token*\n  *secret*  ");
+    const result = withCopySettings(emptyConfig(), " level \n\nmessage\n", "*token*\n  *secret*  ", ["iban", "tckn", "gsm", "card"]);
     expect(result.ok && result.config.copy).toEqual({
       markdownFields: ["level", "message"],
       maskPatterns: ["*token*", "*secret*"],
       valueMasks: ["iban", "tckn", "gsm", "card"],
     });
+  });
+
+  it("saves the value masks in a fixed order, once each, and an empty list as none", () => {
+    const saved = (valueMasks: Parameters<typeof withCopySettings>[3]) => {
+      const result = withCopySettings(emptyConfig(), "", "", valueMasks);
+      return result.ok && result.config.copy.valueMasks;
+    };
+    expect(saved(["card", "iban", "card"])).toEqual(["iban", "card"]);
+    expect(saved([])).toEqual([]);
   });
 });
 

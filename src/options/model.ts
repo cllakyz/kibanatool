@@ -1,6 +1,7 @@
 // Pure config edits used by the options page; every result is re-validated (spec §8).
 import { type Action, type Config, type Environment, type ParseResult, originPattern, parseConfig } from "../core/config";
 import { invalidLeadingVariable } from "../core/link-actions";
+import { VALUE_MASK_KINDS, type ValueMaskKind } from "../core/value-mask";
 import { VARIABLE_PREFIX, isVariablePath, lookupVariable, parsePlaceholders } from "../core/template";
 
 export function newEnvironment(name: string, kibanaUrl: string, id: string = crypto.randomUUID()): Environment {
@@ -52,9 +53,21 @@ const lines = (text: string): string[] =>
     .map((line) => line.trim())
     .filter(Boolean);
 
-/** Both lists are edited as text, one entry per line. */
-export function withCopySettings(config: Config, markdownFields: string, maskPatterns: string): ParseResult {
-  return parseConfig({ ...config, copy: { ...config.copy, markdownFields: lines(markdownFields), maskPatterns: lines(maskPatterns) } });
+/** Both lists are edited as text, one entry per line; the value masks are saved in VALUE_MASK_KINDS order. */
+export function withCopySettings(
+  config: Config,
+  markdownFields: string,
+  maskPatterns: string,
+  valueMasks: readonly ValueMaskKind[],
+): ParseResult {
+  return parseConfig({
+    ...config,
+    copy: {
+      markdownFields: lines(markdownFields),
+      maskPatterns: lines(maskPatterns),
+      valueMasks: VALUE_MASK_KINDS.filter((kind) => valueMasks.includes(kind)),
+    },
+  });
 }
 
 /** One row of the variables table (Plan 4 spec §6): a name and its value per environment id. */
