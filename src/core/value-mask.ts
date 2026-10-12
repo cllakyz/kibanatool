@@ -47,11 +47,27 @@ const RULES: ReadonlyArray<readonly [ValueMaskKind, RegExp, (match: string) => b
   ["gsm", bounded(String.raw`(?:(?:\+90|90|0)[ -]?)?(?:5\d{2}|\(5\d{2}\))[ -]?\d{3}[ -]?\d{2}[ -]?\d{2}`), anyMatch],
 ];
 
+/** Like String.replace, but a rejected candidate does not use up its text: the scan retries one character later. */
+function maskMatches(text: string, pattern: RegExp, isValid: (match: string) => boolean): string {
+  let result = "";
+  let copied = 0;
+  pattern.lastIndex = 0;
+  for (let match = pattern.exec(text); match; match = pattern.exec(text)) {
+    if (isValid(match[0])) {
+      result += text.slice(copied, match.index) + MASK;
+      copied = pattern.lastIndex;
+    } else {
+      pattern.lastIndex = match.index + 1; // a valid card may start inside this rejected candidate
+    }
+  }
+  return result + text.slice(copied);
+}
+
 /** Replaces every match of the kinds that are on with MASK; the rest of the text stays as it is. */
 export function maskText(text: string, kinds: readonly ValueMaskKind[]): string {
   let result = text;
   for (const [kind, pattern, isValid] of RULES) {
-    if (kinds.includes(kind)) result = result.replace(pattern, (match) => (isValid(match) ? MASK : match));
+    if (kinds.includes(kind)) result = maskMatches(result, pattern, isValid);
   }
   return result;
 }

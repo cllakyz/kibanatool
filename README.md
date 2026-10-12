@@ -63,7 +63,7 @@ These are in [`examples/kibanatool-settings.json`](examples/kibanatool-settings.
 It also looks inside every value, so XML and plain-text bodies that a field name cannot reach are covered
 too, and replaces each of these with `***`. Each kind can be turned off under **Mask inside values**:
 
-- Turkish IBANs: `TR` and 24 digits, with or without a space before each group of four.
+- Turkish IBANs: `TR` and 24 digits, written together or in the usual groups of four.
 - Turkish ID numbers (TCKN): 11 digits with a valid checksum.
 - Turkish mobile numbers: `5xx xxx xx xx`, with or without `+90`, `90` or `0` in front.
 - Card numbers: Visa, Mastercard, Amex and Troy numbers with a valid Luhn digit.

@@ -10,6 +10,16 @@ const IBAN_SPACED = "TR00 0000 0000 0000 0000 0000 01";
 const all = [...VALUE_MASK_KINDS];
 const mask = (text: string): string => maskText(text, all);
 
+/** Appends the Luhn check digit to a body of digits, so a test can build a card number with a chosen prefix. */
+function withCheckDigit(body: string): string {
+  let sum = 0;
+  [...body].reverse().forEach((char, index) => {
+    const value = Number(char) * (index % 2 === 0 ? 2 : 1);
+    sum += value > 9 ? value - 9 : value;
+  });
+  return body + String((10 - (sum % 10)) % 10);
+}
+
 describe("maskText: IBAN", () => {
   it("masks a TR IBAN, compact or in groups of four, in either case", () => {
     expect(mask(`<iban>${IBAN}</iban>`)).toBe("<iban>***</iban>");
@@ -20,6 +30,11 @@ describe("maskText: IBAN", () => {
   it("leaves other countries and other lengths alone", () => {
     expect(mask("DE00000000000000000000")).toBe("DE00000000000000000000");
     expect(mask("TR00000000000000000000000")).toBe("TR00000000000000000000000"); // 23 digits
+  });
+
+  it("does not join groups across two spaces", () => {
+    const text = "TR00  0000 0000 0000 0000 0000 01";
+    expect(mask(text)).toBe(text); // no IBAN match, and no other kind matches inside it either
   });
 });
 
@@ -44,6 +59,25 @@ describe("maskText: card numbers", () => {
 
   it("does not join groups across two separators in a row", () => {
     expect(mask("4111  1111 1111 1111")).toBe("4111  1111 1111 1111");
+  });
+
+  it("masks a card that follows another group of digits", () => {
+    expect(mask("2024 4111 1111 1111 1111")).toBe("2024 ***");
+    expect(mask("MCC 5411 4111-1111-1111-1111.")).toBe("MCC 5411 ***.");
+    expect(mask("Kart: 0000 4111 1111 1111 1111")).toBe("Kart: 0000 ***");
+    expect(mask("1234 5678 4111 1111 1111 1111 x")).toBe("1234 5678 *** x");
+  });
+
+  it("keeps to the network ranges at their edges", () => {
+    const card = (prefix: string): string => withCheckDigit(prefix.padEnd(15, "0"));
+    expect(mask(card("2220"))).toBe(card("2220")); // Mastercard 2-series starts at 2221
+    expect(mask(card("2221"))).toBe(MASK);
+    expect(mask(card("2720"))).toBe(MASK); // and ends at 2720
+    expect(mask(card("2721"))).toBe(card("2721"));
+    expect(mask(card("5600"))).toBe(card("5600")); // 51-55 only
+    const amex = (prefix: string): string => withCheckDigit(prefix.padEnd(14, "0")); // 15 digits: only 34 and 37
+    expect(mask(amex("35"))).toBe(amex("35"));
+    expect(mask(amex("34"))).toBe(MASK);
   });
 });
 
