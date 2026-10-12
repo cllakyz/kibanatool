@@ -47,6 +47,19 @@ test("exports the settings and imports the example file", async ({ context, exte
   await expect.poll(() => readStored(extension.worker)).toEqual(example);
 });
 
+test("turns one value mask off and keeps the others", async ({ context, extension, configure }) => {
+  await configure();
+  const options = await openOptions(context, extension.id);
+  const copy = options.locator('section[aria-labelledby="copy-title"]');
+  const gsm = copy.locator('input[name="valueMask"][value="gsm"]');
+  await expect(gsm).toBeChecked();
+  await gsm.uncheck();
+  await copy.locator("button.primary").click();
+  await expect
+    .poll(async () => ((await readStored(extension.worker)) as Config).copy.valueMasks)
+    .toEqual(["iban", "tckn", "card"]);
+});
+
 test("exports a corrupt stored value as it is, so it can be repaired", async ({ context, extension }) => {
   const corrupt = { schemaVersion: 99, environments: "broken" };
   await writeStored(extension.worker, corrupt);
@@ -98,15 +111,16 @@ test("keeps the inner space of a target data view name typed in the editor", asy
     .toMatchObject({ kind: "discover", dataViewName: "App logs" });
 });
 
-test("imports a version 1 settings file and stores it as version 2", async ({ context, extension, configure }) => {
-  await configure({ ...e2eConfig(), actions: [] }); // differs from what the import must produce
+test("imports a version 1 settings file and stores it as version 3", async ({ context, extension, configure }) => {
+  const { environments, copy, ...rest } = e2eConfig();
+  await configure({ ...e2eConfig(), actions: [], copy: { ...copy, valueMasks: [] } }); // differs from what the import must produce
   const options = await openOptions(context, extension.id);
   const transfer = options.locator('section[aria-labelledby="transfer-title"]');
-  const { environments, ...rest } = e2eConfig();
   const v1 = {
     ...rest,
     schemaVersion: 1,
     environments: environments.map(({ id, name, kibanaUrl }) => ({ id, name, kibanaUrl })),
+    copy: { markdownFields: copy.markdownFields, maskPatterns: copy.maskPatterns },
   };
   await transfer
     .locator('input[type="file"]')

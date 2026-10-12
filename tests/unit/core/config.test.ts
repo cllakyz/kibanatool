@@ -11,7 +11,7 @@ import {
 } from "../../../src/core/config";
 
 const validConfig = (): Config => ({
-  schemaVersion: 2,
+  schemaVersion: 3,
   environments: [{ id: "prod", name: "Prod", kibanaUrl: "https://kibana.example.com", variables: {} }],
   actions: [
     {
@@ -34,7 +34,7 @@ const validConfig = (): Config => ({
       windowMinutes: 30,
     },
   ],
-  copy: { markdownFields: [], maskPatterns: ["*token*"] },
+  copy: { markdownFields: [], maskPatterns: ["*token*"], valueMasks: ["iban", "tckn", "gsm", "card"] },
 });
 
 function errorsOf(input: unknown): string[] {
@@ -160,17 +160,18 @@ describe("basePathOf", () => {
 });
 
 describe("parseConfig version 2 (Plan 4)", () => {
-  it("migrates a version 1 config: version 2, and environments without variables get none", () => {
+  it("migrates a version 1 config: version 3, environments without variables get none, every value mask is on", () => {
     const v1 = {
       ...validConfig(),
       schemaVersion: 1,
       environments: [{ id: "prod", name: "Prod", kibanaUrl: "https://kibana.example.com" }],
+      copy: { markdownFields: [], maskPatterns: ["*token*"] },
     };
     expect(parseConfig(v1)).toEqual({ ok: true, config: validConfig() });
   });
 
-  it("rejects versions other than 1 and 2", () => {
-    expect(errorsOf({ ...validConfig(), schemaVersion: 3 })[0]).toMatch(/^schemaVersion: /);
+  it("rejects versions other than 1, 2 and 3", () => {
+    expect(errorsOf({ ...validConfig(), schemaVersion: 4 })[0]).toMatch(/^schemaVersion: /);
     expect(errorsOf({ ...validConfig(), schemaVersion: 0 })[0]).toMatch(/^schemaVersion: /);
   });
 
@@ -215,5 +216,32 @@ describe("parseConfig version 2 (Plan 4)", () => {
     expect(parseConfig(config).ok).toBe(true);
     config.actions[1] = { ...config.actions[1]!, dataViewId: "app-log" } as Config["actions"][number];
     expect(errorsOf(config)).toContain("actions.1.dataViewName: dataViewId and dataViewName cannot both be set");
+  });
+});
+
+describe("parseConfig version 3 (Plan 5)", () => {
+  const v2 = () => ({ ...validConfig(), schemaVersion: 2, copy: { markdownFields: ["level"], maskPatterns: ["*token*"] } });
+
+  it("migrates a version 2 config: version 3 with every value mask on, the rest unchanged", () => {
+    expect(parseConfig(v2())).toEqual({
+      ok: true,
+      config: { ...validConfig(), copy: { markdownFields: ["level"], maskPatterns: ["*token*"], valueMasks: ["iban", "tckn", "gsm", "card"] } },
+    });
+  });
+
+  it("accepts an empty list and a kind written twice", () => {
+    for (const valueMasks of [[], ["gsm", "gsm"]]) {
+      expect(parseConfig({ ...validConfig(), copy: { ...validConfig().copy, valueMasks } }).ok).toBe(true);
+    }
+  });
+
+  it("rejects a missing list and an unknown kind in version 3", () => {
+    const { valueMasks: _, ...copy } = validConfig().copy;
+    expect(errorsOf({ ...validConfig(), copy })[0]).toMatch(/^copy\.valueMasks: /);
+    expect(errorsOf({ ...validConfig(), copy: { ...copy, valueMasks: ["iban", "email"] } })[0]).toMatch(/^copy\.valueMasks\.1: /);
+  });
+
+  it("turns every value mask on in the empty config", () => {
+    expect(emptyConfig().copy.valueMasks).toEqual(["iban", "tckn", "gsm", "card"]);
   });
 });

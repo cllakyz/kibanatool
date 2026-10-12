@@ -25,6 +25,8 @@ It works on Kibana 7.17, 8.x and 9.x.
 - Read fields that hold JSON text as a searchable tree.
 - Copy the log as Markdown with passwords, tokens and other sensitive fields masked, copy a link to the log,
   or copy the current view with its time range fixed.
+- IBANs, ID numbers and mobile numbers (Turkish formats) and card numbers are masked in the copy too, even
+  inside XML or plain-text request bodies.
 
 You choose which Kibana addresses it runs on. It talks only to your Kibana, with your own session, and keeps
 its settings in your browser. Open source: https://github.com/cllakyz/kibanatool
@@ -39,6 +41,8 @@ Kibana 7.17, 8.x ve 9.x'te çalışır.
 - JSON metni tutan alanları aranabilir bir ağaç olarak okuyun.
 - Logu şifre, token ve diğer hassas alanları maskelenmiş Markdown olarak kopyalayın, logun linkini ya da
   zamanı sabitlenmiş mevcut görünümü kopyalayın.
+- Kopyada IBAN, TC kimlik no, cep telefonu ve kart numaraları da maskelenir; XML ya da düz metin istek
+  gövdelerinin içinde olsalar bile.
 
 Hangi Kibana adreslerinde çalışacağını siz seçersiniz. Yalnızca kendi Kibana'nızla, kendi oturumunuzla konuşur,
 ayarlarını tarayıcınızda tutar. Açık kaynak: https://github.com/cllakyz/kibanatool

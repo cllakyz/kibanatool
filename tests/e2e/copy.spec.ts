@@ -22,6 +22,17 @@ test("copies the log as masked Markdown", async ({ context }) => {
   expect(lines.at(-1)?.endsWith(`](${DOC_LINK})`)).toBe(true); // the link text is localized
 });
 
+test("masks the ID, IBAN, mobile and card numbers inside an XML value and keeps the XML", async ({ context }) => {
+  // app-002's context.request holds synthetic values (docker/seed.mjs, PAYMENT_XML).
+  const { page, detail } = await openDoc(context, { dataViewId: "app-log", query: 'extra.uid:"uid-002"' });
+  const lines = (await copyFromMenu(page, detail, 0)).split("\n");
+  expect(lines).toContain(
+    "- `context.request`: <soap:Envelope><soap:Body><ns1:pay><ns1:identitynumber>***</ns1:identitynumber>" +
+      "<ns1:iban>***</ns1:iban><ns1:gsm>***</ns1:gsm><ns1:card>***</ns1:card><ns1:amount>150</ns1:amount>" +
+      "</ns1:pay></soap:Body></soap:Envelope>",
+  );
+});
+
 test("copies the log link, and the link opens the same log", async ({ context }) => {
   const { page, detail } = await openDoc(context, APP_001);
   expect(await copyFromMenu(page, detail, 1)).toBe(DOC_LINK);

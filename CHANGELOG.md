@@ -15,6 +15,10 @@ First public release, for Kibana 7.17, 8.x and 9.x in Chrome.
 - Discover actions: a KQL query from the log, optionally ±N minutes around the log's time, in a new tab.
 - Copy menu: the log as Markdown with sensitive fields masked, a link to the log, and the current view with
   its time range fixed.
+- Masking inside values: "Copy as Markdown" also masks Turkish IBANs, Turkish ID numbers (TCKN, with a valid
+  checksum), Turkish mobile numbers and card numbers (Visa, Mastercard, Amex and Troy, with a valid Luhn digit)
+  wherever they appear in a value, such as XML or plain-text request bodies. Each kind can be turned off; all
+  four are on by default.
 - JSON view for fields that hold JSON text: a tree with search, and copying a value or its path.
 - Options page: environments with per-site access, an action editor with a live preview, copy and masking
   settings, export and import.
@@ -23,7 +27,7 @@ First public release, for Kibana 7.17, 8.x and 9.x in Chrome.
   is greyed out with the reason.
 - Discover actions can name their target data view (display name or index pattern) instead of an ID; the
   name is looked up in the current space.
-- Settings files are version 2; settings from pre-release builds (version 1) are converted when loaded.
+- Settings files are version 3; settings from pre-release builds (versions 1 and 2) are converted when loaded.
 - English and Turkish.
 - The look of Kibana 9's Borealis theme, in light and dark. The options page follows the system's dark mode;
   the action bar follows the Kibana page it sits on (7.17, 8.x and 9.x).

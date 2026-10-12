@@ -118,8 +118,21 @@ describe("actions", () => {
 
 describe("withCopySettings", () => {
   it("reads one entry per line and drops blank lines", () => {
-    const result = withCopySettings(emptyConfig(), " level \n\nmessage\n", "*token*\n  *secret*  ");
-    expect(result.ok && result.config.copy).toEqual({ markdownFields: ["level", "message"], maskPatterns: ["*token*", "*secret*"] });
+    const result = withCopySettings(emptyConfig(), " level \n\nmessage\n", "*token*\n  *secret*  ", ["iban", "tckn", "gsm", "card"]);
+    expect(result.ok && result.config.copy).toEqual({
+      markdownFields: ["level", "message"],
+      maskPatterns: ["*token*", "*secret*"],
+      valueMasks: ["iban", "tckn", "gsm", "card"],
+    });
+  });
+
+  it("saves the value masks in a fixed order, once each, and an empty list as none", () => {
+    const saved = (valueMasks: Parameters<typeof withCopySettings>[3]) => {
+      const result = withCopySettings(emptyConfig(), "", "", valueMasks);
+      return result.ok && result.config.copy.valueMasks;
+    };
+    expect(saved(["card", "iban", "card"])).toEqual(["iban", "card"]);
+    expect(saved([])).toEqual([]);
   });
 });
 
@@ -136,13 +149,13 @@ describe("parseImport", () => {
 
   it("rejects bad JSON and invalid configs with field paths", () => {
     expect(parseImport("{").ok).toBe(false);
-    const result = parseImport(JSON.stringify({ ...emptyConfig(), schemaVersion: 3 }));
+    const result = parseImport(JSON.stringify({ ...emptyConfig(), schemaVersion: 4 }));
     expect(!result.ok && result.errors[0]).toMatch(/^schemaVersion: /);
   });
 
-  it("imports a version 1 file as version 2", () => {
+  it("imports a version 1 file as version 3", () => {
     const result = parseImport(JSON.stringify({ ...emptyConfig(), schemaVersion: 1 }));
-    expect(result.ok && result.config.schemaVersion).toBe(2);
+    expect(result.ok && result.config.schemaVersion).toBe(3);
   });
 });
 
