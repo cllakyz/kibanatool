@@ -22,6 +22,12 @@ const pad = (n, width = 3) => String(n).padStart(width, "0");
 const minutesBefore = (minutes) => new Date(Date.UTC(2026, 0, 15, 10, 0) - minutes * 60_000).toISOString();
 const URLS = ["/v1/coupons", "/v1/races/today", "/v1/wallet/deposit", "/v1/auth/login"];
 const LEVELS = [[400, "ERROR"], [200, "INFO"], [250, "NOTICE"], [300, "WARNING"]]; // by i % 4
+// app-002 only: a payment-style XML body with a synthetic ID number, IBAN, mobile number and card test number
+// (Plan 5: masking inside values). tests/e2e/copy.spec.ts expects exactly this text with the four values masked.
+const PAYMENT_XML =
+  "<soap:Envelope><soap:Body><ns1:pay><ns1:identitynumber>10000000146</ns1:identitynumber>" +
+  "<ns1:iban>TR00 0000 0000 0000 0000 0000 01</ns1:iban><ns1:gsm>+90 555 000 00 00</ns1:gsm>" +
+  "<ns1:card>4111-1111-1111-1111</ns1:card><ns1:amount>150</ns1:amount></ns1:pay></soap:Body></soap:Envelope>";
 
 // Start from scratch, so a re-run gives the same documents.
 await es("DELETE", "/app_log,legacy_log?ignore_unavailable=true");
@@ -52,6 +58,7 @@ for (let i = 1; i <= 30; i++) {
         body: JSON.stringify({ amount: i * 10, currency: "TRY", items: [{ id: i, qty: 1 }] }),
         headers: JSON.stringify({ "user-agent": "dev/1.0", authorization: `Bearer synthetic-token-${i}` }),
         query: JSON.stringify({ page: i % 5 }),
+        ...(i === 2 ? { request: PAYMENT_XML } : {}),
       },
       extra: { uid: `uid-${pad(i)}` },
     },

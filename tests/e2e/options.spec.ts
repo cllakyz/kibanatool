@@ -47,6 +47,19 @@ test("exports the settings and imports the example file", async ({ context, exte
   await expect.poll(() => readStored(extension.worker)).toEqual(example);
 });
 
+test("turns one value mask off and keeps the others", async ({ context, extension, configure }) => {
+  await configure();
+  const options = await openOptions(context, extension.id);
+  const copy = options.locator('section[aria-labelledby="copy-title"]');
+  const gsm = copy.locator('input[name="valueMask"][value="gsm"]');
+  await expect(gsm).toBeChecked();
+  await gsm.uncheck();
+  await copy.locator("button.primary").click();
+  await expect
+    .poll(async () => ((await readStored(extension.worker)) as Config).copy.valueMasks)
+    .toEqual(["iban", "tckn", "card"]);
+});
+
 test("exports a corrupt stored value as it is, so it can be repaired", async ({ context, extension }) => {
   const corrupt = { schemaVersion: 99, environments: "broken" };
   await writeStored(extension.worker, corrupt);
