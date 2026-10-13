@@ -1,11 +1,13 @@
-// The JSON view's data (spec §7.6): JSON-text fields and a flat, pre-ordered row list,
+// The JSON view's data (spec §7.6): JSON- and XML-text fields (Plan 6 spec §5.3) and a flat, pre-ordered row list,
 // so collapsing, search and revealing a match are plain array operations.
-import { flattenSource, isPlainObject, parseJsonText } from "./fields";
+import { expandStructured, flattenSource, isPlainObject } from "./fields";
 
 export interface JsonField {
-  /** Dot path of the `_source` field that holds the JSON text. */
+  /** Dot path of the `_source` field that holds the JSON or XML text. */
   path: string;
+  /** The parsed text, with JSON and XML text inside it parsed too. */
   value: Record<string, unknown> | unknown[];
+  source: "json" | "xml";
 }
 
 export interface JsonRow {
@@ -18,15 +20,18 @@ export interface JsonRow {
   container: "object" | "array" | null;
 }
 
-/** `_source` fields whose text is a JSON object or array, in field order. */
+/** `_source` fields whose text is a JSON object or array, or XML, in field order. */
 export function jsonTextFields(source: Record<string, unknown>): JsonField[] {
-  return Object.entries(flattenSource(source, false)).flatMap(([path, value]) => {
-    const parsed = typeof value === "string" ? parseJsonText(value) : undefined;
-    return parsed === undefined ? [] : [{ path, value: parsed }];
+  return Object.entries(flattenSource(source, false)).flatMap(([path, text]): JsonField[] => {
+    if (typeof text !== "string") return [];
+    const value = expandStructured(text);
+    if (!isPlainObject(value) && !Array.isArray(value)) return [];
+    return [{ path, value, source: text.trim().startsWith("<") ? "xml" : "json" }];
   });
 }
 
-const segment = (key: string): string => (/^[A-Za-z_$][\w$]*$/.test(key) ? `.${key}` : `[${JSON.stringify(key)}]`);
+// XML's `@attribute` and `#text` keys stay dot segments, so a copied path works in a template (Plan 6 spec §5.3).
+const segment = (key: string): string => (/^[@#]?[A-Za-z_$][\w$]*$/.test(key) ? `.${key}` : `[${JSON.stringify(key)}]`);
 
 export function jsonRows(value: unknown): JsonRow[] {
   const rows: JsonRow[] = [];

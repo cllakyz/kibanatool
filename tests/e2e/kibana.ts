@@ -55,8 +55,8 @@ export async function barLinks(detail: Locator): Promise<Record<string, string>>
   return Object.fromEntries(entries);
 }
 
-/** Runs a copy menu item (0 Markdown, 1 log link, 2 view with fixed time) and returns what it copied. */
-export async function copyFromMenu(page: Page, detail: Locator, item: 0 | 1 | 2): Promise<string> {
+/** Runs a copy menu item (0 Markdown, 1 JSON, 2 log link, 3 view with fixed time) and returns what it copied. */
+export async function copyFromMenu(page: Page, detail: Locator, item: 0 | 1 | 2 | 3): Promise<string> {
   await bar(detail).locator(".kt-menu > button").click();
   await bar(detail).getByRole("menuitem").nth(item).click();
   await expect(bar(detail).getByRole("status")).toBeVisible();

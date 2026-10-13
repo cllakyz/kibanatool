@@ -28,7 +28,7 @@ Dev Kibana stacks: `./docker/up.sh 7|8|9` starts Kibana 7.17.29 on :17601 under 
 **The content script is not in the manifest.** The manifest has only `storage` + `scripting` and `optional_host_permissions`. When the user adds a Kibana environment on the options page, the options page requests that origin. `entrypoints/background.ts` → `src/background/registration.ts` then registers `kibana.js` with `scripting.registerContentScripts` for the granted origins only. It re-syncs on install, startup, permission changes and config changes, one run at a time (`serialized`). `scripts/check-manifest.mjs` fails if `content_scripts` or `host_permissions` ever appear in the built manifest.
 
 **Layers:**
-- `src/core/` is pure logic with no browser APIs: the config schema (zod), field flattening (which also expands JSON-string values), `{path|fallback}` templates, conditions, and copy masking: by field name (`mask.ts`) and inside values (`value-mask.ts`: IBAN, TCKN, GSM, card).
+- `src/core/` is pure logic with no browser APIs: the config schema (zod), field flattening (which also expands JSON and XML text; `xml.ts` is the XML parser), `{path|fallback}` templates, conditions, and copy masking: by field name (`mask.ts`) and inside values (`value-mask.ts`: IBAN, TCKN, GSM, card).
 - `src/kibana/` handles Kibana I/O and URL/state parsing.
 - `src/adapters/` only reads the DOM.
 - `src/theme.ts` holds every color: the Borealis light and dark palettes, as `--kt-*` custom properties for the bar's shadow root and the options page. `tests/unit/theme.test.ts` fails if a pair drops below its WCAG contrast floor.
@@ -48,11 +48,13 @@ Dev Kibana stacks: `./docker/up.sh 7|8|9` starts Kibana 7.17.29 on :17601 under 
 - The bar picks light or dark from the first opaque background behind its host (`themeBehind`), not from Kibana's theme setting: 7.17, 8.x and 9.x mark the theme differently, and 9.x can follow the system.
 - Render log values through React only; never use `innerHTML`. Log field values in URL templates go through `encodeURIComponent`, and templates must start with `http(s)://` or an `{env.…}` placeholder.
 - Settings validation repairs, it does not reject, unknown environmentIds: parseConfig drops them and disables an action left with none (an empty list would mean "all environments").
+- XML text is parsed by `src/core/xml.ts`, never `DOMParser`: core has no browser APIs, and happy-dom (the unit tests' DOM) rejects CDATA and undeclared prefixes that Chrome accepts. Its values are always strings; `@name` keys are attributes and `#text` the text beside them, so the placeholder pattern allows `#`.
+- The copies run `expandStructured` before `maskValue`; `maskValue` masks any JSON or XML text still left past the 5-level expansion cap as a whole.
 - `{env.<name>}` placeholder paths are environment variables, never log fields. Their values go into link URLs unencoded (they come from the user's settings, not the log); field values are always encoded.
 - A settings schema change bumps `schemaVersion` and converts older input inside `parseConfig`. `storage.ts` turns anything `parseConfig` rejects into the empty config, so a missing conversion silently wipes stored settings.
-- A new UI string needs a key in the `MessageKey` union in `src/i18n.ts` and an entry in both `public/_locales/en/messages.json` and `public/_locales/tr/messages.json`.
+- A new UI string needs an entry in both `public/_locales/en/messages.json` and `public/_locales/tr/messages.json`. `MessageKey` in `src/i18n.ts` is derived from the English file, and `tests/unit/i18n.test.ts` keeps the two in step.
 - `docker/seed.mjs` is a contract with `tests/e2e` (ids, values, times): change both together. `tests/fixtures/*.json` are captured from the stacks (`KT_CAPTURE=1 npm run e2e -- capture`); refresh them after a Kibana upgrade instead of editing them.
 
 ## Docs
 
-Code comments cite the design spec by section (`spec §5.1`). The spec and plans live in `docs/superpowers/`, which is gitignored, local-only and written in Turkish, so a fresh clone won't have them. `docs/verification/` is tracked. Plans 1 (link actions), 2 (Discover actions, copy/mask, JSON view, full options page), 3 (e2e matrix, CI, store package), 4 (environment variables, data views by name) and 5 (masking inside values) are done. `.github/workflows/ci.yml` runs the unit checks and the e2e matrix on every pull request.
+Code comments cite the design spec by section (`spec §5.1`). The spec and plans live in `docs/superpowers/`, which is gitignored, local-only and written in Turkish, so a fresh clone won't have them. `docs/verification/` is tracked. Plans 1 (link actions), 2 (Discover actions, copy/mask, JSON view, full options page), 3 (e2e matrix, CI, store package), 4 (environment variables, data views by name), 5 (masking inside values) and 6 (XML as JSON, "Copy as JSON") are done. `.github/workflows/ci.yml` runs the unit checks and the e2e matrix on every pull request.

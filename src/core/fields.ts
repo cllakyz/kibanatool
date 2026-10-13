@@ -1,5 +1,6 @@
-// Flattens an Elasticsearch hit into a dot-path field map (spec §7.1).
+// Flattens an Elasticsearch hit into a dot-path field map (spec §7.1), JSON and XML text included (Plan 6 spec §5).
 import type { RawHit } from "./types";
+import { parseXml } from "./xml";
 
 export type FieldMap = Record<string, unknown>;
 
@@ -27,8 +28,12 @@ export function formatValue(value: unknown): string {
   return JSON.stringify(value);
 }
 
-/** Returns the parsed value when `text` is JSON for an object or array, otherwise undefined. */
-export function parseJsonText(text: string): Record<string, unknown> | unknown[] | undefined {
+/** The parsed value when `text` is JSON for an object or array, or XML (Plan 6 spec §5.1); otherwise undefined. */
+export function parseStructuredText(text: string): Record<string, unknown> | unknown[] | undefined {
+  return text.trim().startsWith("<") ? parseXml(text) : parseJsonText(text);
+}
+
+function parseJsonText(text: string): Record<string, unknown> | unknown[] | undefined {
   const trimmed = text.trim();
   if (!trimmed.startsWith("{") && !trimmed.startsWith("[")) return undefined;
   try {
@@ -40,7 +45,19 @@ export function parseJsonText(text: string): Record<string, unknown> | unknown[]
   }
 }
 
-/** Dot-path leaves of `_source`. JSON text is also expanded under its own path unless `expandJson` is false. */
+/**
+ * `value` with every JSON or XML text inside it parsed, however deep it sits (Plan 6 spec §5.1).
+ * At most MAX_JSON_DEPTH texts are parsed one inside another; deeper text stays a string.
+ */
+export function expandStructured(value: unknown, depth = 0): unknown {
+  if (Array.isArray(value)) return value.map((item) => expandStructured(item, depth));
+  if (isPlainObject(value)) return Object.fromEntries(Object.entries(value).map(([key, item]) => [key, expandStructured(item, depth)]));
+  if (typeof value !== "string" || depth >= MAX_JSON_DEPTH) return value;
+  const parsed = parseStructuredText(value);
+  return parsed === undefined ? value : expandStructured(parsed, depth + 1);
+}
+
+/** Dot-path leaves of `_source`. JSON and XML text is also expanded under its own path unless `expandJson` is false. */
 export function flattenSource(source: Record<string, unknown>, expandJson = true): FieldMap {
   const fields: FieldMap = Object.create(null);
   flattenInto(fields, "", source, expandJson ? 0 : MAX_JSON_DEPTH);
@@ -68,7 +85,7 @@ function flattenInto(
     }
     fields[path] = value;
     if (typeof value === "string" && jsonDepth < MAX_JSON_DEPTH) {
-      const parsed = parseJsonText(value);
+      const parsed = parseStructuredText(value);
       if (isPlainObject(parsed)) flattenInto(fields, path, parsed, jsonDepth + 1);
     }
   }

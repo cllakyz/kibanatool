@@ -12,8 +12,8 @@ a bar above it with:
 
 - **Link actions** that jump to another system with a value from the log, e.g. `https://admin.example.com/users/{user_id}`.
 - **Discover actions** that open related logs in a new tab: the same user's logs, or everything ±5 minutes around this log.
-- **JSON**: fields that hold JSON text, such as a request body, as a tree you can search and copy from.
-- **⋯** to copy the log as Markdown with sensitive fields and values masked, a link to the log, or the current view with its time range fixed.
+- **JSON**: fields that hold JSON or XML text, such as a request body, as a tree you can search and copy from.
+- **⋯** to copy the log as Markdown or JSON with sensitive fields and values masked, a link to the log, or the current view with its time range fixed.
 
 ## Set up
 
@@ -31,7 +31,7 @@ a bar above it with:
 ### Placeholders and conditions
 
 - `{field}` is a field of the raw log. Nested fields use dots (`context.user_id`), and fields that hold JSON
-  text can be read inside too (`context.body.amount`).
+  or XML text can be read inside too (`context.body.amount`, `context.request.Envelope.Body.Id`; see [XML](#xml)).
 - `{a|b|c}` uses the first field that has a value. If none has one, the button is hidden.
 - `{env.name}` is a variable of the environment you are in (see **Variables**), e.g. `{env.adminUrl}/users/{user_id}`.
   It goes into links as it is and is quoted like a field in KQL. A link may start with one if its value is an
@@ -55,13 +55,30 @@ These are in [`examples/kibanatool-settings.json`](examples/kibanatool-settings.
 | This user in all logs | Discover on the `*_log` data view, 60-minute window | `user_id:{user_id}` |
 | ±5 minutes | Discover, 5-minute window | empty query |
 
+### XML
+
+Fields that hold XML text, such as SOAP request and response bodies, are read as JSON: in the JSON view, in
+both copies and in placeholders.
+
+- Namespace prefixes are dropped: `soap:Envelope` becomes `Envelope`.
+- An attribute becomes `@name`, and the text of an element that has attributes becomes `#text`
+  (`{context.request.Amount.#text}`).
+- An element that appears more than once becomes a list. Every value stays text, so `00` keeps its zeros.
+- XML or JSON escaped inside a value is opened too, up to five levels deep. In the copies, anything nested deeper
+  is replaced with `***`.
+- Text split by an element, comment or CDATA section is joined with a space, so `ID<br/>10000000146` reads
+  `ID 10000000146` and its value is still masked.
+- Text that is not well-formed XML, such as an HTML error page, stays as it is.
+
 ### Copy and masking
 
-"Copy as Markdown" masks every field whose path matches a pattern under **Copy and masking** (by default
-`*authorization*`, `*password*`, `*token*`, `*secret*` and `*cookie*`), keys inside JSON text included.
+"Copy as JSON" copies the log's `_index`, `_id` and `_source`, with the JSON and XML text inside it expanded.
 
-It also looks inside every value, so XML and plain-text bodies that a field name cannot reach are covered
-too, and replaces each of these with `***`. Each kind can be turned off under **Mask inside values**:
+Both copies mask every field whose path matches a pattern under **Copy and masking** (by default
+`*authorization*`, `*password*`, `*token*`, `*secret*` and `*cookie*`), keys inside JSON and XML text included.
+
+They also look inside every value, such as plain-text bodies that a field name cannot reach, and replace each
+of these with `***`. Each kind can be turned off under **Mask inside values**:
 
 - Turkish IBANs: `TR` and 24 digits, written together or in the usual groups of four.
 - Turkish ID numbers (TCKN): 11 digits with a valid checksum.

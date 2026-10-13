@@ -8,7 +8,7 @@ export interface CopyItem {
   text: () => string | null;
 }
 
-export function CopyMenu({ items, onCopy }: { items: CopyItem[]; onCopy: (text: string | null) => void }) {
+export function CopyMenu({ items, onCopy, onFail }: { items: CopyItem[]; onCopy: (text: string | null) => void; onFail: () => void }) {
   const [open, setOpen] = useState(false);
   const rootRef = useRef<HTMLDivElement>(null);
   const triggerRef = useRef<HTMLButtonElement>(null);
@@ -80,7 +80,8 @@ export function CopyMenu({ items, onCopy }: { items: CopyItem[]; onCopy: (text: 
                   text = item.text();
                 } catch (error) {
                   console.debug("[kibanatool] copy text failed:", error);
-                  text = null;
+                  onFail();
+                  return;
                 }
                 onCopy(text);
               }}

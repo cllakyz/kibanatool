@@ -30,6 +30,7 @@
   "discoverNoTime": { "message": "Ortalanacak zaman yok: data view'ın zaman alanı yok ya da bu logda o alanın değeri yok" },
   "menuLabel": { "message": "Kopyalama seçenekleri" },
   "menuCopyMarkdown": { "message": "Markdown olarak kopyala" },
+  "menuCopyJson": { "message": "JSON olarak kopyala" },
   "menuCopyDocLink": { "message": "Logun linkini kopyala" },
   "menuCopyFixedView": { "message": "Görünümü sabit zamanla kopyala" },
   "markdownOpenInKibana": { "message": "Kibana'da aç" },

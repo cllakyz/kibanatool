@@ -30,6 +30,7 @@
   "discoverNoTime": { "message": "No time to center on: the data view has no time field or this log has no value for it" },
   "menuLabel": { "message": "Copy options" },
   "menuCopyMarkdown": { "message": "Copy as Markdown" },
+  "menuCopyJson": { "message": "Copy as JSON" },
   "menuCopyDocLink": { "message": "Copy link to this log" },
   "menuCopyFixedView": { "message": "Copy view with fixed time" },
   "markdownOpenInKibana": { "message": "Open in Kibana" },
