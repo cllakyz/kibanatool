@@ -31,6 +31,7 @@
   "menuLabel": { "message": "Copy options" },
   "menuCopyMarkdown": { "message": "Copy as Markdown" },
   "menuCopyJson": { "message": "Copy as JSON" },
+  "menuCopyCurl": { "message": "Copy as cURL" },
   "menuCopyDocLink": { "message": "Copy link to this log" },
   "menuCopyFixedView": { "message": "Copy view with fixed time" },
   "markdownOpenInKibana": { "message": "Open in Kibana" },

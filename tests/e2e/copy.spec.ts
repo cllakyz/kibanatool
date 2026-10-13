@@ -10,6 +10,9 @@ test.beforeEach(async ({ configure }) => {
 
 const APP_001 = { dataViewId: "app-log", query: 'extra.uid:"uid-001"' };
 const APP_002 = { dataViewId: "app-log", query: 'extra.uid:"uid-002"' };
+// Plan 7: Symfony-shaped request logs (docker/seed.mjs); "Copy as cURL" is menu item 2 there.
+const APP_031 = { dataViewId: "app-log", query: 'extra.uid:"uid-031"' };
+const APP_032 = { dataViewId: "app-log", query: 'extra.uid:"uid-032"' };
 // app-002's context.request (PAYMENT_XML, values masked) and context.response (PAYMENT_RESPONSE_XML) as JSON (docker/seed.mjs).
 const REQUEST = { Envelope: { Body: { pay: { identitynumber: "***", iban: "***", gsm: "***", card: "***", amount: "150" } } } };
 const RESPONSE = {
@@ -57,6 +60,43 @@ test("copies the log as JSON with its JSON and XML text expanded and masked", as
   expect(copied._source.context.request).toEqual(REQUEST);
   expect(copied._source.context.response).toEqual(RESPONSE);
   expect(copied._source.context.headers).toEqual({ "user-agent": "dev/1.0", authorization: "***" });
+});
+
+test("copies a form request as a cURL command with proxy headers dropped and values masked", async ({ context }) => {
+  // Plan 7 spec §5: query and form body in http_build_query form, cookie, _token and the mobile number masked.
+  const { page, detail } = await openDoc(context, APP_031);
+  expect(await copyFromMenu(page, detail, 2)).toBe(
+    [
+      "curl 'https://backoffice.example.com/player/search?page=2&filter[status]=active'",
+      "--globoff",
+      "-H 'user-agent: dev/1.0'",
+      "-H 'accept: text/html'",
+      "-H 'content-type: application/x-www-form-urlencoded'",
+      "-H 'cookie: ***'",
+      "-H 'origin: https://backoffice.example.com'",
+      "--data-raw 'searchForm[email]=dev%40example.com&searchForm[phone]=***&searchForm[note]=Ali'\\''nin%20%3Cb%3Enotu%3C%2Fb%3E&_token=***'",
+      "--compressed",
+    ].join(" \\\n  "),
+  );
+});
+
+test("copies a JSON request as a cURL command, keeping JSON text inside the body as text", async ({ context }) => {
+  const { page, detail } = await openDoc(context, APP_032);
+  expect(await copyFromMenu(page, detail, 2)).toBe(
+    [
+      "curl 'https://api.example.com/v1/player/password'",
+      "-H 'user-agent: app/2.0'",
+      "-H 'accept: application/json'",
+      "-H 'content-type: application/json'",
+      "-H 'authorization: ***'",
+      "-H 'platform-token: ***'",
+      `--data-raw '{"oldPassword":"***","newPassword":"***","note":"Ali'\\''nin şifresi","settings":"{\\"lang\\":\\"tr\\"}"}'`,
+      "--compressed",
+    ].join(" \\\n  "),
+  );
+  // The other items move down one: the log link is now item 3.
+  await expect(bar(detail).getByRole("status")).toBeHidden(); // the next copy's notice must be its own
+  expect(await copyFromMenu(page, detail, 3)).toBe(`${stack.origin}${prefixOf()}/app/discover#/doc/app-log/app_log?id=app-032`);
 });
 
 test("copies the log link, and the link opens the same log", async ({ context }) => {

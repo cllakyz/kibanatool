@@ -80,6 +80,64 @@ for (let i = 1; i <= 30; i++) {
     },
   );
 }
+// app-031 and app-032 (Plan 7): request logs shaped like the team's Symfony listeners, where every header maps to a
+// list of values and a form body arrives as JSON. Older than every other app_log log and of user 100009, so other
+// specs' rows, counts and windows stay the same. tests/e2e/copy.spec.ts expects their cURL copies exactly.
+const symfonyHeaders = (headers) => JSON.stringify(Object.fromEntries(Object.entries(headers).map(([name, value]) => [name, [value]])));
+const requestLog = (n, appName, context) => ({
+  message: "User action processed",
+  level: 200,
+  level_name: "INFO",
+  channel: "request",
+  datetime: minutesBefore(200 + n),
+  app_name: appName,
+  user_id: 100009,
+  context: { ip: `10.0.0.${n}`, user_agent: "dev/1.0", ...context },
+  extra: { uid: `uid-${pad(n)}` },
+});
+add(
+  { index: { _index: "app_log", _id: "app-031" } },
+  requestLog(31, "admin", {
+    method: "POST",
+    url: "https://backoffice.example.com/player/search",
+    headers: symfonyHeaders({
+      host: "backoffice.example.com",
+      "user-agent": "dev/1.0",
+      accept: "text/html",
+      "accept-encoding": "gzip, br",
+      "content-type": "application/x-www-form-urlencoded",
+      "content-length": "120",
+      cookie: "PHPSESSID=synthetic-session",
+      "x-forwarded-for": "10.0.0.31",
+      "x-forwarded-proto": "https",
+      "cf-ray": "synthetic-ray",
+      "x-php-ob-level": "1",
+      origin: "https://backoffice.example.com",
+    }),
+    body: JSON.stringify({ searchForm: { email: "dev@example.com", phone: "0555 000 00 00", note: "Ali'nin <b>notu</b>" }, _token: "synthetic-csrf" }),
+    query: JSON.stringify({ page: "2", filter: { status: "active" } }),
+  }),
+);
+add(
+  { index: { _index: "app_log", _id: "app-032" } },
+  requestLog(32, "api", {
+    method: "POST",
+    url: "https://api.example.com/v1/player/password",
+    headers: symfonyHeaders({
+      host: "api.example.com",
+      "user-agent": "app/2.0",
+      accept: "application/json",
+      "accept-encoding": "gzip",
+      "content-type": "application/json",
+      authorization: "Bearer synthetic-token-32",
+      "platform-token": "synthetic-platform",
+      "cf-visitor": '{"scheme":"https"}',
+      "x-forwarded-proto": "https",
+    }),
+    body: JSON.stringify({ oldPassword: "synthetic-old", newPassword: "synthetic-new", note: "Ali'nin şifresi", settings: JSON.stringify({ lang: "tr" }) }),
+    query: "[]",
+  }),
+);
 for (let i = 1; i <= 10; i++) {
   add({ index: { _index: "legacy_log", _id: `legacy-${pad(i)}` } }, { message: `legacy event ${i}`, datetime: minutesBefore(i), user_id: 500000 + i });
 }

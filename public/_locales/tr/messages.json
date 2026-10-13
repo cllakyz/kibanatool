@@ -31,6 +31,7 @@
   "menuLabel": { "message": "Kopyalama seçenekleri" },
   "menuCopyMarkdown": { "message": "Markdown olarak kopyala" },
   "menuCopyJson": { "message": "JSON olarak kopyala" },
+  "menuCopyCurl": { "message": "cURL olarak kopyala" },
   "menuCopyDocLink": { "message": "Logun linkini kopyala" },
   "menuCopyFixedView": { "message": "Görünümü sabit zamanla kopyala" },
   "markdownOpenInKibana": { "message": "Kibana'da aç" },

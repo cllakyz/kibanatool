@@ -1,6 +1,7 @@
 // The per-document action bar (spec §7.7): link actions, Discover actions, then the copy menu.
 import { type SyntheticEvent, useEffect, useMemo, useRef, useState } from "react";
 import type { Action, Config, Environment } from "../core/config";
+import { buildCurl, requestPrefix } from "../core/curl";
 import { type DiscoverButton, buildDiscoverButtons } from "../core/discover-actions";
 import { flattenDoc } from "../core/fields";
 import { buildJson } from "../core/json-copy";
@@ -98,6 +99,8 @@ export function ActionBar({ identity, actions, client, prefix, hash, copy, envir
 
   const jsonFields = useMemo(() => (state.status === "ready" ? jsonTextFields(state.hit._source ?? {}) : []), [state]);
 
+  const hasRequest = useMemo(() => state.status === "ready" && requestPrefix(state.hit._source ?? {}) !== undefined, [state]);
+
   if (state.status !== "ready") {
     return (
       <div className="kt-root">
@@ -145,6 +148,8 @@ export function ActionBar({ identity, actions, client, prefix, hash, copy, envir
         }),
     },
     { label: t("menuCopyJson"), text: () => buildJson(hit, copy.maskPatterns, copy.valueMasks) },
+    // Plan 7 spec §6: only for a log that records a request, so buildCurl returns a command here.
+    ...(hasRequest ? [{ label: t("menuCopyCurl"), text: () => buildCurl(hit, copy.maskPatterns, copy.valueMasks) ?? null }] : []),
     { label: t("menuCopyDocLink"), text: docUrl },
     { label: t("menuCopyFixedView"), text: () => fixedTimeUrl(location.href, new Date()) },
   ];
