@@ -123,7 +123,7 @@ describe("buildMarkdown with value masks (Plan 5 spec §5)", () => {
       options({ hit: payment, maskPatterns: ["*iban*"], valueMasks: [...VALUE_MASK_KINDS], docUrl: "u?id=10000000146", ...overrides }),
     ).split("\n");
 
-  it("masks the values inside XML and JSON text, keeps the rest, and leaves the header and the link alone", () => {
+  it("masks the values inside XML and JSON text, writes both as json blocks, and leaves the header and the link alone", () => {
     expect(masked()).toEqual([
       "**pay-5550000000** · 2026-08-12T10:00:00+03:00",
       "- `body`:",
@@ -136,7 +136,16 @@ describe("buildMarkdown with value masks (Plan 5 spec §5)", () => {
       "  ```",
       "- `datetime`: 2026-08-12T10:00:00+03:00",
       "- `iban`: ***",
-      "- `request`: <a><tckn>***</tckn><iban>***</iban><n>150</n></a>",
+      "- `request`:",
+      "  ```json",
+      "  {",
+      '    "a": {',
+      '      "tckn": "***",',
+      '      "iban": "***",',
+      '      "n": "150"',
+      "    }",
+      "  }",
+      "  ```",
       "[Open in Kibana](u?id=10000000146)",
     ]);
   });
@@ -152,11 +161,63 @@ describe("buildMarkdown with value masks (Plan 5 spec §5)", () => {
     ]);
   });
 
-  it("copies the values as before when every kind is off", () => {
+  it("masks nothing inside the values when every kind is off", () => {
     // Plan 5 Review Focus 5.
     const lines = masked({ valueMasks: [] });
-    expect(lines).toContain("- `request`: <a><tckn>10000000146</tckn><iban>TR00 0000 0000 0000 0000 0000 01</iban><n>150</n></a>");
+    expect(lines).toContain('      "tckn": "10000000146",');
     expect(lines).toContain('    "pidNo": 10000000146,');
-    expect(lines).toContain("- `iban`: ***"); // the field-name mask still applies
+    expect(lines).toContain("- `iban`: ***"); // the field-name mask still applies,
+    expect(lines).toContain('      "iban": "***",'); // also to an XML element (Plan 6 spec §5.5)
+  });
+});
+
+describe("buildMarkdown with XML (Plan 6 spec §5.4)", () => {
+  const xmlHit = (source: Record<string, unknown>) => ({ _id: "1", _index: "i", _source: source });
+  const lines = (source: Record<string, unknown>, overrides: Partial<MarkdownOptions> = {}): string[] =>
+    buildMarkdown(options({ hit: xmlHit(source), timeField: undefined, docUrl: "u", ...overrides })).split("\n");
+
+  it("writes XML text as a json block, with the text inside it opened, and JSON array text as a block as before", () => {
+    expect(lines({ response: '<r code="00"><Payload>{"runId":42}</Payload></r>', tags: "[1,2]" })).toEqual([
+      "**i**",
+      "- `response`:",
+      "  ```json",
+      "  {",
+      '    "r": {',
+      '      "@code": "00",',
+      '      "Payload": {',
+      '        "runId": 42',
+      "      }",
+      "    }",
+      "  }",
+      "  ```",
+      "- `tags`:",
+      "  ```json",
+      "  [",
+      "    1,",
+      "    2",
+      "  ]",
+      "  ```",
+      "[Open in Kibana](u)",
+    ]);
+  });
+
+  it("opens JSON text inside JSON text, which stayed an escaped string before", () => {
+    expect(lines({ body: JSON.stringify({ inner: JSON.stringify({ a: 1 }) }) })).toContain('    "inner": {');
+  });
+
+  it("writes text that is not well-formed XML, such as an HTML error page, as before (Review Focus 3)", () => {
+    expect(lines({ page: "<html><body><br></body></html>" })).toContain("- `page`: <html><body><br></body></html>");
+  });
+
+  it("writes a masked XML field as *** on one line, not as a block", () => {
+    expect(lines({ secretXml: "<a>1</a>" }, { maskPatterns: ["*secret*"] })).toContain("- `secretXml`: ***");
+  });
+
+  it("copies a listed path inside XML text", () => {
+    expect(lines({ request: '<pay><Amount currency="TRY">150</Amount></pay>' }, { fields: ["request.pay.Amount.#text"] })).toEqual([
+      "**i**",
+      "- `request.pay.Amount.#text`: 150",
+      "[Open in Kibana](u)",
+    ]);
   });
 });

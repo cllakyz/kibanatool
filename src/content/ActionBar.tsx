@@ -3,6 +3,7 @@ import { type SyntheticEvent, useEffect, useMemo, useRef, useState } from "react
 import type { Action, Config, Environment } from "../core/config";
 import { type DiscoverButton, buildDiscoverButtons } from "../core/discover-actions";
 import { flattenDoc } from "../core/fields";
+import { buildJson } from "../core/json-copy";
 import { jsonTextFields } from "../core/json-tree";
 import { type LinkButton, buildLinkButtons } from "../core/link-actions";
 import { buildMarkdown } from "../core/markdown";
@@ -143,6 +144,7 @@ export function ActionBar({ identity, actions, client, prefix, hash, copy, envir
           linkLabel: t("markdownOpenInKibana"),
         }),
     },
+    { label: t("menuCopyJson"), text: () => buildJson(hit, copy.maskPatterns, copy.valueMasks) },
     { label: t("menuCopyDocLink"), text: docUrl },
     { label: t("menuCopyFixedView"), text: () => fixedTimeUrl(location.href, new Date()) },
   ];

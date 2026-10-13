@@ -1,5 +1,5 @@
 // "Copy as Markdown" (spec §7.4): plain Markdown for GitHub, Jira Cloud and Slack.
-import { type FieldMap, flattenDoc, flattenSource, formatValue, isMissing, parseJsonText } from "./fields";
+import { type FieldMap, expandStructured, flattenDoc, flattenSource, formatValue, isMissing, isPlainObject } from "./fields";
 import { maskMatcher, maskValue } from "./mask";
 import type { RawHit } from "./types";
 import type { ValueMaskKind } from "./value-mask";
@@ -32,7 +32,7 @@ export function buildMarkdown(options: MarkdownOptions): string {
   for (const path of paths) {
     const value = source[path];
     if (isMissing(value)) continue;
-    lines.push(...fieldLines(path, maskValue(path, value, isMasked, valueMasks)));
+    lines.push(...fieldLines(path, value, maskValue(path, expandStructured(value), isMasked, valueMasks)));
   }
   // A ")" in the index or id would end the Markdown link early.
   lines.push(`[${linkLabel}](${docUrl.replace(/[()]/g, (paren) => (paren === "(" ? "%28" : "%29"))})`);
@@ -50,9 +50,10 @@ function listedPaths(path: string, all: FieldMap, leaves: FieldMap): string[] {
 const isObjectArray = (value: unknown): boolean =>
   Array.isArray(value) && value.some((item) => typeof item === "object" && item !== null);
 
-function fieldLines(path: string, value: unknown): string[] {
-  const json = typeof value === "string" ? parseJsonText(value) : isObjectArray(value) ? value : undefined;
-  if (json !== undefined) return [`- \`${path}\`:`, ...codeBlock(JSON.stringify(json, null, 2), "json")];
+/** `raw` is the field's value, `value` the same expanded and masked: JSON and XML text become one json block (Plan 6 spec §5.4). */
+function fieldLines(path: string, raw: unknown, value: unknown): string[] {
+  const json = isPlainObject(value) || (Array.isArray(value) && (typeof raw === "string" || isObjectArray(value)));
+  if (json) return [`- \`${path}\`:`, ...codeBlock(JSON.stringify(value, null, 2), "json")];
   const text = formatValue(value);
   if (text.includes("\n")) return [`- \`${path}\`:`, ...codeBlock(text, "")];
   return [`- \`${path}\`: ${text}`];

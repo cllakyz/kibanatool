@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { DEFAULT_MASK_PATTERNS } from "../../../src/core/config";
+import { expandStructured } from "../../../src/core/fields";
 import { MASK, maskMatcher, maskValue } from "../../../src/core/mask";
 import { VALUE_MASK_KINDS } from "../../../src/core/value-mask";
 
@@ -26,16 +27,26 @@ describe("maskValue", () => {
     expect(maskValue("message", "plain", isMasked, [])).toBe("plain");
   });
 
-  it("masks keys inside JSON text under the field's path and re-serializes it", () => {
-    const headers = JSON.stringify({ Authorization: "Bearer x", accept: "json" });
-    expect(maskValue("context.headers", headers, isMasked, [])).toBe('{"Authorization":"***","accept":"json"}');
+  it("masks keys inside expanded JSON text under the field's path", () => {
+    const headers = expandStructured(JSON.stringify({ Authorization: "Bearer x", accept: "json" }));
+    expect(maskValue("context.headers", headers, isMasked, [])).toEqual({ Authorization: MASK, accept: "json" });
+  });
+
+  it("masks XML element names and attributes under the field's path (Plan 6 spec §5.5)", () => {
+    const request = expandStructured('<soap:Envelope><soap:Body><Login Token="t"><Password>p</Password><User>u</User></Login></soap:Body></soap:Envelope>');
+    expect(maskValue("context.request", request, isMasked, [])).toEqual({
+      Envelope: { Body: { Login: { "@Token": MASK, Password: MASK, User: "u" } } },
+    });
+  });
+
+  it("leaves text unparsed: callers expand it first", () => {
+    const headers = JSON.stringify({ Authorization: "Bearer x" });
+    expect(maskValue("context.headers", headers, isMasked, [])).toBe(headers);
   });
 
   it("masks inside arrays and nested objects", () => {
     expect(maskValue("items", [{ token: "t", id: 1 }], isMasked, [])).toEqual([{ token: MASK, id: 1 }]);
-    expect(maskValue("body", JSON.stringify({ user: { Password: "p", name: "n" } }), isMasked, [])).toBe(
-      '{"user":{"Password":"***","name":"n"}}',
-    );
+    expect(maskValue("body", { user: { Password: "p", name: "n" } }, isMasked, [])).toEqual({ user: { Password: MASK, name: "n" } });
   });
 });
 
@@ -53,15 +64,20 @@ describe("maskValue with value masks (Plan 5 spec §5)", () => {
     expect(maskValue("amount", 150, isMasked, all)).toBe(150);
   });
 
-  it("masks inside JSON text, numbers included, leaves booleans and null, and re-serializes it", () => {
-    const body = JSON.stringify({ pidNo: 10000000146, note: "card 4111 1111 1111 1111", ok: true, none: null });
-    expect(maskValue("body", body, isMasked, all)).toBe('{"pidNo":"***","note":"card ***","ok":true,"none":null}');
+  it("masks inside expanded JSON text, numbers included, and leaves booleans and null", () => {
+    const body = expandStructured(JSON.stringify({ pidNo: 10000000146, note: "card 4111 1111 1111 1111", ok: true, none: null }));
+    expect(maskValue("body", body, isMasked, all)).toEqual({ pidNo: MASK, note: "card ***", ok: true, none: null });
+  });
+
+  it("masks inside expanded XML text: element text and attribute values (Plan 6 spec §5.5)", () => {
+    const request = expandStructured('<pay pid="10000000146"><gsm>+90 555 000 00 00</gsm><amount>150</amount></pay>');
+    expect(maskValue("request", request, isMasked, all)).toEqual({ pay: { "@pid": MASK, gsm: MASK, amount: "150" } });
   });
 
   it("lets a field-name mask win, so the whole value is masked once", () => {
     // Plan 5 Review Focus 3.
     expect(maskValue("context.iban", "TR000000000000000000000001", isMasked, all)).toBe(MASK);
-    expect(maskValue("body", JSON.stringify({ IBAN: "x TR000000000000000000000001" }), isMasked, all)).toBe('{"IBAN":"***"}');
+    expect(maskValue("body", expandStructured(JSON.stringify({ IBAN: "x TR000000000000000000000001" })), isMasked, all)).toEqual({ IBAN: MASK });
   });
 
   it("masks inside arrays", () => {

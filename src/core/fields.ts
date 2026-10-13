@@ -33,7 +33,7 @@ export function parseStructuredText(text: string): Record<string, unknown> | unk
   return text.trim().startsWith("<") ? parseXml(text) : parseJsonText(text);
 }
 
-export function parseJsonText(text: string): Record<string, unknown> | unknown[] | undefined {
+function parseJsonText(text: string): Record<string, unknown> | unknown[] | undefined {
   const trimmed = text.trim();
   if (!trimmed.startsWith("{") && !trimmed.startsWith("[")) return undefined;
   try {
