@@ -180,6 +180,31 @@ describe("buildMarkdown with XML (Plan 6 spec §5.4)", () => {
     expect(lines({ note: "<p>Kimlik<br/>10000000146</p>" }, { valueMasks: [...VALUE_MASK_KINDS] })).toContain('      "#text": "Kimlik ***"');
   });
 
+  it("masks a listed path under a masked element, as the JSON copy does (final review)", () => {
+    const source = { req: "<Env><Login><Pwd>s3cret</Pwd><User>u</User></Login></Env>" };
+    expect(lines(source, { maskPatterns: ["*.Login"], fields: ["req.Env.Login.Pwd", "req.Env.Login.User"] })).toEqual([
+      "**i**",
+      "- `req.Env.Login.Pwd`: ***",
+      "- `req.Env.Login.User`: ***",
+      "[Open in Kibana](u)",
+    ]);
+  });
+
+  it("copies the paths under a listed XML element, with JSON text below them as one block (final review)", () => {
+    const source = { req: '<Env><Login><Pwd>p</Pwd><Data>{"a":1}</Data></Login><Other>o</Other></Env>' };
+    expect(lines(source, { fields: ["req.Env.Login"] })).toEqual([
+      "**i**",
+      "- `req.Env.Login.Data`:",
+      "  ```json",
+      "  {",
+      '    "a": 1',
+      "  }",
+      "  ```",
+      "- `req.Env.Login.Pwd`: p",
+      "[Open in Kibana](u)",
+    ]);
+  });
+
   it("writes XML text as a json block, with the text inside it opened, and JSON array text as a block as before", () => {
     expect(lines({ response: '<r code="00"><Payload>{"runId":42}</Payload></r>', tags: "[1,2]" })).toEqual([
       "**i**",

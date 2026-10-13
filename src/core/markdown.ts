@@ -1,6 +1,6 @@
 // "Copy as Markdown" (spec §7.4): plain Markdown for GitHub, Jira Cloud and Slack.
 import { type FieldMap, expandStructured, flattenDoc, flattenSource, formatValue, isMissing, isPlainObject } from "./fields";
-import { maskMatcher, maskValue } from "./mask";
+import { MASK, maskMatcher, maskValue } from "./mask";
 import type { RawHit } from "./types";
 import type { ValueMaskKind } from "./value-mask";
 
@@ -21,6 +21,9 @@ export interface MarkdownOptions {
 export function buildMarkdown(options: MarkdownOptions): string {
   const { hit, timeField, fields, maskPatterns, valueMasks, docUrl, linkLabel } = options;
   const isMasked = maskMatcher(maskPatterns);
+  // A path inside a masked field or element is masked too, as in the JSON copy (Plan 6 spec §5.4).
+  const underMask = (path: string): boolean =>
+    path.split(".").some((_, index, parts) => index > 0 && isMasked(parts.slice(0, index).join(".")));
   const all = flattenDoc(hit);
   // JSON text stays whole (spec §7.4): the full list and listed parents use the raw leaves, not parsed sub-paths.
   const leaves = flattenSource(hit._source ?? {}, false);
@@ -32,19 +35,26 @@ export function buildMarkdown(options: MarkdownOptions): string {
   for (const path of paths) {
     const value = source[path];
     if (isMissing(value)) continue;
-    lines.push(...fieldLines(path, value, maskValue(path, expandStructured(value), isMasked, valueMasks)));
+    const masked = underMask(path) ? MASK : maskValue(path, expandStructured(value), isMasked, valueMasks);
+    lines.push(...fieldLines(path, value, masked));
   }
   // A ")" in the index or id would end the Markdown link early.
   lines.push(`[${linkLabel}](${docUrl.replace(/[()]/g, (paren) => (paren === "(" ? "%28" : "%29"))})`);
   return lines.join("\n");
 }
 
-/** A listed path that is not a field itself (e.g. `context`) stands for every raw leaf under it. */
+/**
+ * A listed path that is not a field itself (e.g. `context`) stands for every raw leaf under it. Inside JSON or XML
+ * text there are no raw leaves, so a listed element (e.g. `request.Envelope.Body`) stands for the outermost parsed
+ * paths under it; JSON or XML text below them stays whole, as everywhere else in this copy (Plan 6 spec §5.4).
+ */
 function listedPaths(path: string, all: FieldMap, leaves: FieldMap): string[] {
   if (Object.hasOwn(all, path)) return [path];
-  return Object.keys(leaves)
-    .filter((leaf) => leaf.startsWith(`${path}.`))
-    .sort();
+  const under = (map: FieldMap): string[] => Object.keys(map).filter((leaf) => leaf.startsWith(`${path}.`)).sort();
+  const raw = under(leaves);
+  if (raw.length > 0) return raw;
+  const parsed = under(all);
+  return parsed.filter((leaf) => !parsed.some((parent) => leaf.startsWith(`${parent}.`)));
 }
 
 const isObjectArray = (value: unknown): boolean =>
