@@ -39,12 +39,13 @@ describe("maskValue", () => {
     });
   });
 
-  it("masks text left past expandStructured's depth cap and writes it back as JSON text", () => {
-    let text = JSON.stringify({ password: "p", note: "n" });
+  it("masks JSON or XML text left past expandStructured's depth cap whole", () => {
+    let text = JSON.stringify({ note: "n" });
     for (let level = 0; level < 5; level++) text = JSON.stringify({ next: text });
     let value: unknown = maskValue("body", expandStructured(text), isMasked, []);
     for (let level = 0; level < 5; level++) value = (value as { next: unknown }).next;
-    expect(value).toBe('{"password":"***","note":"n"}');
+    expect(value).toBe(MASK);
+    expect(maskValue("body", "<a>1</a>", isMasked, [])).toBe(MASK);
   });
 
   it("masks inside arrays and nested objects", () => {

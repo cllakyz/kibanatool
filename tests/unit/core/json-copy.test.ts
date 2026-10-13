@@ -60,6 +60,15 @@ describe("buildJson (Plan 6 spec §6)", () => {
     expect(copied._source.note).toEqual({ p: { br: "", "#text": "Kimlik ***" } });
   });
 
+  it("keeps the copy small for XML escaped 30 levels deep (final review)", () => {
+    const escape = (text: string): string => text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+    let xml = "<a>x</a>";
+    for (let level = 0; level < 30; level++) xml = `<w>${escape(xml)}</w>`;
+    const copy = buildJson({ _id: "1", _index: "i", _source: { body: xml } }, [], all);
+    expect(copy.length).toBeLessThan(1000);
+    expect(JSON.parse(copy)._source.body.w.w.w.w.w).toBe("***");
+  });
+
   it("copies a hit without _source as an empty object", () => {
     expect(JSON.parse(buildJson({ _id: "1", _index: "i" }, [], all))).toEqual({ _index: "i", _id: "1", _source: {} });
   });

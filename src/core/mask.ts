@@ -15,8 +15,8 @@ export function maskMatcher(patterns: string[]): (path: string) => boolean {
 /**
  * Replaces values whose path matches with MASK, also inside objects and arrays. Callers pass the value through
  * expandStructured first (Plan 6 spec §5.5), so keys inside JSON and XML text are matched as `<field path>.<key>`.
- * Text that is still JSON or XML lies past expandStructured's depth cap: it is parsed here too, masked the same way
- * and written back as JSON text, so no mask stops at the cap.
+ * Text that is still JSON or XML lies past expandStructured's depth cap: it becomes MASK whole, since any key may
+ * sit inside it and opening it further could grow the copy without bound.
  * Every other text and number is searched for the value kinds that are on; a number with a match becomes MASK.
  */
 export function maskValue(path: string, value: unknown, isMasked: (path: string) => boolean, kinds: readonly ValueMaskKind[]): unknown {
@@ -25,10 +25,7 @@ export function maskValue(path: string, value: unknown, isMasked: (path: string)
   if (isPlainObject(value)) {
     return Object.fromEntries(Object.entries(value).map(([key, item]) => [key, maskValue(`${path}.${key}`, item, isMasked, kinds)]));
   }
-  if (typeof value === "string") {
-    const parsed = parseStructuredText(value);
-    return parsed === undefined ? maskText(value, kinds) : JSON.stringify(maskValue(path, parsed, isMasked, kinds));
-  }
+  if (typeof value === "string") return parseStructuredText(value) === undefined ? maskText(value, kinds) : MASK;
   if (typeof value === "number") return maskText(String(value), kinds) === String(value) ? value : MASK;
   return value;
 }
