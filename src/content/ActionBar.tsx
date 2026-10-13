@@ -187,7 +187,7 @@ export function ActionBar({ identity, actions, client, prefix, hash, copy, envir
             {t(notice)}
           </span>
         )}
-        <CopyMenu items={copyItems} onCopy={copyToClipboard} />
+        <CopyMenu items={copyItems} onCopy={copyToClipboard} onFail={() => setNotice("noticeCopyFailed")} />
       </div>
       {jsonOpen && jsonFields.length > 0 && (
         <JsonView fields={jsonFields} onCopy={copyToClipboard} onClose={() => setJsonOpen(false)} />
