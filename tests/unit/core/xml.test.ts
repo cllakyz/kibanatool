@@ -24,6 +24,14 @@ describe("parseXml: conversion (Plan 6 spec §4.2)", () => {
     expect(parseXml("<p>\n  <b>x</b>\n  <i>y</i>\n</p>")).toEqual({ p: { b: "x", i: "y" } });
   });
 
+  it("puts a space where a child element, comment, CDATA or instruction split two words", () => {
+    expect(parseXml("<p>Kimlik<br/>10000000146</p>")).toEqual({ p: { br: "", "#text": "Kimlik 10000000146" } });
+    expect(parseXml("<a>ID<!-- c -->10000000146</a>")).toEqual({ a: "ID 10000000146" });
+    expect(parseXml("<a>ID<![CDATA[10000000146]]></a>")).toEqual({ a: "ID 10000000146" });
+    expect(parseXml("<a>ID<?pi?>10000000146</a>")).toEqual({ a: "ID 10000000146" });
+    expect(parseXml("<a>ID: <![CDATA[x]]> end</a>")).toEqual({ a: "ID: x end" });
+  });
+
   it("turns repeated keys into an array at their first place, in document order", () => {
     expect(parseXml("<r><Item>1</Item><Other>o</Other><Item>2</Item><Item>3</Item></r>")).toEqual({ r: { Item: ["1", "2", "3"], Other: "o" } });
     expect(Object.keys(parseXml("<r><Item>1</Item><Other>o</Other><Item>2</Item></r>")?.r as object)).toEqual(["Item", "Other"]);

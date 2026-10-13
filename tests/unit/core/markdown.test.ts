@@ -176,6 +176,10 @@ describe("buildMarkdown with XML (Plan 6 spec §5.4)", () => {
   const lines = (source: Record<string, unknown>, overrides: Partial<MarkdownOptions> = {}): string[] =>
     buildMarkdown(options({ hit: xmlHit(source), timeField: undefined, docUrl: "u", ...overrides })).split("\n");
 
+  it("masks a value that a child element splits from the word before it (final review)", () => {
+    expect(lines({ note: "<p>Kimlik<br/>10000000146</p>" }, { valueMasks: [...VALUE_MASK_KINDS] })).toContain('      "#text": "Kimlik ***"');
+  });
+
   it("writes XML text as a json block, with the text inside it opened, and JSON array text as a block as before", () => {
     expect(lines({ response: '<r code="00"><Payload>{"runId":42}</Payload></r>', tags: "[1,2]" })).toEqual([
       "**i**",

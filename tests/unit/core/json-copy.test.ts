@@ -55,6 +55,11 @@ describe("buildJson (Plan 6 spec §6)", () => {
     expect(copied._source.context.request).toEqual({ Envelope: { Body: "***" } });
   });
 
+  it("masks a value that a child element splits from the word before it (final review)", () => {
+    const copied = JSON.parse(buildJson({ _id: "1", _index: "i", _source: { note: "<p>Kimlik<br/>10000000146</p>" } }, [], all));
+    expect(copied._source.note).toEqual({ p: { br: "", "#text": "Kimlik ***" } });
+  });
+
   it("copies a hit without _source as an empty object", () => {
     expect(JSON.parse(buildJson({ _id: "1", _index: "i" }, [], all))).toEqual({ _index: "i", _id: "1", _source: {} });
   });

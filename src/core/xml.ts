@@ -81,8 +81,8 @@ function attach(stack: Element[], element: Element): Entry | undefined {
 
 /** Spec §4.2: text alone, or an object of `@attributes`, children and `#text`. */
 function valueOf(element: Element): unknown {
-  if (element.entries.length === 0) return element.text.join("");
-  const text = (element.hasChildren ? element.text.filter((run) => run.trim() !== "") : element.text).join("");
+  if (element.entries.length === 0) return joinRuns(element.text);
+  const text = joinRuns(element.hasChildren ? element.text.filter((run) => run.trim() !== "") : element.text);
   const entries: Entry[] = text.trim() === "" ? element.entries : [...element.entries, ["#text", text]];
   // A repeated key becomes an array at the place it first appeared; fromEntries keeps "__proto__" an own key.
   const grouped = new Map<string, unknown[]>();
@@ -92,6 +92,17 @@ function valueOf(element: Element): unknown {
     else grouped.set(key, [value]);
   }
   return Object.fromEntries([...grouped].map(([key, values]) => [key, values.length > 1 ? values : values[0]]));
+}
+
+/**
+ * Text runs are split by a child element, comment, CDATA section or processing instruction. Where both sides would
+ * touch, they are joined with a space, so `Kimlik<br/>10000000146` stays two words and value masks still see the
+ * number's boundary (Plan 6 spec §4.2).
+ */
+function joinRuns(runs: string[]): string {
+  return runs
+    .filter((run) => run !== "")
+    .reduce((text, run) => (/\S$/.test(text) && /^\S/.test(run) ? `${text} ${run}` : text + run), "");
 }
 
 function readTag(source: string, start: number): { element: Element; end: number; selfClosing: boolean } | undefined {
