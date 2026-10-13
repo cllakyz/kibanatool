@@ -13,13 +13,17 @@ First public release, for Kibana 7.17, 8.x and 9.x in Chrome.
   built from the log's raw fields, which are read from your Kibana with your own session.
 - Link actions: URL templates with `{field|fallback}` placeholders and conditions.
 - Discover actions: a KQL query from the log, optionally ±N minutes around the log's time, in a new tab.
-- Copy menu: the log as Markdown with sensitive fields masked, a link to the log, and the current view with
-  its time range fixed.
+- Copy menu: the log as Markdown or as JSON with sensitive fields masked, a link to the log, and the current
+  view with its time range fixed.
 - Masking inside values: "Copy as Markdown" also masks Turkish IBANs, Turkish ID numbers (TCKN, with a valid
   checksum), Turkish mobile numbers and card numbers (Visa, Mastercard, Amex and Troy, with a valid Luhn digit)
   wherever they appear in a value, such as XML or plain-text request bodies. Each kind can be turned off; all
   four are on by default.
-- JSON view for fields that hold JSON text: a tree with search, and copying a value or its path.
+- JSON view for fields that hold JSON or XML text: a tree with search, and copying a value or its path.
+- XML as JSON: fields that hold XML text, such as SOAP bodies, are read as JSON in the JSON view, in both copies
+  and in placeholders. Namespace prefixes are dropped, attributes become `@name` and the text beside them
+  `#text`, and every value stays text. "Copy as JSON" writes `_index`, `_id` and `_source` with all JSON and
+  XML text expanded; field-name masks now reach XML element names too.
 - Options page: environments with per-site access, an action editor with a live preview, copy and masking
   settings, export and import.
 - Environment variables: `{env.name}` placeholders take each environment's own value, set in a variables

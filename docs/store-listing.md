@@ -27,6 +27,8 @@ It works on Kibana 7.17, 8.x and 9.x.
   or copy the current view with its time range fixed.
 - IBANs, ID numbers and mobile numbers (Turkish formats) and card numbers are masked in the copy too, even
   inside XML or plain-text request bodies.
+- Read XML request and response bodies as a JSON tree too, and copy the whole log as JSON with the XML and JSON
+  text inside it expanded.
 
 You choose which Kibana addresses it runs on. It talks only to your Kibana, with your own session, and keeps
 its settings in your browser. Open source: https://github.com/cllakyz/kibanatool
@@ -43,6 +45,8 @@ Kibana 7.17, 8.x ve 9.x'te çalışır.
   zamanı sabitlenmiş mevcut görünümü kopyalayın.
 - Kopyada IBAN, TC kimlik no, cep telefonu ve kart numaraları da maskelenir; XML ya da düz metin istek
   gövdelerinin içinde olsalar bile.
+- XML istek ve yanıt gövdelerini de JSON ağacı olarak okuyun, logun tamamını içindeki XML ve JSON metinleri
+  açılmış halde JSON olarak kopyalayın.
 
 Hangi Kibana adreslerinde çalışacağını siz seçersiniz. Yalnızca kendi Kibana'nızla, kendi oturumunuzla konuşur,
 ayarlarını tarayıcınızda tutar. Açık kaynak: https://github.com/cllakyz/kibanatool
