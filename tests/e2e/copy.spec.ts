@@ -9,6 +9,23 @@ test.beforeEach(async ({ configure }) => {
 });
 
 const APP_001 = { dataViewId: "app-log", query: 'extra.uid:"uid-001"' };
+const APP_002 = { dataViewId: "app-log", query: 'extra.uid:"uid-002"' };
+// app-002's context.request (PAYMENT_XML, values masked) and context.response (PAYMENT_RESPONSE_XML) as JSON (docker/seed.mjs).
+const REQUEST = { Envelope: { Body: { pay: { identitynumber: "***", iban: "***", gsm: "***", card: "***", amount: "150" } } } };
+const RESPONSE = {
+  Envelope: {
+    Body: {
+      Result: {
+        "@code": "00",
+        Bet: [{ "@Id": "7", "@Type": "S", Sel: "A" }, { "@Id": "8", "@Type": "S" }],
+        Amount: { "@currency": "TRY", "#text": "150" },
+        Payload: { race: { runId: "42" } },
+      },
+    },
+  },
+};
+/** A value as the Markdown copy writes it inside a field's json block. */
+const jsonBlock = (value: unknown): string => JSON.stringify(value, null, 2).replace(/^/gm, "  ");
 const DOC_LINK = `${stack.origin}${prefixOf()}/app/discover#/doc/app-log/app_log?id=app-001`;
 
 test("copies the log as masked Markdown", async ({ context }) => {
@@ -22,20 +39,29 @@ test("copies the log as masked Markdown", async ({ context }) => {
   expect(lines.at(-1)?.endsWith(`](${DOC_LINK})`)).toBe(true); // the link text is localized
 });
 
-test("masks the ID, IBAN, mobile and card numbers inside an XML value and keeps the XML", async ({ context }) => {
-  // app-002's context.request holds synthetic values (docker/seed.mjs, PAYMENT_XML).
-  const { page, detail } = await openDoc(context, { dataViewId: "app-log", query: 'extra.uid:"uid-002"' });
-  const lines = (await copyFromMenu(page, detail, 0)).split("\n");
-  expect(lines).toContain(
-    "- `context.request`: <soap:Envelope><soap:Body><ns1:pay><ns1:identitynumber>***</ns1:identitynumber>" +
-      "<ns1:iban>***</ns1:iban><ns1:gsm>***</ns1:gsm><ns1:card>***</ns1:card><ns1:amount>150</ns1:amount>" +
-      "</ns1:pay></soap:Body></soap:Envelope>",
-  );
+test("writes XML values as masked json blocks in the Markdown copy", async ({ context }) => {
+  // Plan 5 spec §5 and Plan 6 spec §5.4: the ID, IBAN, mobile and card numbers inside PAYMENT_XML are masked.
+  const { page, detail } = await openDoc(context, APP_002);
+  const markdown = await copyFromMenu(page, detail, 0);
+  expect(markdown).toContain(`- \`context.request\`:\n  \`\`\`json\n${jsonBlock(REQUEST)}\n  \`\`\``);
+  expect(markdown).toContain(`- \`context.response\`:\n  \`\`\`json\n${jsonBlock(RESPONSE)}\n  \`\`\``);
+});
+
+test("copies the log as JSON with its JSON and XML text expanded and masked", async ({ context }) => {
+  // Plan 6 spec §6.
+  const { page, detail } = await openDoc(context, APP_002);
+  const copied = JSON.parse(await copyFromMenu(page, detail, 1));
+  expect(Object.keys(copied)).toEqual(["_index", "_id", "_source"]);
+  expect(copied._index).toBe("app_log");
+  expect(copied._id).toBe("app-002");
+  expect(copied._source.context.request).toEqual(REQUEST);
+  expect(copied._source.context.response).toEqual(RESPONSE);
+  expect(copied._source.context.headers).toEqual({ "user-agent": "dev/1.0", authorization: "***" });
 });
 
 test("copies the log link, and the link opens the same log", async ({ context }) => {
   const { page, detail } = await openDoc(context, APP_001);
-  expect(await copyFromMenu(page, detail, 1)).toBe(DOC_LINK);
+  expect(await copyFromMenu(page, detail, 2)).toBe(DOC_LINK);
   const doc = await context.newPage();
   await doc.goto(DOC_LINK);
   await expect(doc.getByText("app-001", { exact: true }).first()).toBeVisible({ timeout: 90_000 });
@@ -44,7 +70,7 @@ test("copies the log link, and the link opens the same log", async ({ context })
 test("copies the view with its relative time range made absolute", async ({ context }) => {
   const { page, detail } = await openDoc(context, { ...APP_001, time: { from: "now-5y", to: "now" } });
   const before = Date.now();
-  const url = await copyFromMenu(page, detail, 2);
+  const url = await copyFromMenu(page, detail, 3);
   const hash = new URL(url).hash;
   const time = readGlobalTime(hash) ?? { from: "", to: "" };
   const to = Date.parse(time.to);
@@ -63,7 +89,7 @@ test("the copy menu works with the keyboard and closes on a click outside", asyn
   await page.keyboard.press("ArrowDown");
   await expect(items.nth(1)).toBeFocused();
   await page.keyboard.press("End");
-  await expect(items.nth(2)).toBeFocused();
+  await expect(items.nth(3)).toBeFocused();
   await page.keyboard.press("ArrowDown");
   await expect(items.first()).toBeFocused();
   await page.keyboard.press("Escape");
@@ -71,7 +97,7 @@ test("the copy menu works with the keyboard and closes on a click outside", asyn
   await expect(trigger).toBeFocused();
   await expect(detail).toBeVisible(); // Escape stayed in the bar: Kibana kept the row or flyout open
   await trigger.click();
-  await expect(items).toHaveCount(3);
+  await expect(items).toHaveCount(4);
   await detail.locator('[data-test-subj="kbnDocViewer"]').click({ position: { x: 5, y: 5 } });
   await expect(items).toHaveCount(0);
 });

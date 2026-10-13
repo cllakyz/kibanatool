@@ -10,7 +10,7 @@ test.beforeEach(async ({ configure }) => {
 test("works in a space, under the base path on 7.17", async ({ context }) => {
   const { page, detail } = await openDoc(context, { space: "test", dataViewId: "test-app-log", query: 'extra.uid:"uid-001"' });
   expect((await barLinks(detail)).User).toBe("https://admin.example.com/users/100001");
-  expect(await copyFromMenu(page, detail, 1)).toBe(`${stack.origin}${prefixOf("test")}/app/discover#/doc/test-app-log/app_log?id=app-001`);
+  expect(await copyFromMenu(page, detail, 2)).toBe(`${stack.origin}${prefixOf("test")}/app/discover#/doc/test-app-log/app_log?id=app-001`);
 });
 
 test("9.x Observability view: the bar works on the Log overview tab", async ({ context }) => {

@@ -28,6 +28,22 @@ const PAYMENT_XML =
   "<soap:Envelope><soap:Body><ns1:pay><ns1:identitynumber>10000000146</ns1:identitynumber>" +
   "<ns1:iban>TR00 0000 0000 0000 0000 0000 01</ns1:iban><ns1:gsm>+90 555 000 00 00</ns1:gsm>" +
   "<ns1:card>4111-1111-1111-1111</ns1:card><ns1:amount>150</ns1:amount></ns1:pay></soap:Body></soap:Envelope>";
+// app-002 only: an XML response with the shapes seen on the team's Kibana (Plan 6 spec §8.2): an xmlns declaration,
+// attributes, a repeated element, an element of attributes only, text beside an attribute and escaped XML inside an
+// element. tests/e2e/copy.spec.ts and json.spec.ts expect its JSON form; none of its values is a value-mask match.
+const PAYMENT_RESPONSE_XML = [
+  '<?xml version="1.0" encoding="UTF-8"?>',
+  '<soap:Envelope xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">',
+  "  <soap:Body>",
+  '    <Result code="00">',
+  '      <Bet Id="7" Type="S"><Sel>A</Sel></Bet>',
+  '      <Bet Id="8" Type="S"/>',
+  '      <Amount currency="TRY">150</Amount>',
+  '      <Payload>&lt;?xml version="1.0"?&gt;&lt;race&gt;&lt;runId&gt;42&lt;/runId&gt;&lt;/race&gt;</Payload>',
+  "    </Result>",
+  "  </soap:Body>",
+  "</soap:Envelope>",
+].join("\n");
 
 // Start from scratch, so a re-run gives the same documents.
 await es("DELETE", "/app_log,legacy_log?ignore_unavailable=true");
@@ -58,7 +74,7 @@ for (let i = 1; i <= 30; i++) {
         body: JSON.stringify({ amount: i * 10, currency: "TRY", items: [{ id: i, qty: 1 }] }),
         headers: JSON.stringify({ "user-agent": "dev/1.0", authorization: `Bearer synthetic-token-${i}` }),
         query: JSON.stringify({ page: i % 5 }),
-        ...(i === 2 ? { request: PAYMENT_XML } : {}),
+        ...(i === 2 ? { request: PAYMENT_XML, response: PAYMENT_RESPONSE_XML } : {}),
       },
       extra: { uid: `uid-${pad(i)}` },
     },
