@@ -24,6 +24,9 @@ First public release, for Kibana 7.17, 8.x and 9.x in Chrome.
   and in placeholders. Namespace prefixes are dropped, attributes become `@name` and the text beside them
   `#text`, and every value stays text. "Copy as JSON" writes `_index`, `_id` and `_source` with all JSON and
   XML text expanded; field-name masks now reach XML element names too.
+- "Copy as cURL" for logs that record an HTTP request (`method`, `url`, and optionally `headers`, `body` and
+  `query`, as in Symfony request logs): a bash command that sends the request again, with proxy headers dropped
+  and the same masks as the other copies.
 - Options page: environments with per-site access, an action editor with a live preview, copy and masking
   settings, export and import.
 - Environment variables: `{env.name}` placeholders take each environment's own value, set in a variables

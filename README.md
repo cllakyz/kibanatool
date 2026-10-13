@@ -13,7 +13,7 @@ a bar above it with:
 - **Link actions** that jump to another system with a value from the log, e.g. `https://admin.example.com/users/{user_id}`.
 - **Discover actions** that open related logs in a new tab: the same user's logs, or everything ±5 minutes around this log.
 - **JSON**: fields that hold JSON or XML text, such as a request body, as a tree you can search and copy from.
-- **⋯** to copy the log as Markdown or JSON with sensitive fields and values masked, a link to the log, or the current view with its time range fixed.
+- **⋯** to copy the log as Markdown or JSON with sensitive fields and values masked, the request it records as a cURL command, a link to the log, or the current view with its time range fixed.
 
 ## Set up
 
@@ -88,6 +88,21 @@ of these with `***`. Each kind can be turned off under **Mask inside values**:
 A number glued to a letter or another digit is left alone, so IDs inside longer codes are not touched.
 Masking applies to what you copy; the screen and your link templates are not changed. It is a best effort:
 read the copy before you share it.
+
+### Copy as cURL
+
+A log that records an HTTP request, with a `method` and an absolute `http(s)` `url` under `context` or at the top
+level, also gets "Copy as cURL": a bash or zsh command that sends the request again.
+
+- `headers`, `body` and `query` are read from the same place. Each may be JSON text, as in Symfony request logs.
+- The query is added to the URL, and a form body is written back as `a[b]=c`, the way PHP reads it. Multipart
+  fields become `--form-string` options; uploaded files are not in the log, so they are left out.
+- Transport, proxy and CDN headers are dropped: `host`, `content-length`, `connection`, `accept-encoding`,
+  `forwarded`, `x-forwarded-*`, `x-real-ip`, `cf-*`, `cdn-loop` and `x-php-ob-level`. `accept-encoding` becomes
+  `--compressed`.
+- The command is masked like the other copies, so a token reads `-H 'authorization: ***'`: put in your own before
+  you run it. JSON text inside the request is masked inside and stays JSON text; HTML and XML text stays as it is,
+  with only the value masks.
 
 ## Privacy
 
