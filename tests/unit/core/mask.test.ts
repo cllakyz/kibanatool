@@ -22,6 +22,11 @@ describe("maskMatcher", () => {
 describe("maskValue", () => {
   const isMasked = maskMatcher(DEFAULT_MASK_PATTERNS);
 
+  it("masks Symfony's Basic-auth copies by default", () => {
+    expect(maskValue("context.headers.php-auth-pw", ["synthetic"], isMasked, [])).toBe(MASK);
+    expect(maskValue("context.headers.php-auth-user", ["synthetic"], isMasked, [])).toBe(MASK);
+  });
+
   it("masks a matching field", () => {
     expect(maskValue("access_token", "abc", isMasked, [])).toBe(MASK);
     expect(maskValue("message", "plain", isMasked, [])).toBe("plain");

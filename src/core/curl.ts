@@ -10,8 +10,11 @@ export type RequestPrefix = "context" | "";
 
 const PREFIXES: readonly RequestPrefix[] = ["context", ""];
 
-/** Transport, proxy and CDN headers: curl sets them itself or they only repeat the old hop (spec §5.4). */
-const DROPPED_HEADER = /^(?:host|content-length|connection|accept-encoding|forwarded|x-forwarded-.*|x-real-ip|cf-.*|cdn-loop|x-php-ob-level)$/i;
+/**
+ * Transport, proxy and CDN headers: curl sets them itself or they only repeat the old hop (spec §5.4). Also
+ * Symfony's `php-auth-*`, the server-made copies of a Basic or Digest `Authorization` (user and password in clear).
+ */
+const DROPPED_HEADER = /^(?:host|content-length|connection|accept-encoding|forwarded|x-forwarded-.*|x-real-ip|cf-.*|cdn-loop|x-php-ob-level|php-auth-.*)$/i;
 
 /** Like expandStructured: at most five texts are opened one inside another (spec §5.6). */
 const MAX_TEXT_DEPTH = 5;

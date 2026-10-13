@@ -75,7 +75,8 @@ both copies and in placeholders.
 "Copy as JSON" copies the log's `_index`, `_id` and `_source`, with the JSON and XML text inside it expanded.
 
 Both copies mask every field whose path matches a pattern under **Copy and masking** (by default
-`*authorization*`, `*password*`, `*token*`, `*secret*` and `*cookie*`), keys inside JSON and XML text included.
+`*authorization*`, `*password*`, `*token*`, `*secret*`, `*cookie*` and `*php-auth-*`, the Basic-auth user and
+password that Symfony copies out of `Authorization`), keys inside JSON and XML text included.
 
 They also look inside every value, such as plain-text bodies that a field name cannot reach, and replace each
 of these with `***`. Each kind can be turned off under **Mask inside values**:
@@ -98,8 +99,8 @@ level, also gets "Copy as cURL": a bash or zsh command that sends the request ag
 - The query is added to the URL, and a form body is written back as `a[b]=c`, the way PHP reads it. Multipart
   fields become `--form-string` options; uploaded files are not in the log, so they are left out.
 - Transport, proxy and CDN headers are dropped: `host`, `content-length`, `connection`, `accept-encoding`,
-  `forwarded`, `x-forwarded-*`, `x-real-ip`, `cf-*`, `cdn-loop` and `x-php-ob-level`. `accept-encoding` becomes
-  `--compressed`.
+  `forwarded`, `x-forwarded-*`, `x-real-ip`, `cf-*`, `cdn-loop`, `x-php-ob-level` and `php-auth-*`.
+  `accept-encoding` becomes `--compressed`.
 - The command is masked like the other copies, so a token reads `-H 'authorization: ***'`: put in your own before
   you run it. JSON text inside the request is masked inside and stays JSON text; HTML and XML text stays as it is,
   with only the value masks.

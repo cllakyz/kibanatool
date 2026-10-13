@@ -69,7 +69,7 @@
   ],
   "copy": {
     "markdownFields": [],
-    "maskPatterns": ["*authorization*", "*password*", "*token*", "*secret*", "*cookie*"],
+    "maskPatterns": ["*authorization*", "*password*", "*token*", "*secret*", "*cookie*", "*php-auth-*"],
     "valueMasks": ["iban", "tckn", "gsm", "card"]
   }
 }
