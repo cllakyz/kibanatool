@@ -39,9 +39,12 @@ describe("maskValue", () => {
     });
   });
 
-  it("leaves text unparsed: callers expand it first", () => {
-    const headers = JSON.stringify({ Authorization: "Bearer x" });
-    expect(maskValue("context.headers", headers, isMasked, [])).toBe(headers);
+  it("masks text left past expandStructured's depth cap and writes it back as JSON text", () => {
+    let text = JSON.stringify({ password: "p", note: "n" });
+    for (let level = 0; level < 5; level++) text = JSON.stringify({ next: text });
+    let value: unknown = maskValue("body", expandStructured(text), isMasked, []);
+    for (let level = 0; level < 5; level++) value = (value as { next: unknown }).next;
+    expect(value).toBe('{"password":"***","note":"n"}');
   });
 
   it("masks inside arrays and nested objects", () => {
