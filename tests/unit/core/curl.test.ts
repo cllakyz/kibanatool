@@ -77,6 +77,7 @@ describe("buildCurl (spec §5)", () => {
     const body = json({ a: 1 });
     expect(curl(request({ body: "[]" }))).toBe(`curl '${URL}'`);
     expect(curl(request({ method: "POST", body }))).toBe(lines(`curl '${URL}'`, `--data-raw '{"a":1}'`));
+    expect(curl(request({ method: " post ", body }))).toBe(lines(`curl '${URL}'`, `--data-raw '{"a":1}'`));
     expect(curl(request({ method: "DELETE", body: "[]" }))).toBe(lines(`curl '${URL}'`, "-X 'DELETE'"));
     expect(curl(request({ method: "POST", body: "[]" }))).toBe(lines(`curl '${URL}'`, "-X 'POST'"));
     expect(curl(request({ method: "GET", body }))).toBe(lines(`curl '${URL}'`, "-X 'GET'", `--data-raw '{"a":1}'`));

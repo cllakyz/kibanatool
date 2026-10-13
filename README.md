@@ -102,8 +102,8 @@ level, also gets "Copy as cURL": a bash or zsh command that sends the request ag
   `forwarded`, `x-forwarded-*`, `x-real-ip`, `cf-*`, `cdn-loop`, `x-php-ob-level` and `php-auth-*`.
   `accept-encoding` becomes `--compressed`.
 - The command is masked like the other copies, so a token reads `-H 'authorization: ***'`: put in your own before
-  you run it. JSON text inside the request is masked inside and stays JSON text; HTML and XML text stays as it is,
-  with only the value masks.
+  you run it. JSON text inside the request is masked inside and stays JSON text; plain, HTML and XML text stays
+  as it is, with only the value masks.
 
 ## Privacy
 

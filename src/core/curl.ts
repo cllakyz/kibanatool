@@ -43,7 +43,7 @@ export function buildCurl(hit: RawHit, maskPatterns: string[], valueMasks: reado
   const isMasked = maskMatcher(maskPatterns);
   const path = (name: string): string => (prefix === "" ? name : `${prefix}.${name}`);
   const part = (name: string): unknown => maskPart(path(name), fields[name], isMasked, valueMasks);
-  const method = String(maskValue(path("method"), fields.method, isMasked, valueMasks)).toUpperCase();
+  const method = String(maskValue(path("method"), fields.method, isMasked, valueMasks)).trim().toUpperCase();
   const url = String(maskValue(path("url"), fields.url, isMasked, valueMasks));
 
   const headers = headerLines(part("headers"));
