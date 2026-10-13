@@ -15,10 +15,10 @@ First public release, for Kibana 7.17, 8.x and 9.x in Chrome.
 - Discover actions: a KQL query from the log, optionally ±N minutes around the log's time, in a new tab.
 - Copy menu: the log as Markdown or as JSON with sensitive fields masked, a link to the log, and the current
   view with its time range fixed.
-- Masking inside values: "Copy as Markdown" also masks Turkish IBANs, Turkish ID numbers (TCKN, with a valid
-  checksum), Turkish mobile numbers and card numbers (Visa, Mastercard, Amex and Troy, with a valid Luhn digit)
-  wherever they appear in a value, such as XML or plain-text request bodies. Each kind can be turned off; all
-  four are on by default.
+- Masking inside values: "Copy as Markdown" and "Copy as JSON" also mask Turkish IBANs, Turkish ID numbers (TCKN,
+  with a valid checksum), Turkish mobile numbers and card numbers (Visa, Mastercard, Amex and Troy, with a valid
+  Luhn digit) wherever they appear in a value, such as XML or plain-text request bodies. Each kind can be turned
+  off; all four are on by default.
 - JSON view for fields that hold JSON or XML text: a tree with search, and copying a value or its path.
 - XML as JSON: fields that hold XML text, such as SOAP bodies, are read as JSON in the JSON view, in both copies
   and in placeholders. Namespace prefixes are dropped, attributes become `@name` and the text beside them

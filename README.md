@@ -64,7 +64,10 @@ both copies and in placeholders.
 - An attribute becomes `@name`, and the text of an element that has attributes becomes `#text`
   (`{context.request.Amount.#text}`).
 - An element that appears more than once becomes a list. Every value stays text, so `00` keeps its zeros.
-- XML or JSON escaped inside a value is opened too, up to five levels deep.
+- XML or JSON escaped inside a value is opened too, up to five levels deep. In the copies, anything nested deeper
+  is replaced with `***`.
+- Text split by an element, comment or CDATA section is joined with a space, so `ID<br/>10000000146` reads
+  `ID 10000000146` and its value is still masked.
 - Text that is not well-formed XML, such as an HTML error page, stays as it is.
 
 ### Copy and masking
