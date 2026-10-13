@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { flattenDoc, flattenSource, formatValue, isMissing, parseJsonText } from "../../../src/core/fields";
+import { expandStructured, flattenDoc, flattenSource, formatValue, isMissing, parseStructuredText } from "../../../src/core/fields";
 
 const hit = (source: Record<string, unknown>) => ({ _id: "id-1", _index: "logs-a", _source: source });
 
@@ -32,6 +32,15 @@ describe("flattenDoc", () => {
     expect(fields["context.body"]).toBe(body);
     expect(fields["context.body.amount"]).toBe(10);
     expect(fields["context.body.items"]).toEqual([{ id: 1 }]);
+  });
+
+  it("expands XML text fields into paths, with @attributes and #text (Plan 6 spec §5.2)", () => {
+    const request = '<soap:Envelope><soap:Body><Bet Id="7"><Amount currency="TRY">150</Amount></Bet></soap:Body></soap:Envelope>';
+    const fields = flattenDoc(hit({ context: { request } }));
+    expect(fields["context.request"]).toBe(request);
+    expect(fields["context.request.Envelope.Body.Bet.@Id"]).toBe("7");
+    expect(fields["context.request.Envelope.Body.Bet.Amount.@currency"]).toBe("TRY");
+    expect(fields["context.request.Envelope.Body.Bet.Amount.#text"]).toBe("150");
   });
 
   it("keeps invalid JSON text as plain text", () => {
@@ -82,13 +91,53 @@ describe("formatValue", () => {
   });
 });
 
-describe("parseJsonText", () => {
+describe("parseStructuredText", () => {
   it("parses only object or array JSON text", () => {
-    expect(parseJsonText(' {"a":1} ')).toEqual({ a: 1 });
-    expect(parseJsonText("[1]")).toEqual([1]);
-    expect(parseJsonText("12")).toBeUndefined();
-    expect(parseJsonText('"x"')).toBeUndefined();
-    expect(parseJsonText("{bad")).toBeUndefined();
+    expect(parseStructuredText(' {"a":1} ')).toEqual({ a: 1 });
+    expect(parseStructuredText("[1]")).toEqual([1]);
+    expect(parseStructuredText("12")).toBeUndefined();
+    expect(parseStructuredText('"x"')).toBeUndefined();
+    expect(parseStructuredText("{bad")).toBeUndefined();
+  });
+
+  it("parses XML text too, and leaves other text that starts with < alone (Plan 6 spec §5.1)", () => {
+    expect(parseStructuredText(' <a x="1"><b>2</b></a> ')).toEqual({ a: { "@x": "1", b: "2" } });
+    expect(parseStructuredText("<html><br></html>")).toBeUndefined();
+    expect(parseStructuredText("<5 dk")).toBeUndefined();
+  });
+});
+
+describe("expandStructured (Plan 6 spec §5.1)", () => {
+  it("parses JSON and XML text wherever it sits, also inside other text", () => {
+    const inner = "&lt;race&gt;&lt;runId&gt;42&lt;/runId&gt;&lt;/race&gt;";
+    expect(
+      expandStructured({
+        n: 1,
+        request: `<r><Payload>${inner}</Payload><Json>{"a":[1]}</Json></r>`,
+        list: ['{"b":2}', "plain"],
+        body: JSON.stringify({ xml: "<c>3</c>" }),
+      }),
+    ).toEqual({
+      n: 1,
+      request: { r: { Payload: { race: { runId: "42" } }, Json: { a: [1] } } },
+      list: [{ b: 2 }, "plain"],
+      body: { xml: { c: "3" } },
+    });
+  });
+
+  it("parses at most 5 texts one inside another", () => {
+    let five: unknown = expandStructured(nestedJson(5));
+    for (let level = 0; level < 4; level++) five = (five as { next: unknown }).next;
+    expect(five).toEqual({ leaf: "x" });
+    let six: unknown = expandStructured(nestedJson(6));
+    for (let level = 0; level < 5; level++) six = (six as { next: unknown }).next;
+    expect(six).toBe(JSON.stringify({ leaf: "x" }));
+  });
+
+  it("keeps __proto__ keys own keys", () => {
+    const expanded = expandStructured(JSON.parse('{"__proto__":{"polluted":1}}'));
+    expect(Object.keys(expanded as object)).toEqual(["__proto__"]);
+    expect(Object.getPrototypeOf(expanded)).toBe(Object.prototype);
   });
 });
 

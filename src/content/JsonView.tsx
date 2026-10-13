@@ -1,4 +1,4 @@
-// JSON view (spec §7.6): a tree with collapse, search and copy, for fields that hold JSON text.
+// JSON view (spec §7.6): a tree with collapse, search and copy, for fields that hold JSON or XML text (Plan 6 spec §5.3).
 import { useEffect, useMemo, useRef, useState } from "react";
 import {
   type JsonField,
@@ -40,7 +40,7 @@ export function JsonView({ fields, onCopy, onClose }: JsonViewProps) {
           {fields.map((field) => (
             <li key={field.path}>
               <button type="button" onClick={() => setSelected(field)}>
-                {field.path}
+                {field.source === "xml" ? `${field.path} · XML` : field.path}
               </button>
             </li>
           ))}

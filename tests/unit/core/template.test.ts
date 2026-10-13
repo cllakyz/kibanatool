@@ -55,6 +55,18 @@ describe("resolveTemplate", () => {
     );
   });
 
+  it("supports # in paths, for the #text of an XML element (Plan 6 spec §5.2)", () => {
+    const fields = { "context.request.Amount.#text": "150", "context.request.Amount.@currency": "TRY" };
+    expect(resolveTemplate("https://x.test/{context.request.Amount.#text}?c={context.request.Amount.@currency}", fields, enc)).toBe(
+      "https://x.test/150?c=TRY",
+    );
+  });
+
+  it("still fills a template with a hash route around its placeholders (Review Focus 5)", () => {
+    expect(resolveTemplate("https://admin.test/#/users/{user_id}?tab=#logs", { user_id: 7 }, enc)).toBe("https://admin.test/#/users/7?tab=#logs");
+    expect(parsePlaceholders("{env.adminUrl}/#/users/{user_id}").map((placeholder) => placeholder.paths)).toEqual([["env.adminUrl"], ["user_id"]]);
+  });
+
   it("joins primitive arrays and leaves text without placeholders unchanged", () => {
     expect(resolveTemplate("https://x.test/{tags}", { tags: ["a", "b"] }, enc)).toBe("https://x.test/a%2Cb");
     expect(resolveTemplate("https://x.test/static", {}, enc)).toBe("https://x.test/static");

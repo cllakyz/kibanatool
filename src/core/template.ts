@@ -1,7 +1,8 @@
 // Resolves {path|fallback} placeholders against a field map and environment variables (spec §7.2, §7.3; Plan 4 spec §4).
 import { type FieldMap, formatValue, isMissing } from "./fields";
 
-const PLACEHOLDER = /\{([A-Za-z0-9_.@-]+(?:\|[A-Za-z0-9_.@-]+)*)\}/g;
+// "#" reaches the text of an XML element that has attributes (`….Amount.#text`, Plan 6 spec §5.2).
+const PLACEHOLDER = /\{([A-Za-z0-9_.@#-]+(?:\|[A-Za-z0-9_.@#-]+)*)\}/g;
 
 export interface Placeholder {
   raw: string;

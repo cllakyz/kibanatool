@@ -16,8 +16,20 @@ describe("jsonTextFields", () => {
   it("finds _source fields whose text is a JSON object or array", () => {
     const source = { message: "x", context: { body: '{"a":1}', query: "[1,2]", raw: "{not json" }, count: 3 };
     expect(jsonTextFields(source)).toEqual([
-      { path: "context.body", value: { a: 1 } },
-      { path: "context.query", value: [1, 2] },
+      { path: "context.body", value: { a: 1 }, source: "json" },
+      { path: "context.query", value: [1, 2], source: "json" },
+    ]);
+  });
+
+  it("finds XML text fields too and opens the text inside them (Plan 6 spec §5.3)", () => {
+    const source = {
+      request: ' <r><Payload>&lt;race&gt;&lt;runId&gt;42&lt;/runId&gt;&lt;/race&gt;</Payload></r>',
+      body: JSON.stringify({ nested: '{"a":1}' }),
+      page: "<html><br></html>",
+    };
+    expect(jsonTextFields(source)).toEqual([
+      { path: "request", value: { r: { Payload: { race: { runId: "42" } } } }, source: "xml" },
+      { path: "body", value: { nested: { a: 1 } }, source: "json" },
     ]);
   });
 });
@@ -38,6 +50,13 @@ describe("jsonRows", () => {
     ]);
     expect(rows[5]).toMatchObject({ depth: 2, key: 0, container: "object" });
     expect(rows[9]).toMatchObject({ depth: 1, key: "odd.key", value: null, container: null });
+  });
+});
+
+describe("jsonRows with XML keys", () => {
+  it("writes @attribute and #text keys as dot segments, so a copied path works in a template", () => {
+    const paths = jsonRows({ Bet: { "@Id": "7", "#text": "x", "@1": "a", "#odd key": "b" } }).map((row) => row.path);
+    expect(paths).toEqual(["", ".Bet", ".Bet.@Id", ".Bet.#text", '.Bet["@1"]', '.Bet["#odd key"]']);
   });
 });
 
