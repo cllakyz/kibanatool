@@ -2,13 +2,9 @@
 import type { Action, LinkAction } from "./config";
 import { evaluateConditions } from "./conditions";
 import type { FieldMap } from "./fields";
-import type { PassiveReason } from "./passive";
+import type { HiddenReason, PassiveReason } from "./passive";
+import type { ActionButton } from "./types";
 import { VARIABLE_PREFIX, type Variables, fillTemplate, isHttpUrl, leadingVariablePaths, lookupVariable } from "./template";
-
-export type LinkButton = { id: string; label: string; url: string } | { id: string; label: string; passive: PassiveReason };
-
-/** Why an action shows no button; the options page preview names it. */
-export type HiddenReason = "disabled" | "conditions" | "missingValue" | "invalidUrl";
 
 export type LinkResolution = { ok: true; url: string } | { ok: false; reason: HiddenReason } | { ok: false; passive: PassiveReason };
 
@@ -36,8 +32,8 @@ export function invalidLeadingVariable(template: string, variables: Variables): 
   return /^https?:\/\//i.test(lookupVariable(variables, used) ?? "") ? undefined : used.slice(VARIABLE_PREFIX.length);
 }
 
-export function buildLinkButtons(actions: Action[], fields: FieldMap, variables: Variables): LinkButton[] {
-  return actions.flatMap((action): LinkButton[] => {
+export function buildLinkButtons(actions: Action[], fields: FieldMap, variables: Variables): ActionButton[] {
+  return actions.flatMap((action): ActionButton[] => {
     if (action.kind !== "link") return [];
     const result = resolveLinkAction(action, fields, variables);
     if (result.ok) return [{ id: action.id, label: action.label, url: result.url }];

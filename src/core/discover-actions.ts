@@ -3,10 +3,9 @@ import type { Action, DiscoverAction } from "./config";
 import { evaluateConditions } from "./conditions";
 import { discoverTarget } from "./data-view-names";
 import type { FieldMap } from "./fields";
-import type { HiddenReason } from "./link-actions";
-import type { PassiveReason } from "./passive";
+import type { HiddenReason, PassiveReason } from "./passive";
 import { type Variables, fillTemplate } from "./template";
-import type { DataViewSummary, TimeRange } from "./types";
+import type { ActionButton, DataViewSummary, TimeRange } from "./types";
 
 /** `12345` → `"12345"`: KQL quoting with `\` and `"` escaped. */
 export function kqlQuote(value: string): string {
@@ -66,10 +65,8 @@ export interface DiscoverContext {
   dataViews: readonly DataViewSummary[] | null;
 }
 
-export type DiscoverButton = { id: string; label: string; url: string } | { id: string; label: string; passive: PassiveReason };
-
-export function buildDiscoverButtons(actions: Action[], fields: FieldMap, context: DiscoverContext): DiscoverButton[] {
-  return actions.flatMap((action): DiscoverButton[] => {
+export function buildDiscoverButtons(actions: Action[], fields: FieldMap, context: DiscoverContext): ActionButton[] {
+  return actions.flatMap((action): ActionButton[] => {
     if (action.kind !== "discover") return [];
     const resolved = resolveDiscoverQuery(action, fields, context.variables);
     if (!resolved.ok) return "passive" in resolved ? [{ id: action.id, label: action.label, passive: resolved.passive }] : [];

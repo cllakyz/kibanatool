@@ -2,8 +2,8 @@
 import type { Action } from "../core/config";
 import { resolveDiscoverQuery } from "../core/discover-actions";
 import { type FieldMap, flattenDoc, isPlainObject } from "../core/fields";
-import { type HiddenReason, resolveLinkAction } from "../core/link-actions";
-import type { PassiveReason } from "../core/passive";
+import { resolveLinkAction } from "../core/link-actions";
+import type { HiddenReason, PassiveReason } from "../core/passive";
 import type { Variables } from "../core/template";
 
 export type SampleResult = { ok: true; fields: FieldMap } | { ok: false; error: string };

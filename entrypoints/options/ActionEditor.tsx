@@ -2,7 +2,7 @@
 import { type FormEvent, useState } from "react";
 import type { ConditionOp } from "../../src/core/conditions";
 import type { Action, DiscoverAction, Environment } from "../../src/core/config";
-import type { HiddenReason } from "../../src/core/link-actions";
+import type { HiddenReason } from "../../src/core/passive";
 import { type MessageKey, t } from "../../src/i18n";
 import { describePassive } from "../../src/passive-text";
 import { variableWarnings } from "../../src/options/model";

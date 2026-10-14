@@ -2,14 +2,13 @@
 import { type SyntheticEvent, useEffect, useMemo, useRef, useState } from "react";
 import type { Action, Config, Environment } from "../core/config";
 import { buildCurl, requestPrefix } from "../core/curl";
-import { type DiscoverButton, buildDiscoverButtons } from "../core/discover-actions";
+import { buildDiscoverButtons } from "../core/discover-actions";
 import { flattenDoc } from "../core/fields";
 import { buildJson } from "../core/json-copy";
 import { jsonTextFields } from "../core/json-tree";
-import { type LinkButton, buildLinkButtons } from "../core/link-actions";
+import { buildLinkButtons } from "../core/link-actions";
 import { buildMarkdown } from "../core/markdown";
-import type { PassiveReason } from "../core/passive";
-import type { DataViewSummary, DocIdentity, RawHit } from "../core/types";
+import type { ActionButton, DataViewSummary, DocIdentity, RawHit } from "../core/types";
 import { type MessageKey, t } from "../i18n";
 import { type KibanaClient, KibanaError } from "../kibana/client";
 import { readGlobalTime } from "../kibana/discover-state";
@@ -81,7 +80,7 @@ export function ActionBar({ identity, actions, client, prefix, hash, copy, envir
     return () => window.clearTimeout(timer);
   }, [notice]);
 
-  const buttons = useMemo((): { links: LinkButton[]; discover: DiscoverButton[] } => {
+  const buttons = useMemo((): { links: ActionButton[]; discover: ActionButton[] } => {
     if (state.status !== "ready") return { links: [], discover: [] };
     const fields = flattenDoc(state.hit);
     return {
@@ -154,34 +153,23 @@ export function ActionBar({ identity, actions, client, prefix, hash, copy, envir
     { label: t("menuCopyFixedView"), text: () => fixedTimeUrl(location.href, new Date()) },
   ];
 
-  // Plan 4 spec §5.3: greyed out, with the reason as its tooltip.
-  const passiveButton = (button: { id: string; label: string; passive: PassiveReason }) => (
-    <span key={button.id} className="kt-btn kt-disabled" aria-disabled="true" tabIndex={0} title={describePassive(button.passive, environment.name)}>
-      {button.label}
-    </span>
-  );
+  // A working link opens in a new tab; Plan 4 spec §5.3: a passive one is greyed out, with the reason as its tooltip.
+  const actionButton = (button: ActionButton, className: string) =>
+    "url" in button ? (
+      <a key={button.id} className={className} href={button.url} target="_blank" rel="noopener noreferrer">
+        {button.label}
+      </a>
+    ) : (
+      <span key={button.id} className="kt-btn kt-disabled" aria-disabled="true" tabIndex={0} title={describePassive(button.passive, environment.name)}>
+        {button.label}
+      </span>
+    );
 
   return (
     <div className="kt-root" ref={rootRef} onClick={keepInside} onKeyDown={keepInside}>
       <div className="kt-bar">
-        {buttons.links.map((button) =>
-          "url" in button ? (
-            <a key={button.id} className="kt-btn" href={button.url} target="_blank" rel="noopener noreferrer">
-              {button.label}
-            </a>
-          ) : (
-            passiveButton(button)
-          ),
-        )}
-        {buttons.discover.map((button) =>
-          "url" in button ? (
-            <a key={button.id} className="kt-btn kt-discover" href={button.url} target="_blank" rel="noopener noreferrer">
-              {button.label}
-            </a>
-          ) : (
-            passiveButton(button)
-          ),
-        )}
+        {buttons.links.map((button) => actionButton(button, "kt-btn"))}
+        {buttons.discover.map((button) => actionButton(button, "kt-btn kt-discover"))}
         {jsonFields.length > 0 && (
           <button type="button" className="kt-ghost" aria-expanded={jsonOpen} onClick={() => setJsonOpen(!jsonOpen)}>
             {t("jsonButton")}
