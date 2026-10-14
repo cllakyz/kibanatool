@@ -6,9 +6,12 @@ import { VALUE_MASK_KINDS } from "./value-mask";
 
 z.config({ jitless: true }); // MV3 forbids eval; skip zod's Function("") fast-path probe
 
+/** The condition operators, in the order the options page lists them (spec §7.2). */
+export const CONDITION_OPS = ["exists", "equals", "notEquals", "contains", "startsWith"] as const;
+
 const conditionSchema = z.object({
   field: z.string().min(1),
-  op: z.enum(["exists", "equals", "notEquals", "contains", "startsWith"]),
+  op: z.enum(CONDITION_OPS),
   value: z.string().optional(),
 });
 
@@ -180,7 +183,7 @@ function matchLength(kibanaUrl: string, href: string): number {
     return -1;
   }
   if (base.origin !== target.origin) return -1;
-  const basePath = base.pathname.replace(/\/+$/, "");
+  const basePath = basePathOf(kibanaUrl);
   if (basePath === "") return 0;
   if (target.pathname === basePath || target.pathname.startsWith(`${basePath}/`)) return basePath.length;
   return -1;
@@ -210,9 +213,15 @@ export function originPattern(kibanaUrl: string): string {
   return `${new URL(kibanaUrl).origin}/*`;
 }
 
+/** Spec §8: an action with no environment ids applies to every environment. */
+export function appliesToAll(action: Pick<Action, "environmentIds">): boolean {
+  return action.environmentIds.length === 0;
+}
+
+export function appliesTo(action: Pick<Action, "environmentIds">, environmentId: string): boolean {
+  return appliesToAll(action) || action.environmentIds.includes(environmentId);
+}
+
 export function actionsForEnvironment(config: Config, environmentId: string): Action[] {
-  return config.actions.filter(
-    (action) =>
-      action.enabled && (action.environmentIds.length === 0 || action.environmentIds.includes(environmentId)),
-  );
+  return config.actions.filter((action) => action.enabled && appliesTo(action, environmentId));
 }

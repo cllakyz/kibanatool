@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { parseXml } from "../../../src/core/xml";
+import { isXmlText, parseXml } from "../../../src/core/xml";
 
 const nested = (levels: number): string => "<a>".repeat(levels) + "x" + "</a>".repeat(levels);
 
@@ -127,5 +127,15 @@ describe("parseXml: size", () => {
     const parsed = parseXml(xml) as { Bets: { Bet: unknown[] } };
     expect(performance.now() - started).toBeLessThan(1000);
     expect(parsed.Bets.Bet).toHaveLength(20_000);
+  });
+});
+
+describe("isXmlText", () => {
+  it("is text whose first non-space character is <", () => {
+    expect(isXmlText("  <a/>")).toBe(true);
+    expect(isXmlText("\n<x>")).toBe(true);
+    expect(isXmlText("a<b>")).toBe(false);
+    expect(isXmlText("{}")).toBe(false);
+    expect(isXmlText("")).toBe(false);
   });
 });

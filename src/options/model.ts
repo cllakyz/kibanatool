@@ -1,8 +1,8 @@
 // Pure config edits used by the options page; every result is re-validated (spec §8).
-import { type Action, type Config, type Environment, type ParseResult, originPattern, parseConfig } from "../core/config";
+import { type Action, type Config, type Environment, type ParseResult, appliesTo, originPattern, parseConfig } from "../core/config";
 import { invalidLeadingVariable } from "../core/link-actions";
 import { VALUE_MASK_KINDS, type ValueMaskKind } from "../core/value-mask";
-import { VARIABLE_PREFIX, isVariablePath, lookupVariable, parsePlaceholders } from "../core/template";
+import { missingVariables } from "../core/template";
 
 export function newEnvironment(name: string, kibanaUrl: string, id: string = crypto.randomUUID()): Environment {
   return { id, name: name.trim(), kibanaUrl: kibanaUrl.trim(), variables: {} };
@@ -128,16 +128,12 @@ export interface VariableWarning {
  * template needs but the environment lacks, and a leading variable whose value is not an http(s) address.
  */
 export function variableWarnings(environments: Environment[], action: Action): VariableWarning[] {
-  const applies = action.environmentIds.length === 0 ? environments : environments.filter((environment) => action.environmentIds.includes(environment.id));
+  const applies = environments.filter((environment) => appliesTo(action, environment.id));
   const template = action.kind === "link" ? action.urlTemplate : action.queryTemplate;
-  const placeholders = parsePlaceholders(template).filter((placeholder) => placeholder.paths.every(isVariablePath));
   return applies.flatMap((environment): VariableWarning[] => {
-    const missing = new Set(
-      placeholders
-        .filter((placeholder) => placeholder.paths.every((path) => lookupVariable(environment.variables, path) === null))
-        .map((placeholder) => (placeholder.paths[0] ?? "").slice(VARIABLE_PREFIX.length)),
+    const warnings = missingVariables(template, environment.variables).map(
+      (variable): VariableWarning => ({ environment: environment.name, variable, kind: "missing" }),
     );
-    const warnings = [...missing].map((variable): VariableWarning => ({ environment: environment.name, variable, kind: "missing" }));
     const invalid = action.kind === "link" ? invalidLeadingVariable(action.urlTemplate, environment.variables) : undefined;
     return invalid === undefined ? warnings : [...warnings, { environment: environment.name, variable: invalid, kind: "invalid" }];
   });

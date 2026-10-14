@@ -6,6 +6,8 @@ import {
   isHttpUrlTemplate,
   leadingVariablePaths,
   lookup,
+  missingVariables,
+  startsWithHttp,
   parsePlaceholders,
 } from "../../../src/core/template";
 
@@ -188,5 +190,34 @@ describe("fillTemplate with variables", () => {
       ok: true,
       text: 'app:"bitalih api" and u:"1"',
     });
+  });
+});
+
+describe("missingVariables", () => {
+  it("names each variables-only placeholder that finds no value, once, in template order", () => {
+    expect(missingVariables("{env.base}/x/{env.base}", {})).toEqual(["base"]);
+    expect(missingVariables("{env.b}/{env.a}", {})).toEqual(["b", "a"]);
+  });
+
+  it("is satisfied by any variable of a fallback chain; an empty value counts as missing", () => {
+    expect(missingVariables("{env.a|env.b}/{env.c}", { b: "1" })).toEqual(["c"]);
+    expect(missingVariables("{env.a}", { a: "" })).toEqual(["a"]);
+  });
+
+  it("never reports a placeholder that names a field", () => {
+    expect(missingVariables("{user|env.a}/{user}", {})).toEqual([]);
+  });
+});
+
+describe("startsWithHttp", () => {
+  it("accepts http:// and https:// in any case", () => {
+    expect(startsWithHttp("https://x")).toBe(true);
+    expect(startsWithHttp("HTTP://x")).toBe(true);
+  });
+
+  it("rejects other schemes, a leading space and empty text", () => {
+    expect(startsWithHttp("ftp://x")).toBe(false);
+    expect(startsWithHttp(" https://x")).toBe(false);
+    expect(startsWithHttp("")).toBe(false);
   });
 });

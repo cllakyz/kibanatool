@@ -43,9 +43,16 @@ export function leadingVariablePaths(template: string): string[] | null {
   return paths.every(isVariablePath) ? paths : null;
 }
 
+const HTTP_START = /^https?:\/\//i;
+
+/** Whether `text` starts with http:// or https://, ignoring case. */
+export function startsWithHttp(text: string): boolean {
+  return HTTP_START.test(text);
+}
+
 /** Plan 4 spec §3: an http(s) template, or one whose base comes from a variable. */
 export function isHttpUrlTemplate(template: string): boolean {
-  return /^https?:\/\//i.test(template.trim()) || leadingVariablePaths(template) !== null;
+  return startsWithHttp(template.trim()) || leadingVariablePaths(template) !== null;
 }
 
 /** Values of `env.<name>` placeholders: the open environment's variables. */
@@ -57,6 +64,17 @@ export function lookupVariable(variables: Variables, path: string): string | nul
   if (!Object.hasOwn(variables, name)) return null;
   const value = variables[name];
   return typeof value === "string" && value !== "" ? value : null;
+}
+
+/** Plan 4 spec §4: the first variable of a placeholder whose paths are all variables, none set; undefined otherwise. */
+function missingVariableOf(paths: string[], variables: Variables): string | undefined {
+  if (!paths.every(isVariablePath) || paths.some((path) => lookupVariable(variables, path) !== null)) return undefined;
+  return (paths[0] ?? "").slice(VARIABLE_PREFIX.length);
+}
+
+/** Plan 4 spec §6: the variables `template` needs that `variables` lacks, in template order, each once. */
+export function missingVariables(template: string, variables: Variables): string[] {
+  return [...new Set(parsePlaceholders(template).flatMap((placeholder) => missingVariableOf(placeholder.paths, variables) ?? []))];
 }
 
 export interface Encoders {
@@ -92,8 +110,9 @@ export function fillTemplate(template: string, fields: FieldMap, variables: Vari
         return "";
       }
     }
-    if (paths.every(isVariablePath)) missingVariable ??= (paths[0] ?? "").slice(VARIABLE_PREFIX.length);
-    else missingValue = true;
+    const missing = missingVariableOf(paths, variables);
+    if (missing === undefined) missingValue = true;
+    else missingVariable ??= missing;
     return "";
   });
   if (missingValue) return { ok: false, reason: "missingValue" };

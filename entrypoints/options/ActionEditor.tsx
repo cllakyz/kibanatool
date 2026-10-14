@@ -1,7 +1,7 @@
 // Form editor for one action, with a live preview against a pasted sample log (spec §9).
 import { type FormEvent, useState } from "react";
-import type { ConditionOp } from "../../src/core/conditions";
-import type { Action, DiscoverAction, Environment } from "../../src/core/config";
+import type { Condition, ConditionOp } from "../../src/core/conditions";
+import { type Action, CONDITION_OPS, type DiscoverAction, type Environment, appliesTo } from "../../src/core/config";
 import type { HiddenReason } from "../../src/core/passive";
 import { type MessageKey, t } from "../../src/i18n";
 import { describePassive } from "../../src/passive-text";
@@ -24,8 +24,6 @@ const HIDDEN: Record<HiddenReason, MessageKey> = {
   invalidUrl: "optionsHiddenInvalidUrl",
 };
 
-type Condition = Action["conditions"][number];
-
 export interface ActionEditorProps {
   action: Action;
   environments: Environment[];
@@ -37,8 +35,7 @@ export interface ActionEditorProps {
 export function ActionEditor({ action, environments, onChange, onSave, onCancel }: ActionEditorProps) {
   const [sample, setSample] = useState("");
   const [previewEnvironmentId, setPreviewEnvironmentId] = useState<string | undefined>(undefined);
-  const applicable =
-    action.environmentIds.length === 0 ? environments : environments.filter((environment) => action.environmentIds.includes(environment.id));
+  const applicable = environments.filter((environment) => appliesTo(action, environment.id));
   const previewEnvironment = applicable.find((environment) => environment.id === previewEnvironmentId) ?? applicable[0];
   const update = (patch: Partial<Action>): void => onChange({ ...action, ...patch } as Action);
 
@@ -123,7 +120,7 @@ export function ActionEditor({ action, environments, onChange, onSave, onCancel 
                   setCondition(index, { op, value: op === "exists" ? undefined : (condition.value ?? "") });
                 }}
               >
-                {(Object.keys(OPERATORS) as ConditionOp[]).map((op) => (
+                {CONDITION_OPS.map((op) => (
                   <option key={op} value={op}>
                     {t(OPERATORS[op])}
                   </option>

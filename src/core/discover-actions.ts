@@ -1,10 +1,9 @@
 // Discover actions (spec §7.3): a KQL query from the log, optionally ±N minutes around the log's time.
 import type { Action, DiscoverAction } from "./config";
-import { evaluateConditions } from "./conditions";
+import { type Gate, gateAction } from "./conditions";
 import { discoverTarget } from "./data-view-names";
 import type { FieldMap } from "./fields";
-import type { HiddenReason, PassiveReason } from "./passive";
-import { type Variables, fillTemplate } from "./template";
+import type { Variables } from "./template";
 import type { ActionButton, DataViewSummary, TimeRange } from "./types";
 
 /** `12345` → `"12345"`: KQL quoting with `\` and `"` escaped. */
@@ -28,19 +27,11 @@ export function logTimeMs(value: unknown): number | undefined {
   return valid(Date.parse(ZONELESS.test(text) ? `${text.replace(" ", "T")}Z` : text));
 }
 
-export type QueryResolution =
-  | { ok: true; query: string }
-  | { ok: false; reason: Exclude<HiddenReason, "invalidUrl"> }
-  | { ok: false; passive: PassiveReason };
+export type QueryResolution = { ok: true; query: string } | Exclude<Gate, { ok: true }>;
 
 export function resolveDiscoverQuery(action: DiscoverAction, fields: FieldMap, variables: Variables): QueryResolution {
-  if (!action.enabled) return { ok: false, reason: "disabled" };
-  if (!evaluateConditions(action.conditions, fields)) return { ok: false, reason: "conditions" };
-  const filled = fillTemplate(action.queryTemplate.trim(), fields, variables, { field: kqlQuote, variable: kqlQuote });
-  if (filled.ok) return { ok: true, query: filled.text };
-  return filled.reason === "missingVariable"
-    ? { ok: false, passive: { kind: "missingVariable", variable: filled.variable } }
-    : { ok: false, reason: "missingValue" };
+  const gate = gateAction(action, action.queryTemplate.trim(), fields, variables, { field: kqlQuote, variable: kqlQuote });
+  return gate.ok ? { ok: true, query: gate.text } : gate;
 }
 
 /** What a Discover button opens; the bar turns it into Kibana's link. */
