@@ -10,7 +10,7 @@ import { BAR_CSS } from "../src/content/styles";
 import { type Action, type Config, actionsForEnvironment, activeEnvironment, basePathOf } from "../src/core/config";
 import { createKibanaClient } from "../src/kibana/client";
 import { kibanaPrefix } from "../src/kibana/prefix";
-import { createConfigStore, isConfigChange } from "../src/storage";
+import { createConfigStore } from "../src/storage";
 import { themeBehind } from "../src/theme";
 import { reportTheme } from "../src/toolbar-icon";
 
@@ -71,7 +71,8 @@ async function start(): Promise<void> {
                 actions,
                 client,
                 prefix,
-                hash: location.hash,
+                page: location,
+                now: () => new Date(),
                 copy: config.copy,
                 environment: open,
               })
@@ -109,8 +110,7 @@ async function start(): Promise<void> {
     attributeFilter: ["href"],
   });
   window.addEventListener("hashchange", schedule);
-  browser.storage.onChanged.addListener((changes, areaName) => {
-    if (!isConfigChange(changes, areaName)) return;
+  store.onChange(() => {
     void store
       .load()
       .then((loaded) => {

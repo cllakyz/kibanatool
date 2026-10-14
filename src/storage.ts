@@ -6,6 +6,8 @@ export const CONFIG_KEY = "kibanatool.config";
 export interface StorageAreaLike {
   get(key: string): Promise<Record<string, unknown>>;
   set(items: Record<string, unknown>): Promise<void>;
+  /** Changes in this area only (chrome.storage.local.onChanged). */
+  onChanged: { addListener(callback: (changes: Record<string, unknown>) => void): void };
 }
 
 export interface LoadedConfig {
@@ -29,9 +31,11 @@ export function createConfigStore(area: StorageAreaLike) {
       if (!parsed.ok) throw new Error(`Invalid config: ${parsed.errors.join("; ")}`);
       await area.set({ [CONFIG_KEY]: parsed.config });
     },
+    /** Calls `listener` whenever the stored config changes. */
+    onChange(listener: () => void): void {
+      area.onChanged.addListener((changes) => {
+        if (CONFIG_KEY in changes) listener();
+      });
+    },
   };
-}
-
-export function isConfigChange(changes: Record<string, unknown>, areaName: string): boolean {
-  return areaName === "local" && CONFIG_KEY in changes;
 }

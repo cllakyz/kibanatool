@@ -1,11 +1,21 @@
 import { describe, expect, it } from "vitest";
 import { type Config, emptyConfig } from "../../src/core/config";
-import { CONFIG_KEY, createConfigStore, isConfigChange } from "../../src/storage";
+import { CONFIG_KEY, createConfigStore } from "../../src/storage";
 
 function fakeArea(initial: Record<string, unknown> = {}) {
   const data = new Map(Object.entries(initial));
+  const listeners: Array<(changes: Record<string, unknown>) => void> = [];
   return {
     data,
+    onChanged: {
+      addListener(callback: (changes: Record<string, unknown>) => void) {
+        listeners.push(callback);
+      },
+    },
+    /** What chrome.storage.local.onChanged would report. */
+    emit(changes: Record<string, unknown>) {
+      for (const listener of listeners) listener(changes);
+    },
     async get(key: string) {
       return data.has(key) ? { [key]: data.get(key) } : {};
     },
@@ -76,10 +86,14 @@ describe("createConfigStore", () => {
   });
 });
 
-describe("isConfigChange", () => {
-  it("is true only for the config key in local storage", () => {
-    expect(isConfigChange({ [CONFIG_KEY]: {} }, "local")).toBe(true);
-    expect(isConfigChange({ other: {} }, "local")).toBe(false);
-    expect(isConfigChange({ [CONFIG_KEY]: {} }, "sync")).toBe(false);
+describe("onChange", () => {
+  // The area's own onChanged event never reports other storage areas, so there is no area check.
+  it("calls the listener only when the config key changes", () => {
+    const area = fakeArea();
+    let calls = 0;
+    createConfigStore(area).onChange(() => calls++);
+    area.emit({ [CONFIG_KEY]: {} });
+    area.emit({ other: {} });
+    expect(calls).toBe(1);
   });
 });

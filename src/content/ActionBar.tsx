@@ -35,8 +35,13 @@ export interface ActionBarProps {
   actions: Action[];
   client: KibanaClient;
   prefix: string;
-  /** location.hash: Discover links keep the current time range when no window applies. */
-  hash: string;
+  /**
+   * The page the bar sits on (the host passes `location`): Discover links keep its current time range when no
+   * window applies, and copies read its address at the click.
+   */
+  page: Pick<Location, "href" | "hash" | "origin">;
+  /** The clock for "view with fixed time". */
+  now: () => Date;
   copy: Config["copy"];
   /** The open environment: its variables fill {env.…}, its name explains passive buttons (Plan 4). */
   environment: Environment;
@@ -45,7 +50,7 @@ export interface ActionBarProps {
 /** Kibana would see these events on the host element otherwise (e.g. arrow keys move the 8.x/9.x flyout). */
 const keepInside = (event: SyntheticEvent): void => event.stopPropagation();
 
-export function ActionBar({ identity, actions, client, prefix, hash, copy, environment }: ActionBarProps) {
+export function ActionBar({ identity, actions, client, prefix, page, now, copy, environment }: ActionBarProps) {
   const [state, setState] = useState<State>({ status: "loading" });
   const [notice, setNotice] = useState<MessageKey | null>(null);
   const rootRef = useRef<HTMLDivElement>(null);
@@ -80,6 +85,7 @@ export function ActionBar({ identity, actions, client, prefix, hash, copy, envir
     return () => window.clearTimeout(timer);
   }, [notice]);
 
+  const hash = page.hash;
   const buttons = useMemo((): { links: ActionButton[]; discover: ActionButton[] } => {
     if (state.status !== "ready") return { links: [], discover: [] };
     const fields = flattenDoc(state.hit);
@@ -127,7 +133,7 @@ export function ActionBar({ identity, actions, client, prefix, hash, copy, envir
     );
   }
 
-  const docUrl = (): string => `${location.origin}${singleDocPath(prefix, identity)}`;
+  const docUrl = (): string => `${page.origin}${singleDocPath(prefix, identity)}`;
   const copyItems: CopyItem[] = [
     {
       label: t("menuCopyMarkdown"),
@@ -146,7 +152,7 @@ export function ActionBar({ identity, actions, client, prefix, hash, copy, envir
     // Plan 7 spec §6: only for a log that records a request, so buildCurl returns a command here.
     ...(hasRequest ? [{ label: t("menuCopyCurl"), text: () => buildCurl(hit, copy.maskPatterns, copy.valueMasks) ?? null }] : []),
     { label: t("menuCopyDocLink"), text: docUrl },
-    { label: t("menuCopyFixedView"), text: () => fixedTimeUrl(location.href, new Date()), unavailable: "noticeTimeNotConverted" },
+    { label: t("menuCopyFixedView"), text: () => fixedTimeUrl(page.href, now()), unavailable: "noticeTimeNotConverted" },
   ];
 
   // A working link opens in a new tab; Plan 4 spec §5.3: a passive one is greyed out, with the reason as its tooltip.
