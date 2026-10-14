@@ -116,11 +116,7 @@ export function ActionBar({ identity, actions, client, prefix, hash, copy, envir
   const { hit, timeFields } = state;
 
   // writeText only works inside the click, so nothing is awaited before copyText.
-  function copyToClipboard(text: string | null): void {
-    if (text === null) {
-      setNotice("noticeTimeNotConverted");
-      return;
-    }
+  function copyToClipboard(text: string): void {
     if (!rootRef.current) return;
     copyText(text, rootRef.current).then(
       () => setNotice("noticeCopied"),
@@ -150,7 +146,7 @@ export function ActionBar({ identity, actions, client, prefix, hash, copy, envir
     // Plan 7 spec §6: only for a log that records a request, so buildCurl returns a command here.
     ...(hasRequest ? [{ label: t("menuCopyCurl"), text: () => buildCurl(hit, copy.maskPatterns, copy.valueMasks) ?? null }] : []),
     { label: t("menuCopyDocLink"), text: docUrl },
-    { label: t("menuCopyFixedView"), text: () => fixedTimeUrl(location.href, new Date()) },
+    { label: t("menuCopyFixedView"), text: () => fixedTimeUrl(location.href, new Date()), unavailable: "noticeTimeNotConverted" },
   ];
 
   // A working link opens in a new tab; Plan 4 spec §5.3: a passive one is greyed out, with the reason as its tooltip.
@@ -180,7 +176,7 @@ export function ActionBar({ identity, actions, client, prefix, hash, copy, envir
             {t(notice)}
           </span>
         )}
-        <CopyMenu items={copyItems} onCopy={copyToClipboard} onFail={() => setNotice("noticeCopyFailed")} />
+        <CopyMenu items={copyItems} onCopy={copyToClipboard} onFail={setNotice} />
       </div>
       {jsonOpen && jsonFields.length > 0 && (
         <JsonView fields={jsonFields} onCopy={copyToClipboard} onClose={() => setJsonOpen(false)} />
