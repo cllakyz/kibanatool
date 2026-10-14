@@ -13,7 +13,7 @@ import type { DataViewSummary, DocIdentity, RawHit } from "../core/types";
 import { type MessageKey, t } from "../i18n";
 import { type KibanaClient, KibanaError } from "../kibana/client";
 import { readGlobalTime } from "../kibana/discover-state";
-import { fixedTimeUrl, singleDocPath } from "../kibana/url";
+import { discoverUrl, fixedTimeUrl, singleDocPath } from "../kibana/url";
 import { describePassive } from "../passive-text";
 import { loadDataViews, loadTimeFields, timeFieldTargets } from "./bar-data";
 import { copyText } from "./clipboard";
@@ -87,7 +87,7 @@ export function ActionBar({ identity, actions, client, prefix, hash, copy, envir
     return {
       links: buildLinkButtons(actions, fields, environment.variables),
       discover: buildDiscoverButtons(actions, fields, {
-        prefix,
+        link: (target) => discoverUrl({ prefix, ...target }),
         dataViewId,
         currentTime: readGlobalTime(hash),
         timeFields: state.timeFields,

@@ -1,5 +1,4 @@
 // Discover actions (spec §7.3): a KQL query from the log, optionally ±N minutes around the log's time.
-import { discoverUrl } from "../kibana/url";
 import type { Action, DiscoverAction } from "./config";
 import { evaluateConditions } from "./conditions";
 import { discoverTarget } from "./data-view-names";
@@ -45,8 +44,16 @@ export function resolveDiscoverQuery(action: DiscoverAction, fields: FieldMap, v
     : { ok: false, reason: "missingValue" };
 }
 
+/** What a Discover button opens; the bar turns it into Kibana's link. */
+export interface DiscoverTarget {
+  dataViewId: string;
+  query: string;
+  time?: TimeRange;
+}
+
 export interface DiscoverContext {
-  prefix: string;
+  /** Builds the Discover link for a target (the bar passes Kibana's link format). */
+  link: (target: DiscoverTarget) => string;
   /** The open log's data view; the target when an action names none. */
   dataViewId: string;
   /** `_g.time` of the current URL, kept when no window applies. */
@@ -78,7 +85,7 @@ export function buildDiscoverButtons(actions: Action[], fields: FieldMap, contex
     if (action.windowMinutes !== undefined && !range && resolved.query === "") {
       return [{ id: action.id, label: action.label, passive: { kind: "noTime" } }];
     }
-    const url = discoverUrl({ prefix: context.prefix, dataViewId, query: resolved.query, time: range ?? context.currentTime });
+    const url = context.link({ dataViewId, query: resolved.query, time: range ?? context.currentTime });
     return [{ id: action.id, label: action.label, url }];
   });
 }

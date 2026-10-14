@@ -8,6 +8,7 @@ import {
   resolveDiscoverQuery,
 } from "../../../src/core/discover-actions";
 import { readGlobalTime, readRisonParam } from "../../../src/kibana/discover-state";
+import { discoverUrl } from "../../../src/kibana/url";
 
 const discover = (overrides: Partial<DiscoverAction> = {}): DiscoverAction => ({
   id: "same-user",
@@ -21,7 +22,7 @@ const discover = (overrides: Partial<DiscoverAction> = {}): DiscoverAction => ({
 });
 
 const context = (overrides: Partial<DiscoverContext> = {}): DiscoverContext => ({
-  prefix: "",
+  link: (target) => discoverUrl({ prefix: "", ...target }),
   dataViewId: "app-log",
   currentTime: { from: "now-15m", to: "now" },
   timeFields: new Map<string, string | undefined>([
