@@ -158,7 +158,7 @@ function kibanaUrlKey(kibanaUrl: string): string | null {
   }
 }
 
-export const DEFAULT_MASK_PATTERNS = ["*authorization*", "*password*", "*token*", "*secret*", "*cookie*"];
+export const DEFAULT_MASK_PATTERNS = ["*authorization*", "*password*", "*token*", "*secret*", "*cookie*", "*php-auth-*"];
 
 export function emptyConfig(): Config {
   return {

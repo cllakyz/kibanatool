@@ -55,8 +55,11 @@ export async function barLinks(detail: Locator): Promise<Record<string, string>>
   return Object.fromEntries(entries);
 }
 
-/** Runs a copy menu item (0 Markdown, 1 JSON, 2 log link, 3 view with fixed time) and returns what it copied. */
-export async function copyFromMenu(page: Page, detail: Locator, item: 0 | 1 | 2 | 3): Promise<string> {
+/**
+ * Runs a copy menu item and returns what it copied: 0 Markdown, 1 JSON, then 2 log link and 3 view with fixed time.
+ * A log that records a request has "Copy as cURL" at 2, which moves the other two down (Plan 7 spec §6).
+ */
+export async function copyFromMenu(page: Page, detail: Locator, item: 0 | 1 | 2 | 3 | 4): Promise<string> {
   await bar(detail).locator(".kt-menu > button").click();
   await bar(detail).getByRole("menuitem").nth(item).click();
   await expect(bar(detail).getByRole("status")).toBeVisible();

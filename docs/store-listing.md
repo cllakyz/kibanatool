@@ -29,6 +29,7 @@ It works on Kibana 7.17, 8.x and 9.x.
   inside XML or plain-text request bodies.
 - Read XML request and response bodies as a JSON tree too, and copy the whole log as JSON with the XML and JSON
   text inside it expanded and masked like the Markdown copy.
+- Copy the HTTP request a log records as a cURL command, with tokens and cookies masked, to send it again.
 
 You choose which Kibana addresses it runs on. It talks only to your Kibana, with your own session, and keeps
 its settings in your browser. Open source: https://github.com/cllakyz/kibanatool
@@ -47,6 +48,7 @@ Kibana 7.17, 8.x ve 9.x'te çalışır.
   gövdelerinin içinde olsalar bile.
 - XML istek ve yanıt gövdelerini de JSON ağacı olarak okuyun, logun tamamını içindeki XML ve JSON metinleri
   açılmış ve Markdown kopyası gibi maskelenmiş halde JSON olarak kopyalayın.
+- Logun kaydettiği HTTP isteğini, token ve çerezleri maskelenmiş bir cURL komutu olarak kopyalayıp tekrar gönderin.
 
 Hangi Kibana adreslerinde çalışacağını siz seçersiniz. Yalnızca kendi Kibana'nızla, kendi oturumunuzla konuşur,
 ayarlarını tarayıcınızda tutar. Açık kaynak: https://github.com/cllakyz/kibanatool
