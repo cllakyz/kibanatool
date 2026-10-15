@@ -34,6 +34,16 @@ describe("jsonTextFields", () => {
   });
 });
 
+describe("jsonTextFields with form text (spec 002 FR-003)", () => {
+  it("lists form text as its own kind", () => {
+    const source = { body: '{"a":1}', options: { body: "user=u&grant_type=password" }, plain: "a=1" };
+    expect(jsonTextFields(source)).toEqual([
+      { path: "body", value: { a: 1 }, source: "json" },
+      { path: "options.body", value: { user: "u", grant_type: "password" }, source: "form" },
+    ]);
+  });
+});
+
 describe("jsonRows", () => {
   it("lists every node in order with relative paths", () => {
     expect(rows.map((row) => row.path)).toEqual([

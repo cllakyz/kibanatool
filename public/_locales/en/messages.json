@@ -53,6 +53,7 @@
   "jsonToggle": { "message": "Expand or collapse" },
   "jsonCopyValue": { "message": "Copy value" },
   "jsonCopyPath": { "message": "Copy path" },
+  "panelKindForm": { "message": "form" },
   "optionsEnvUrl": { "message": "Kibana address" },
   "optionsPending": { "message": "Waiting for access" },
   "optionsPermissionError": {

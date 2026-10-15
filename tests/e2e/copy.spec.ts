@@ -13,6 +13,9 @@ const APP_002 = { dataViewId: "app-log", query: 'extra.uid:"uid-002"' };
 // Plan 7: Symfony-shaped request logs (docker/seed.mjs); "Copy as cURL" is menu item 2 there.
 const APP_031 = { dataViewId: "app-log", query: 'extra.uid:"uid-031"' };
 const APP_032 = { dataViewId: "app-log", query: 'extra.uid:"uid-032"' };
+// Spec 002: an iys-style token request whose form body is form-urlencoded text (docker/seed.mjs).
+const APP_033 = { dataViewId: "app-log", query: 'extra.uid:"uid-033"' };
+const FORM = { username: "dev", password: "***", grant_type: "password" };
 // app-002's context.request (PAYMENT_XML, values masked) and context.response (PAYMENT_RESPONSE_XML) as JSON (docker/seed.mjs).
 const REQUEST = { Envelope: { Body: { pay: { identitynumber: "***", iban: "***", gsm: "***", card: "***", amount: "150" } } } };
 const RESPONSE = {
@@ -60,6 +63,16 @@ test("copies the log as JSON with its JSON and XML text expanded and masked", as
   expect(copied._source.context.request).toEqual(REQUEST);
   expect(copied._source.context.response).toEqual(RESPONSE);
   expect(copied._source.context.headers).toEqual({ "user-agent": "dev/1.0", authorization: "***" });
+});
+
+test("masks the password inside form text in the Markdown and JSON copies", async ({ context }) => {
+  // Spec 002 FR-004: form text opens like XML, so *password* reaches its key.
+  const { page, detail } = await openDoc(context, APP_033);
+  const markdown = await copyFromMenu(page, detail, 0);
+  expect(markdown).toContain(`- \`context.options.body\`:\n  \`\`\`json\n${jsonBlock(FORM)}\n  \`\`\``);
+  expect(markdown).not.toContain("synthetic-pass");
+  const copied = JSON.parse(await copyFromMenu(page, detail, 1));
+  expect(copied._source.context.options.body).toEqual(FORM);
 });
 
 test("copies a form request as a cURL command with proxy headers dropped and values masked", async ({ context }) => {

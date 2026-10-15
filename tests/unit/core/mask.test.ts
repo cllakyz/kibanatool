@@ -44,6 +44,15 @@ describe("maskValue", () => {
     });
   });
 
+  it("masks keys inside expanded form text under the field's path (spec 002 FR-004)", () => {
+    const body = expandStructured("username=u&password=p&grant_type=password");
+    expect(maskValue("context.options.body", body, isMasked, [])).toEqual({ username: "u", password: MASK, grant_type: "password" });
+  });
+
+  it("masks form text left past expandStructured's depth cap whole, like JSON and XML", () => {
+    expect(maskValue("body", "a=1&b=2", isMasked, [])).toBe(MASK);
+  });
+
   it("masks JSON or XML text left past expandStructured's depth cap whole", () => {
     let text = JSON.stringify({ note: "n" });
     for (let level = 0; level < 5; level++) text = JSON.stringify({ next: text });
@@ -81,6 +90,11 @@ describe("maskValue with value masks (Plan 5 spec §5)", () => {
   it("masks inside expanded XML text: element text and attribute values (Plan 6 spec §5.5)", () => {
     const request = expandStructured('<pay pid="10000000146"><gsm>+90 555 000 00 00</gsm><amount>150</amount></pay>');
     expect(maskValue("request", request, isMasked, all)).toEqual({ pay: { "@pid": MASK, gsm: MASK, amount: "150" } });
+  });
+
+  it("masks inside expanded form text (spec 002 FR-004)", () => {
+    const body = expandStructured("pid=10000000146&amount=150");
+    expect(maskValue("body", body, isMasked, all)).toEqual({ pid: MASK, amount: "150" });
   });
 
   it("lets a field-name mask win, so the whole value is masked once", () => {

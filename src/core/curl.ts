@@ -1,10 +1,10 @@
 // "Copy as cURL" (Plan 7 spec): the HTTP request a log records, written as a bash command that sends it again.
-import { MAX_TEXT_DEPTH, isMissing, isPlainObject, parseStructuredText } from "./fields";
+import { MAX_TEXT_DEPTH, isMissing, isPlainObject, parseStructured } from "./fields";
+import { formPairs } from "./form";
 import { MASK, maskMatcher, maskValue } from "./mask";
 import { isHttpUrl } from "./template";
 import type { RawHit } from "./types";
 import { type ValueMaskKind, maskText } from "./value-mask";
-import { isXmlText } from "./xml";
 
 /** Where the request fields sit: under `context` (Monolog) or at the root of `_source` (spec §4). */
 export type RequestPrefix = "context" | "";
@@ -40,15 +40,20 @@ export function buildCurl(hit: RawHit, maskPatterns: string[], valueMasks: reado
   if (prefix === undefined || fields === undefined) return undefined;
   const isMasked = maskMatcher(maskPatterns);
   const path = (name: string): string => (prefix === "" ? name : `${prefix}.${name}`);
-  const part = (name: string): unknown => maskPart(path(name), fields[name], isMasked, valueMasks);
+  const part = (name: string) => maskPart(path(name), fields[name], isMasked, valueMasks);
   const method = String(maskValue(path("method"), fields.method, isMasked, valueMasks)).trim().toUpperCase();
   const url = String(maskValue(path("url"), fields.url, isMasked, valueMasks));
 
-  const headers = headerLines(part("headers"));
+  const headers = headerLines(part("headers").value);
   const contentType = headers.find(([name]) => name.toLowerCase() === "content-type")?.[1].split(";")[0]?.trim().toLowerCase() ?? "";
-  const body = bodyOptions(part("body"), contentType);
+  const body = bodyOptions(part("body").value, contentType);
   const queryPart = part("query");
-  const query = isPlainObject(queryPart) ? encodeQuery(queryPart) : "";
+  // Spec 002 FR-005: a form-text query goes on the URL as masked form text; any other text query is dropped.
+  const query = isPlainObject(queryPart.value)
+    ? encodeQuery(queryPart.value)
+    : queryPart.kind === "form" && queryPart.value !== MASK
+      ? String(queryPart.value)
+      : "";
   const target = query === "" ? url : `${url}${url.includes("?") ? "&" : "?"}${query}`;
   // curl sets a multipart content type with its own boundary (spec §5.5).
   const multipart = body.some((option) => option.startsWith("--form-string"));
@@ -67,17 +72,26 @@ export function buildCurl(hit: RawHit, maskPatterns: string[], valueMasks: reado
 /** Bash single quotes: nothing inside is special, and a quote is closed, escaped and reopened (spec §5.1). */
 const quote = (text: string): string => `'${text.replace(/'/g, "'\\''")}'`;
 
-/** JSON text only: XML and HTML text stays text in the command (spec §5.6). */
-const jsonOf = (text: string): Record<string, unknown> | unknown[] | undefined =>
-  isXmlText(text) ? undefined : parseStructuredText(text);
-
-/** Spec §5.6: the part's own JSON text is opened, so the command can read headers, form fields and query keys. */
-function maskPart(path: string, value: unknown, isMasked: IsMasked, kinds: readonly ValueMaskKind[]): unknown {
-  const json = typeof value === "string" ? jsonOf(value) : undefined;
-  return maskKeepingText(path, json ?? value, isMasked, kinds, json === undefined ? 0 : 1);
+/**
+ * Spec §5.6: the part's own JSON text is opened, so the command can read headers, form fields and query keys. Form text
+ * stays text (spec 002 FR-005); `kind` is the part's kind before masking, since a value mask can make plain text look
+ * like form text.
+ */
+function maskPart(
+  path: string,
+  value: unknown,
+  isMasked: IsMasked,
+  kinds: readonly ValueMaskKind[],
+): { kind: "json" | "form" | undefined; value: unknown } {
+  const parsed = typeof value === "string" ? parseStructured(value) : undefined;
+  if (parsed?.kind === "json") return { kind: "json", value: maskKeepingText(path, parsed.value, isMasked, kinds, 1) };
+  return { kind: parsed?.kind === "form" ? "form" : undefined, value: maskKeepingText(path, value, isMasked, kinds, 0) };
 }
 
-/** maskValue's rules, except that JSON text is masked inside and written back as JSON text, and other text keeps only the value masks (spec §5.6). */
+/**
+ * maskValue's rules, except that JSON text is masked inside and written back as JSON text, form text likewise as form
+ * text (spec 002 FR-005), and other text, XML and HTML included, keeps only the value masks (spec §5.6).
+ */
 function maskKeepingText(path: string, value: unknown, isMasked: IsMasked, kinds: readonly ValueMaskKind[], depth: number): unknown {
   if (isMasked(path)) return MASK;
   if (Array.isArray(value)) return value.map((item) => maskKeepingText(path, item, isMasked, kinds, depth));
@@ -85,9 +99,27 @@ function maskKeepingText(path: string, value: unknown, isMasked: IsMasked, kinds
     return Object.fromEntries(Object.entries(value).map(([key, item]) => [key, maskKeepingText(`${path}.${key}`, item, isMasked, kinds, depth)]));
   }
   if (typeof value !== "string") return maskValue(path, value, isMasked, kinds);
-  const json = jsonOf(value);
-  if (json === undefined) return maskText(value, kinds);
-  return depth >= MAX_TEXT_DEPTH ? MASK : JSON.stringify(maskKeepingText(path, json, isMasked, kinds, depth + 1));
+  const parsed = parseStructured(value);
+  if (parsed === undefined || parsed.kind === "xml") return maskText(value, kinds);
+  if (depth >= MAX_TEXT_DEPTH) return MASK;
+  return parsed.kind === "json"
+    ? JSON.stringify(maskKeepingText(path, parsed.value, isMasked, kinds, depth + 1))
+    : maskForm(path, value, isMasked, kinds, depth + 1);
+}
+
+/**
+ * Form text masked pair by pair and written back as form text, so the request can still be sent (spec 002 FR-005;
+ * constitution II's exception: it differs from maskValue on purpose). A pair whose value stays the same keeps its raw
+ * bytes, so only masked values are re-encoded.
+ */
+function maskForm(path: string, text: string, isMasked: IsMasked, kinds: readonly ValueMaskKind[], depth: number): string {
+  return (formPairs(text) ?? [])
+    .map(({ rawKey, rawValue, key, value }) => {
+      if (isMasked(`${path}.${key}`)) return `${rawKey}=${MASK}`;
+      const masked = maskKeepingText(`${path}.${key}`, value, isMasked, kinds, depth);
+      return masked === value ? `${rawKey}=${rawValue}` : `${rawKey}=${encodeURIComponent(String(masked))}`;
+    })
+    .join("&");
 }
 
 /** Spec §4: one [name, value] per header value, in log order; a list gives one per item. */

@@ -24,6 +24,17 @@ test("opens XML text fields as a tree, with the escaped XML inside them opened t
   await expect(bar(detail).locator(".kt-row .kt-key", { hasText: "runId" })).toBeVisible();
 });
 
+test("opens form text as a tree tagged by its kind", async ({ context }) => {
+  // Spec 002 FR-001–FR-003: app-033's context.options.body is form-urlencoded text (docker/seed.mjs).
+  const { detail } = await openDoc(context, { dataViewId: "app-log", query: 'extra.uid:"uid-033"' });
+  await bar(detail).locator(".kt-bar > button.kt-ghost").click();
+  const form = bar(detail).locator(".kt-fields button", { hasText: "context.options.body" });
+  await expect(form).toHaveText(/^context\.options\.body · \S+$/); // the tag is localized
+  await form.click();
+  await expect(bar(detail).locator(".kt-row .kt-key", { hasText: "grant_type" })).toBeVisible();
+  await expect(bar(detail).locator(".kt-row .kt-key", { hasText: "password" })).toBeVisible();
+});
+
 test("shows no JSON button for a log without JSON text", async ({ context }) => {
   const { detail } = await openDoc(context, { dataViewId: "logs", query: 'trace.id:"trace-0001"' });
   await expect(bar(detail).locator(".kt-bar > button.kt-ghost")).toHaveCount(0);

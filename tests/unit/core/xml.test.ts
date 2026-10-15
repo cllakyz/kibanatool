@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { isXmlText, parseXml } from "../../../src/core/xml";
+import { groupRepeated, isXmlText, parseXml } from "../../../src/core/xml";
 
 const nested = (levels: number): string => "<a>".repeat(levels) + "x" + "</a>".repeat(levels);
 
@@ -137,5 +137,19 @@ describe("isXmlText", () => {
     expect(isXmlText("a<b>")).toBe(false);
     expect(isXmlText("{}")).toBe(false);
     expect(isXmlText("")).toBe(false);
+  });
+});
+
+describe("groupRepeated (Plan 6 spec §4.2, spec 002 FR-002)", () => {
+  it("turns a repeated key into a list at the place it first appeared", () => {
+    const grouped = groupRepeated([["a", "1"], ["b", "2"], ["a", "3"]]);
+    expect(grouped).toEqual({ a: ["1", "3"], b: "2" });
+    expect(Object.keys(grouped)).toEqual(["a", "b"]);
+  });
+
+  it("keeps __proto__ an own key", () => {
+    const grouped = groupRepeated([["__proto__", "x"]]);
+    expect(Object.keys(grouped)).toEqual(["__proto__"]);
+    expect(Object.getPrototypeOf(grouped)).toBe(Object.prototype);
   });
 });
