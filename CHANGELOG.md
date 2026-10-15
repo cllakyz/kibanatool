@@ -20,14 +20,15 @@ First public release, for Kibana 7.17, 8.x and 9.x in Chrome.
   Luhn digit) wherever they appear in a value, such as XML or plain-text request bodies. Each kind can be turned
   off; all four are on by default.
 - JSON view for fields that hold JSON or XML text: a tree with search, and copying a value or its path.
-- XML as JSON: fields that hold XML text, such as SOAP bodies, are read as JSON in the JSON view, in both copies
-  and in placeholders. Namespace prefixes are dropped, attributes become `@name` and the text beside them
-  `#text`, and every value stays text. "Copy as JSON" writes `_index`, `_id` and `_source` with all JSON and
-  XML text expanded; field-name masks now reach XML element names too.
+- XML and form data as JSON: fields that hold XML text, such as SOAP bodies, or URL-encoded form text with two
+  or more `&`-joined pairs are read as JSON in the JSON view, in both copies and in placeholders. Namespace
+  prefixes are dropped, attributes become `@name` and the text beside them `#text`, and every value stays text.
+  "Copy as JSON" writes `_index`, `_id` and `_source` with all JSON, XML and form text expanded; field-name
+  masks now reach XML element names and form keys too, so a password inside form text is masked.
 - "Copy as cURL" for logs that record an HTTP request (`method`, `url`, and optionally `headers`, `body` and
   `query`, as in Symfony request logs): a bash command that sends the request again, with proxy headers dropped,
-  masked with the same settings as the other copies; plain, HTML and XML text inside the request keeps only the
-  value masks.
+  masked with the same settings as the other copies; JSON and form text inside the request is masked inside and
+  kept as JSON or form text, and plain, HTML and XML text keeps only the value masks.
 - Options page: environments with per-site access, an action editor with a live preview, copy and masking
   settings, export and import.
 - Environment variables: `{env.name}` placeholders take each environment's own value, set in a variables
