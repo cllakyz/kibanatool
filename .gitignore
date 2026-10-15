@@ -3,6 +3,5 @@ node_modules/
 .output/
 .wxt/
 docker/.env.*
-docs/superpowers/
 playwright-report/
 test-results/

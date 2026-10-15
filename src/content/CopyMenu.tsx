@@ -1,14 +1,24 @@
 // The "⋯" copy menu of the action bar (spec §7.4), with the keyboard behaviour of a menu button.
 import { type KeyboardEvent, useEffect, useRef, useState } from "react";
-import { t } from "../i18n";
+import { type MessageKey, t } from "../i18n";
 
 export interface CopyItem {
   label: string;
-  /** The text to copy, or null when it cannot be produced (the bar says why). */
+  /** The text to copy, or null when it cannot be produced. */
   text: () => string | null;
+  /** The notice when `text` returns null; "noticeCopyFailed" when not set. */
+  unavailable?: MessageKey;
 }
 
-export function CopyMenu({ items, onCopy, onFail }: { items: CopyItem[]; onCopy: (text: string | null) => void; onFail: () => void }) {
+export function CopyMenu({
+  items,
+  onCopy,
+  onFail,
+}: {
+  items: CopyItem[];
+  onCopy: (text: string) => void;
+  onFail: (notice: MessageKey) => void;
+}) {
   const [open, setOpen] = useState(false);
   const rootRef = useRef<HTMLDivElement>(null);
   const triggerRef = useRef<HTMLButtonElement>(null);
@@ -80,10 +90,11 @@ export function CopyMenu({ items, onCopy, onFail }: { items: CopyItem[]; onCopy:
                   text = item.text();
                 } catch (error) {
                   console.debug("[kibanatool] copy text failed:", error);
-                  onFail();
+                  onFail("noticeCopyFailed");
                   return;
                 }
-                onCopy(text);
+                if (text === null) onFail(item.unavailable ?? "noticeCopyFailed");
+                else onCopy(text);
               }}
             >
               {item.label}

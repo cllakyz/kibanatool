@@ -1,13 +1,10 @@
 // Discover actions (spec §7.3): a KQL query from the log, optionally ±N minutes around the log's time.
-import { discoverUrl } from "../kibana/url";
 import type { Action, DiscoverAction } from "./config";
-import { evaluateConditions } from "./conditions";
+import { type Gate, gateAction } from "./conditions";
 import { discoverTarget } from "./data-view-names";
 import type { FieldMap } from "./fields";
-import type { HiddenReason } from "./link-actions";
-import type { PassiveReason } from "./passive";
-import { type Variables, fillTemplate } from "./template";
-import type { DataViewSummary, TimeRange } from "./types";
+import type { Variables } from "./template";
+import type { ActionButton, DataViewSummary, TimeRange } from "./types";
 
 /** `12345` → `"12345"`: KQL quoting with `\` and `"` escaped. */
 export function kqlQuote(value: string): string {
@@ -30,23 +27,23 @@ export function logTimeMs(value: unknown): number | undefined {
   return valid(Date.parse(ZONELESS.test(text) ? `${text.replace(" ", "T")}Z` : text));
 }
 
-export type QueryResolution =
-  | { ok: true; query: string }
-  | { ok: false; reason: Exclude<HiddenReason, "invalidUrl"> }
-  | { ok: false; passive: PassiveReason };
+export type QueryResolution = { ok: true; query: string } | Exclude<Gate, { ok: true }>;
 
 export function resolveDiscoverQuery(action: DiscoverAction, fields: FieldMap, variables: Variables): QueryResolution {
-  if (!action.enabled) return { ok: false, reason: "disabled" };
-  if (!evaluateConditions(action.conditions, fields)) return { ok: false, reason: "conditions" };
-  const filled = fillTemplate(action.queryTemplate.trim(), fields, variables, { field: kqlQuote, variable: kqlQuote });
-  if (filled.ok) return { ok: true, query: filled.text };
-  return filled.reason === "missingVariable"
-    ? { ok: false, passive: { kind: "missingVariable", variable: filled.variable } }
-    : { ok: false, reason: "missingValue" };
+  const gate = gateAction(action, action.queryTemplate.trim(), fields, variables, { field: kqlQuote, variable: kqlQuote });
+  return gate.ok ? { ok: true, query: gate.text } : gate;
+}
+
+/** What a Discover button opens; the bar turns it into Kibana's link. */
+export interface DiscoverTarget {
+  dataViewId: string;
+  query: string;
+  time?: TimeRange;
 }
 
 export interface DiscoverContext {
-  prefix: string;
+  /** Builds the Discover link for a target (the bar passes Kibana's link format). */
+  link: (target: DiscoverTarget) => string;
   /** The open log's data view; the target when an action names none. */
   dataViewId: string;
   /** `_g.time` of the current URL, kept when no window applies. */
@@ -59,10 +56,8 @@ export interface DiscoverContext {
   dataViews: readonly DataViewSummary[] | null;
 }
 
-export type DiscoverButton = { id: string; label: string; url: string } | { id: string; label: string; passive: PassiveReason };
-
-export function buildDiscoverButtons(actions: Action[], fields: FieldMap, context: DiscoverContext): DiscoverButton[] {
-  return actions.flatMap((action): DiscoverButton[] => {
+export function buildDiscoverButtons(actions: Action[], fields: FieldMap, context: DiscoverContext): ActionButton[] {
+  return actions.flatMap((action): ActionButton[] => {
     if (action.kind !== "discover") return [];
     const resolved = resolveDiscoverQuery(action, fields, context.variables);
     if (!resolved.ok) return "passive" in resolved ? [{ id: action.id, label: action.label, passive: resolved.passive }] : [];
@@ -78,7 +73,7 @@ export function buildDiscoverButtons(actions: Action[], fields: FieldMap, contex
     if (action.windowMinutes !== undefined && !range && resolved.query === "") {
       return [{ id: action.id, label: action.label, passive: { kind: "noTime" } }];
     }
-    const url = discoverUrl({ prefix: context.prefix, dataViewId, query: resolved.query, time: range ?? context.currentTime });
+    const url = context.link({ dataViewId, query: resolved.query, time: range ?? context.currentTime });
     return [{ id: action.id, label: action.label, url }];
   });
 }

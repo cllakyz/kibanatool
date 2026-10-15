@@ -1,8 +1,11 @@
 import { describe, expect, it } from "vitest";
 import { z } from "zod";
 import {
+  CONDITION_OPS,
   type Config,
   actionsForEnvironment,
+  appliesTo,
+  appliesToAll,
   activeEnvironment,
   basePathOf,
   emptyConfig,
@@ -243,5 +246,24 @@ describe("parseConfig version 3 (Plan 5)", () => {
 
   it("turns every value mask on in the empty config", () => {
     expect(emptyConfig().copy.valueMasks).toEqual(["iban", "tckn", "gsm", "card"]);
+  });
+});
+
+describe("environment scope (spec §8)", () => {
+  it("an action with no environment ids applies to every environment", () => {
+    expect(appliesToAll({ environmentIds: [] })).toBe(true);
+    expect(appliesToAll({ environmentIds: ["a"] })).toBe(false);
+    expect(appliesTo({ environmentIds: [] }, "any")).toBe(true);
+  });
+
+  it("an action with environment ids applies to those only", () => {
+    expect(appliesTo({ environmentIds: ["a", "b"] }, "b")).toBe(true);
+    expect(appliesTo({ environmentIds: ["a"] }, "b")).toBe(false);
+  });
+});
+
+describe("CONDITION_OPS", () => {
+  it("lists the operators in the order the options page shows them", () => {
+    expect(CONDITION_OPS).toEqual(["exists", "equals", "notEquals", "contains", "startsWith"]);
   });
 });

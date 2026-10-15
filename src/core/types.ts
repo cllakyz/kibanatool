@@ -1,4 +1,8 @@
 // Shared shapes used across core, kibana and adapters.
+import type { PassiveReason } from "./passive";
+
+/** A button of the action bar: a working link, or greyed out with its reason (Plan 4 spec §5.3). */
+export type ActionButton = { id: string; label: string; url: string } | { id: string; label: string; passive: PassiveReason };
 
 /** Which document an open detail view shows (spec §5). */
 export interface DocIdentity {

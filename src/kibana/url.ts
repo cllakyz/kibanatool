@@ -2,14 +2,15 @@
 // (verified on 7.17.29: Discover shows the exact query, data view and time range).
 import rison from "rison-node";
 import { resolveDatemath } from "../core/datemath";
+import type { DiscoverTarget } from "../core/discover-actions";
 import { isPlainObject } from "../core/fields";
-import type { DocIdentity, TimeRange } from "../core/types";
+import type { DocIdentity } from "../core/types";
 import { readRisonParam } from "./discover-state";
 
 const encodeRison = (value: unknown): string => encodeURIComponent(rison.encode(value));
 
 /** Relative to the page origin; the bar opens it in a new tab (spec §7.3). */
-export function discoverUrl(options: { prefix: string; dataViewId: string; query: string; time?: TimeRange }): string {
+export function discoverUrl(options: { prefix: string } & DiscoverTarget): string {
   const { prefix, dataViewId, query, time } = options;
   const global = time ? `_g=${encodeRison({ time })}&` : "";
   return `${prefix}/app/discover#/?${global}_a=${encodeRison({ index: dataViewId, query: { language: "kuery", query } })}`;

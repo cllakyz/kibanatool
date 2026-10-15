@@ -1,9 +1,10 @@
 // "Copy as cURL" (Plan 7 spec): the HTTP request a log records, written as a bash command that sends it again.
-import { isMissing, isPlainObject, parseStructuredText } from "./fields";
+import { MAX_TEXT_DEPTH, isMissing, isPlainObject, parseStructuredText } from "./fields";
 import { MASK, maskMatcher, maskValue } from "./mask";
 import { isHttpUrl } from "./template";
 import type { RawHit } from "./types";
 import { type ValueMaskKind, maskText } from "./value-mask";
+import { isXmlText } from "./xml";
 
 /** Where the request fields sit: under `context` (Monolog) or at the root of `_source` (spec §4). */
 export type RequestPrefix = "context" | "";
@@ -15,9 +16,6 @@ const PREFIXES: readonly RequestPrefix[] = ["context", ""];
  * Symfony's `php-auth-*`, the server-made copies of a Basic or Digest `Authorization` (user and password in clear).
  */
 const DROPPED_HEADER = /^(?:host|content-length|connection|accept-encoding|forwarded|x-forwarded-.*|x-real-ip|cf-.*|cdn-loop|x-php-ob-level|php-auth-.*)$/i;
-
-/** Like expandStructured: at most five texts are opened one inside another (spec §5.6). */
-const MAX_TEXT_DEPTH = 5;
 
 type IsMasked = (path: string) => boolean;
 
@@ -71,7 +69,7 @@ const quote = (text: string): string => `'${text.replace(/'/g, "'\\''")}'`;
 
 /** JSON text only: XML and HTML text stays text in the command (spec §5.6). */
 const jsonOf = (text: string): Record<string, unknown> | unknown[] | undefined =>
-  text.trim().startsWith("<") ? undefined : parseStructuredText(text);
+  isXmlText(text) ? undefined : parseStructuredText(text);
 
 /** Spec §5.6: the part's own JSON text is opened, so the command can read headers, form fields and query keys. */
 function maskPart(path: string, value: unknown, isMasked: IsMasked, kinds: readonly ValueMaskKind[]): unknown {
@@ -79,7 +77,7 @@ function maskPart(path: string, value: unknown, isMasked: IsMasked, kinds: reado
   return maskKeepingText(path, json ?? value, isMasked, kinds, json === undefined ? 0 : 1);
 }
 
-/** maskValue's rules, but JSON text is masked inside and written back as JSON text, and other text stays text. */
+/** maskValue's rules, except that JSON text is masked inside and written back as JSON text, and other text keeps only the value masks (spec §5.6). */
 function maskKeepingText(path: string, value: unknown, isMasked: IsMasked, kinds: readonly ValueMaskKind[], depth: number): unknown {
   if (isMasked(path)) return MASK;
   if (Array.isArray(value)) return value.map((item) => maskKeepingText(path, item, isMasked, kinds, depth));

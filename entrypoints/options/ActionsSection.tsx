@@ -1,15 +1,15 @@
 // Actions (spec §9): the list and a form editor with a live preview.
 import { useState } from "react";
-import type { Action, Config } from "../../src/core/config";
+import { type Action, type Config, appliesTo, appliesToAll } from "../../src/core/config";
 import { t } from "../../src/i18n";
 import { newAction, variableWarnings, withAction, withoutAction } from "../../src/options/model";
 import { ActionEditor } from "./ActionEditor";
 import { Feedback, type SectionProps, VariableWarnings, useSubmit } from "./feedback";
 
 function environmentNames(config: Config, action: Action): string {
-  if (action.environmentIds.length === 0) return t("optionsAllEnvironments");
+  if (appliesToAll(action)) return t("optionsAllEnvironments");
   return config.environments
-    .filter((environment) => action.environmentIds.includes(environment.id))
+    .filter((environment) => appliesTo(action, environment.id))
     .map((environment) => environment.name)
     .join(", ");
 }

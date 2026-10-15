@@ -2,18 +2,17 @@
 import { type SyntheticEvent, useEffect, useMemo, useRef, useState } from "react";
 import type { Action, Config, Environment } from "../core/config";
 import { buildCurl, requestPrefix } from "../core/curl";
-import { type DiscoverButton, buildDiscoverButtons } from "../core/discover-actions";
+import { buildDiscoverButtons } from "../core/discover-actions";
 import { flattenDoc } from "../core/fields";
 import { buildJson } from "../core/json-copy";
 import { jsonTextFields } from "../core/json-tree";
-import { type LinkButton, buildLinkButtons } from "../core/link-actions";
+import { buildLinkButtons } from "../core/link-actions";
 import { buildMarkdown } from "../core/markdown";
-import type { PassiveReason } from "../core/passive";
-import type { DataViewSummary, DocIdentity, RawHit } from "../core/types";
+import type { ActionButton, DataViewSummary, DocIdentity, RawHit } from "../core/types";
 import { type MessageKey, t } from "../i18n";
 import { type KibanaClient, KibanaError } from "../kibana/client";
 import { readGlobalTime } from "../kibana/discover-state";
-import { fixedTimeUrl, singleDocPath } from "../kibana/url";
+import { discoverUrl, fixedTimeUrl, singleDocPath } from "../kibana/url";
 import { describePassive } from "../passive-text";
 import { loadDataViews, loadTimeFields, timeFieldTargets } from "./bar-data";
 import { copyText } from "./clipboard";
@@ -36,8 +35,13 @@ export interface ActionBarProps {
   actions: Action[];
   client: KibanaClient;
   prefix: string;
-  /** location.hash: Discover links keep the current time range when no window applies. */
-  hash: string;
+  /**
+   * The page the bar sits on (the host passes `location`): Discover links keep its current time range when no
+   * window applies, and copies read its address at the click.
+   */
+  page: Pick<Location, "href" | "hash" | "origin">;
+  /** The clock for "view with fixed time". */
+  now: () => Date;
   copy: Config["copy"];
   /** The open environment: its variables fill {env.…}, its name explains passive buttons (Plan 4). */
   environment: Environment;
@@ -46,7 +50,7 @@ export interface ActionBarProps {
 /** Kibana would see these events on the host element otherwise (e.g. arrow keys move the 8.x/9.x flyout). */
 const keepInside = (event: SyntheticEvent): void => event.stopPropagation();
 
-export function ActionBar({ identity, actions, client, prefix, hash, copy, environment }: ActionBarProps) {
+export function ActionBar({ identity, actions, client, prefix, page, now, copy, environment }: ActionBarProps) {
   const [state, setState] = useState<State>({ status: "loading" });
   const [notice, setNotice] = useState<MessageKey | null>(null);
   const rootRef = useRef<HTMLDivElement>(null);
@@ -81,13 +85,14 @@ export function ActionBar({ identity, actions, client, prefix, hash, copy, envir
     return () => window.clearTimeout(timer);
   }, [notice]);
 
-  const buttons = useMemo((): { links: LinkButton[]; discover: DiscoverButton[] } => {
+  const hash = page.hash;
+  const buttons = useMemo((): { links: ActionButton[]; discover: ActionButton[] } => {
     if (state.status !== "ready") return { links: [], discover: [] };
     const fields = flattenDoc(state.hit);
     return {
       links: buildLinkButtons(actions, fields, environment.variables),
       discover: buildDiscoverButtons(actions, fields, {
-        prefix,
+        link: (target) => discoverUrl({ prefix, ...target }),
         dataViewId,
         currentTime: readGlobalTime(hash),
         timeFields: state.timeFields,
@@ -117,11 +122,7 @@ export function ActionBar({ identity, actions, client, prefix, hash, copy, envir
   const { hit, timeFields } = state;
 
   // writeText only works inside the click, so nothing is awaited before copyText.
-  function copyToClipboard(text: string | null): void {
-    if (text === null) {
-      setNotice("noticeTimeNotConverted");
-      return;
-    }
+  function copyToClipboard(text: string): void {
     if (!rootRef.current) return;
     copyText(text, rootRef.current).then(
       () => setNotice("noticeCopied"),
@@ -132,7 +133,7 @@ export function ActionBar({ identity, actions, client, prefix, hash, copy, envir
     );
   }
 
-  const docUrl = (): string => `${location.origin}${singleDocPath(prefix, identity)}`;
+  const docUrl = (): string => `${page.origin}${singleDocPath(prefix, identity)}`;
   const copyItems: CopyItem[] = [
     {
       label: t("menuCopyMarkdown"),
@@ -151,37 +152,26 @@ export function ActionBar({ identity, actions, client, prefix, hash, copy, envir
     // Plan 7 spec §6: only for a log that records a request, so buildCurl returns a command here.
     ...(hasRequest ? [{ label: t("menuCopyCurl"), text: () => buildCurl(hit, copy.maskPatterns, copy.valueMasks) ?? null }] : []),
     { label: t("menuCopyDocLink"), text: docUrl },
-    { label: t("menuCopyFixedView"), text: () => fixedTimeUrl(location.href, new Date()) },
+    { label: t("menuCopyFixedView"), text: () => fixedTimeUrl(page.href, now()), unavailable: "noticeTimeNotConverted" },
   ];
 
-  // Plan 4 spec §5.3: greyed out, with the reason as its tooltip.
-  const passiveButton = (button: { id: string; label: string; passive: PassiveReason }) => (
-    <span key={button.id} className="kt-btn kt-disabled" aria-disabled="true" tabIndex={0} title={describePassive(button.passive, environment.name)}>
-      {button.label}
-    </span>
-  );
+  // A working link opens in a new tab; Plan 4 spec §5.3: a passive one is greyed out, with the reason as its tooltip.
+  const actionButton = (button: ActionButton, className: string) =>
+    "url" in button ? (
+      <a key={button.id} className={className} href={button.url} target="_blank" rel="noopener noreferrer">
+        {button.label}
+      </a>
+    ) : (
+      <span key={button.id} className="kt-btn kt-disabled" aria-disabled="true" tabIndex={0} title={describePassive(button.passive, environment.name)}>
+        {button.label}
+      </span>
+    );
 
   return (
     <div className="kt-root" ref={rootRef} onClick={keepInside} onKeyDown={keepInside}>
       <div className="kt-bar">
-        {buttons.links.map((button) =>
-          "url" in button ? (
-            <a key={button.id} className="kt-btn" href={button.url} target="_blank" rel="noopener noreferrer">
-              {button.label}
-            </a>
-          ) : (
-            passiveButton(button)
-          ),
-        )}
-        {buttons.discover.map((button) =>
-          "url" in button ? (
-            <a key={button.id} className="kt-btn kt-discover" href={button.url} target="_blank" rel="noopener noreferrer">
-              {button.label}
-            </a>
-          ) : (
-            passiveButton(button)
-          ),
-        )}
+        {buttons.links.map((button) => actionButton(button, "kt-btn"))}
+        {buttons.discover.map((button) => actionButton(button, "kt-btn kt-discover"))}
         {jsonFields.length > 0 && (
           <button type="button" className="kt-ghost" aria-expanded={jsonOpen} onClick={() => setJsonOpen(!jsonOpen)}>
             {t("jsonButton")}
@@ -192,7 +182,7 @@ export function ActionBar({ identity, actions, client, prefix, hash, copy, envir
             {t(notice)}
           </span>
         )}
-        <CopyMenu items={copyItems} onCopy={copyToClipboard} onFail={() => setNotice("noticeCopyFailed")} />
+        <CopyMenu items={copyItems} onCopy={copyToClipboard} onFail={setNotice} />
       </div>
       {jsonOpen && jsonFields.length > 0 && (
         <JsonView fields={jsonFields} onCopy={copyToClipboard} onClose={() => setJsonOpen(false)} />

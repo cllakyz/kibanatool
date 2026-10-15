@@ -1,6 +1,7 @@
 // The JSON view's data (spec §7.6): JSON- and XML-text fields (Plan 6 spec §5.3) and a flat, pre-ordered row list,
 // so collapsing, search and revealing a match are plain array operations.
 import { expandStructured, flattenSource, isPlainObject } from "./fields";
+import { isXmlText } from "./xml";
 
 export interface JsonField {
   /** Dot path of the `_source` field that holds the JSON or XML text. */
@@ -26,7 +27,7 @@ export function jsonTextFields(source: Record<string, unknown>): JsonField[] {
     if (typeof text !== "string") return [];
     const value = expandStructured(text);
     if (!isPlainObject(value) && !Array.isArray(value)) return [];
-    return [{ path, value, source: text.trim().startsWith("<") ? "xml" : "json" }];
+    return [{ path, value, source: isXmlText(text) ? "xml" : "json" }];
   });
 }
 

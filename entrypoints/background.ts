@@ -1,7 +1,7 @@
 import { defineBackground } from "#imports";
 import { browser } from "wxt/browser";
 import { serialized, syncContentScripts } from "../src/background/registration";
-import { createConfigStore, isConfigChange } from "../src/storage";
+import { createConfigStore } from "../src/storage";
 import { iconPaths, isThemeMessage } from "../src/toolbar-icon";
 
 export default defineBackground(() => {
@@ -23,9 +23,7 @@ export default defineBackground(() => {
   browser.runtime.onStartup.addListener(() => void sync());
   browser.permissions.onAdded.addListener(() => void sync());
   browser.permissions.onRemoved.addListener(() => void sync());
-  browser.storage.onChanged.addListener((changes, areaName) => {
-    if (isConfigChange(changes, areaName)) void sync();
-  });
+  store.onChange(() => void sync());
   browser.action.onClicked.addListener(() => void browser.runtime.openOptionsPage());
   // Our pages report the browser's color scheme (src/toolbar-icon.ts); anything else is ignored.
   browser.runtime.onMessage.addListener((message, sender) => {

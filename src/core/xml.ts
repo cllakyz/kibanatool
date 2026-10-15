@@ -22,10 +22,15 @@ const PREDEFINED = new Map([
   ["apos", "'"],
 ]);
 
+/** Spec §4.1: text whose first non-space character is "<" is read as XML. */
+export function isXmlText(text: string): boolean {
+  return text.trim().startsWith("<");
+}
+
 /** `{ <root's local name>: value }` when `text` is one well-formed XML element, otherwise undefined (spec §4.1). */
 export function parseXml(text: string): Record<string, unknown> | undefined {
+  if (!isXmlText(text)) return undefined;
   const source = text.trim();
-  if (!source.startsWith("<")) return undefined;
   const stack: Element[] = [];
   let root: Entry | undefined;
   let i = 0;
