@@ -56,7 +56,7 @@ cURL öğesi metin üretemezse artık "kopyalanamadı" yazıyor; önce yanlışl
 | `2ded818` | D12, D13. Ayrıca barın saati kendisi okuması |
 | `8b63371` | CLAUDE.md'de constitution'a işaret; `specs/` gitignore'a eklendi |
 
-Constitution (`.specify/memory/constitution.md`, local-only) v1.0.6'da ve Known Deviations tablosu boş.
+Constitution (`.specify/memory/constitution.md`) v1.0.6'da ve Known Deviations tablosu boş.
 
 ## Elle kontroller
 
