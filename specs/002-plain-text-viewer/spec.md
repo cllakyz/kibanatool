@@ -1,7 +1,7 @@
 # Feature Specification: Plain-Text Request/Response Viewer
 
-**Feature Branches**: `002-form-data` (User Story 1, 1.0.0), then `002-text-view` (User Story 2, 1.1.0).
-Neither is created yet.
+**Feature Branches**: `002-form-data` (User Story 1), then `002-text-view` (User Story 2). Both ship in 1.0.0
+(clarified 2026-10-16).
 
 **Created**: 2026-10-15
 
@@ -18,7 +18,7 @@ SOAP or form data, which the JSON view cannot open today. The formats are not ve
 
 - Q: Which release carries this feature? → A: User Story 1 (form data) ships in 1.0.0 in its own
   pull request, before the store upload. User Story 2 (text view) follows in 1.1.0 in a second
-  pull request.
+  pull request. *(Release superseded on 2026-10-16; see below. The two pull requests stay.)*
 - Q: How does the cURL copy mask form text inside the request? → A: It masks inside the form and
   writes it back as form text (`a=1&password=***`), as Plan 7 does for JSON text. It does not
   apply the Plan 7 rule for XML/HTML text, where only value masks apply.
@@ -29,6 +29,12 @@ SOAP or form data, which the JSON view cannot open today. The formats are not ve
   switches either way.
 - Q: Is XML- or JSON-like text that cannot be parsed shown indented in the text view? → A: No. It
   is shown exactly as stored.
+
+### Session 2026-10-16
+
+- Q: User Story 1 is merged and 1.0.0 has not gone to the store yet; which version carries User
+  Story 2? → A: 1.0.0 too. Nothing was released, so the text view joins the first release, and
+  there is no 1.1.0.
 
 ## User Scenarios & Testing *(mandatory)*
 
@@ -264,10 +270,9 @@ search matches with a count, and copies the text unchanged.
   them.
 - **The e2e seed has no form text and no multi-line text field today.** The seed and the e2e tests
   must gain them together (CLAUDE.md: the seed is a contract with the e2e tests).
-- **Release (clarified):** User Story 1 ships in the unreleased 1.0.0, in its own pull request, so
-  the store upload carries no credential leak. In that release the panel tags form fields "form"
-  (FR-008) and the button keeps its "JSON" label. User Story 2 ships in 1.1.0, in a second pull
-  request, with the text fields, the "text" tag and the button rename (FR-009).
+- **Release (clarified 2026-10-15, changed 2026-10-16):** each story has its own pull request.
+  User Story 1 was merged first, so main never carries the credential leak. Both stories ship in
+  the unreleased 1.0.0, because the store upload had not happened when User Story 1 merged.
 
 ### Out of scope
 

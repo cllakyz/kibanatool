@@ -12,7 +12,7 @@ uploaded by hand in the developer dashboard.
 - **Icon:** `public/icon/128.png`
 - **Screenshots:** at least one, 1280×800. Take them from a dev stack (synthetic data only): `./docker/up.sh 9`,
   load `.output/chrome-mv3`, import `examples/kibanatool-settings.json` with the Kibana address changed to
-  `http://localhost:19601`, open a log, show the bar, the JSON view and the copy menu.
+  `http://localhost:19601`, open a log, show the bar, the View panel and the copy menu.
 - **Small promo tile (440×280):** only if the dashboard requires it; same design as the icon.
 
 ### Description (English)
@@ -23,6 +23,7 @@ It works on Kibana 7.17, 8.x and 9.x.
 - Jump to your admin panel, Sentry, Jira or any other tool with a value from the log.
 - Open related logs in a new tab: the same user's logs, or everything ±5 minutes around this log.
 - Read fields that hold JSON text as a searchable tree.
+- Read and search long or multi-line text, such as console output and stack traces, with its line breaks kept.
 - Copy the log as Markdown with passwords, tokens and other sensitive fields masked, copy a link to the log,
   or copy the current view with its time range fixed.
 - IBANs, ID numbers and mobile numbers (Turkish formats) and card numbers are masked in the copy too, even
@@ -42,6 +43,7 @@ Kibana 7.17, 8.x ve 9.x'te çalışır.
 - Logdaki bir değerle admin panelinize, Sentry'ye, Jira'ya ya da başka bir araca tek tıkla geçin.
 - İlgili logları yeni sekmede açın: aynı kullanıcının logları ya da bu logun ±5 dakika çevresi.
 - JSON metni tutan alanları aranabilir bir ağaç olarak okuyun.
+- Konsol çıktısı ve stack trace gibi uzun ve çok satırlı metni satır sonlarıyla okuyun ve içinde arayın.
 - Logu şifre, token ve diğer hassas alanları maskelenmiş Markdown olarak kopyalayın, logun linkini ya da
   zamanı sabitlenmiş mevcut görünümü kopyalayın.
 - Kopyada IBAN, TC kimlik no, cep telefonu ve kart numaraları da maskelenir; XML ya da düz metin istek

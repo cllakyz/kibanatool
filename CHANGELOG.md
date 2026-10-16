@@ -19,9 +19,13 @@ First public release, for Kibana 7.17, 8.x and 9.x in Chrome.
   with a valid checksum), Turkish mobile numbers and card numbers (Visa, Mastercard, Amex and Troy, with a valid
   Luhn digit) wherever they appear in a value, such as XML or plain-text request bodies. Each kind can be turned
   off; all four are on by default.
-- JSON view for fields that hold JSON or XML text: a tree with search, and copying a value or its path.
+- View panel for fields that hold JSON, XML or form text: a tree with search, and copying a value or its path.
+- Text view in the same panel for text that is not JSON, XML or form data when it has more than one line or is
+  at least 500 characters long, such as console output, stack traces and long error messages. The text is shown
+  as stored in a monospace font; multi-line text opens unwrapped so tables keep their columns, one-line text
+  wrapped, with a toggle; search marks every match and steps through them; "Copy value" copies the whole text.
 - XML and form data as JSON: fields that hold XML text, such as SOAP bodies, or URL-encoded form text with two
-  or more `&`-joined pairs are read as JSON in the JSON view, in both copies and in placeholders. Namespace
+  or more `&`-joined pairs are read as JSON in the View panel, in both copies and in placeholders. Namespace
   prefixes are dropped, attributes become `@name` and the text beside them `#text`, and every value stays text.
   "Copy as JSON" writes `_index`, `_id` and `_source` with all JSON, XML and form text expanded; field-name
   masks now reach XML element names and form keys too, so a password inside form text is masked.

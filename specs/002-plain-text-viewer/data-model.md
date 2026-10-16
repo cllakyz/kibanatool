@@ -115,6 +115,7 @@ In `buildCurl`, `maskPart` returns `{ kind, value }`, with the part's kind taken
 | `viewButton` (was `jsonButton`) | View | Görüntüle | US2 |
 | `panelKindText` | text | metin | US2 |
 | `textWrap` | Wrap lines | Satırları kaydır | US2 |
+| `textSearch` | Search the text | Metinde ara | US2 (added during implementation: the tree's "Search keys and values" does not fit text) |
 
 Reused, unchanged: `jsonChooseField`, `jsonBack`, `jsonClose`, `jsonSearch`, `jsonPrevious`,
 `jsonNext`, `jsonMatchCount`, `jsonNoMatches`, `jsonCopyValue`.
