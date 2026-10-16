@@ -18,8 +18,8 @@ const names = readdirSync(dir)
   .sort();
 
 describe("captured Kibana result rows", () => {
-  it("cover 7.17", () => {
-    expect(names).toEqual(["7.17.29.json"]);
+  it("cover 7.17, 8.19 and 9.5", () => {
+    expect(names).toEqual(["7.17.29.json", "8.19.23.json", "9.5.5.json"]);
   });
 
   it.each(names)("%s yields the captured identities", (name) => {

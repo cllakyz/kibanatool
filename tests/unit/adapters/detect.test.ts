@@ -67,3 +67,29 @@ describe("findRows and rowIdentity (spec 003 research R5)", () => {
     expect(rowOf(document.getElementById("outside") as Element)).toBeNull();
   });
 });
+
+describe("findRows and rowOf on the 8.x/9.x data grid (spec 003 user story 2)", () => {
+  const grid = `<div role="grid">
+    <div role="row" id="header"><div role="columnheader">Document</div></div>
+    <div role="row" id="row"><div role="gridcell" id="cell"><input data-test-subj="dscGridSelectDoc-app_log::app-001::"></div></div>
+  </div>`;
+
+  beforeEach(() => {
+    document.body.innerHTML = grid;
+  });
+
+  it("reads grid rows in the default space and in a space", () => {
+    const identity = { dataViewId: "app-log", index: "app_log", id: "app-001" };
+    const hash = "#/?_a=(dataSource:(dataViewId:app-log,type:dataView))";
+    expect(findRows(document, { pathname: "/app/discover", hash }, "").map((view) => view.identity)).toEqual([identity]);
+    const obs = findRows(document, { pathname: "/s/obs/app/discover", hash: "#/?_a=(dataSource:(dataViewId:obs-logs,type:dataView))" }, "/s/obs");
+    expect(obs.map((view) => view.identity?.dataViewId)).toEqual(["obs-logs"]);
+    const row = document.getElementById("row") as Element;
+    expect(rowIdentity(row, { pathname: "/app/discover", hash }, "")).toEqual(identity);
+  });
+
+  it("finds the grid row around a cell, and not the header row", () => {
+    expect(rowOf(document.getElementById("cell") as Element)).toBe(document.getElementById("row"));
+    expect(rowOf(document.getElementById("header") as Element)).toBeNull();
+  });
+});

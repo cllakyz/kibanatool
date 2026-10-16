@@ -2,6 +2,7 @@
 import { dataViewIdFromState, isEsqlState, readAppState } from "../kibana/discover-state";
 import { isDiscoverPath } from "../kibana/prefix";
 import { findDataGridDetailViews } from "./data-grid";
+import { findGridRows, gridRowIdentity, gridRowOf } from "./grid-rows";
 import { LEGACY_ROW_SELECTOR, findLegacyRows, legacyRowIdentity } from "./legacy-rows";
 import { findLegacyDetailViews } from "./legacy-table";
 import type { DetailView, RowView } from "./types";
@@ -33,19 +34,20 @@ function mainTableDataView(location: PageLocation, prefix: string): string | und
   return isEsqlState(state) ? null : dataViewIdFromState(state);
 }
 
-/** The result rows of Discover's main table and what identifies each (spec 003). */
+/** The result rows of Discover's main table, 7.17 legacy or 8.x/9.x grid, and what identifies each (spec 003). */
 export function findRows(doc: Document, location: PageLocation, prefix: string): RowView[] {
   const dataViewId = mainTableDataView(location, prefix);
-  return dataViewId === null ? [] : findLegacyRows(doc, dataViewId);
+  return dataViewId === null ? [] : [...findLegacyRows(doc, dataViewId), ...findGridRows(doc, dataViewId)];
 }
 
 /** The result row that contains `target`, or null. */
 export function rowOf(target: Element): Element | null {
-  return target.closest(LEGACY_ROW_SELECTOR);
+  return target.closest(LEGACY_ROW_SELECTOR) ?? gridRowOf(target);
 }
 
 /** One row's identity, gated like findRows; read fresh at every call, since Kibana reuses rows (research R2). */
 export function rowIdentity(row: Element, location: PageLocation, prefix: string): RowView["identity"] {
   const dataViewId = mainTableDataView(location, prefix);
-  return dataViewId === null ? null : legacyRowIdentity(row, dataViewId);
+  if (dataViewId === null) return null;
+  return row.matches(LEGACY_ROW_SELECTOR) ? legacyRowIdentity(row, dataViewId) : gridRowIdentity(row, dataViewId);
 }

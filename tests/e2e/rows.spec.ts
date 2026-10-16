@@ -4,8 +4,6 @@ import { e2eConfig, expect, markInRow, test, unregisterScript, writeStored } fro
 import { barLinks, detailViews, extensionRequests, followToNewTab, openDoc, openTable, resultRows, strip, stripLinks } from "./kibana";
 import { stack } from "./stack";
 
-test.skip(stack.major !== 7, "8.x/9.x arrive in User Story 2");
-
 const APP_004 = { dataViewId: "app-log", query: 'extra.uid:"uid-004"' };
 
 /** The extension's batched prefetch, as opposed to a single-document fetch. */
@@ -72,7 +70,13 @@ test("shows a greyed action with its reason", async ({ context, configure }) => 
 test("keyboard focus shows the strip and Tab reaches it", async ({ context, configure }) => {
   await configure(markInRow(e2eConfig(), ["user"]));
   const page = await openTable(await context.newPage(), APP_004);
-  await resultRows(page).first().locator('[data-test-subj="docTableExpandToggleColumn"]').focus();
+  if (stack.major === 7) {
+    await resultRows(page).first().locator('[data-test-subj="docTableExpandToggleColumn"]').focus();
+  } else {
+    // The grid focuses a cell on click; the pointer then leaves, so only focus keeps the strip (research R11).
+    await resultRows(page).first().locator('[data-gridcell-column-id="datetime"]').click();
+    await page.mouse.move(5, 5);
+  }
   await expect(strip(page).getByRole("link", { name: "User", exact: true })).toBeVisible();
   let reached = false;
   for (let tab = 0; tab < 6 && !reached; tab++) {
@@ -139,4 +143,12 @@ test("fails closed without the page-context script (SC-007)", async ({ context, 
   await expect(strip(page).locator("a")).toHaveCount(0);
   const { detail } = await openDoc(context, APP_004);
   await expect(detail.locator("kibanatool-bar .kt-menu")).toBeVisible();
+});
+
+test("works in the 9.x Observability view", async ({ context, configure }) => {
+  test.skip(stack.major !== 9, "the Observability view is 9.x only");
+  await configure(markInRow(e2eConfig(), ["user"]));
+  const page = await openTable(await context.newPage(), { space: "obs", dataViewId: "obs-logs", query: "" });
+  await resultRows(page).first().hover();
+  await expect(strip(page).getByRole("link", { name: "User", exact: true })).toHaveAttribute("href", /^https:\/\/admin\.example\.com\/users\/2000\d\d$/);
 });
