@@ -171,7 +171,7 @@ KT_STACK=9 npm run e2e                              # builds, then runs tests/e2
 KT_STACK=9 KT_CAPTURE=1 npm run e2e -- capture      # refreshes tests/fixtures from the stack
 ```
 
-CI runs the unit checks and the e2e tests against all three versions on every pull request.
+CI runs the unit checks and the e2e tests against all three versions on every pull request to `main`.
 
 ### Release
 

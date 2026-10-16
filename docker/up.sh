@@ -28,10 +28,15 @@ EOF
 )
 set -a; source "$ENV_FILE"; set +a
 
+# Kibana's image is pulled while Elasticsearch is pulled and starts; nothing is pulled when the image is already
+# here (a dev machine, or a CI run that loaded it from the cache).
+docker compose --env-file "$ENV_FILE" -f compose.yml pull --quiet --policy missing kibana &
+KIBANA_PULL=$!
 docker compose --env-file "$ENV_FILE" -f compose.yml up -d --wait es
 es() { curl -fsS -u "elastic:$ELASTIC_PASSWORD" -H 'Content-Type: application/json' "$@" >/dev/null; }
 es -X POST "http://localhost:$ES_PORT/_security/user/kibana_system/_password" -d "{\"password\":\"$KIBANA_SYSTEM_PASSWORD\"}"
 es -X POST "http://localhost:$ES_PORT/_security/user/kt_anon" -d "{\"password\":\"$ANON_PASSWORD\",\"roles\":[\"superuser\"]}"
+wait "$KIBANA_PULL"
 docker compose --env-file "$ENV_FILE" -f compose.yml up -d kibana
 
 KB_URL="http://localhost:$KIBANA_PORT$BASE_PATH"
