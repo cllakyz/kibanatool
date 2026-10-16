@@ -40,7 +40,7 @@ export function JsonView({ fields, onCopy, onClose }: JsonViewProps) {
           {fields.map((field) => (
             <li key={field.path}>
               <button type="button" onClick={() => setSelected(field)}>
-                {field.source === "xml" ? `${field.path} · XML` : field.path}
+                {label(field)}
               </button>
             </li>
           ))}
@@ -152,6 +152,13 @@ function JsonTree({ field, onCopy }: { field: JsonField; onCopy: (text: string) 
       </div>
     </>
   );
+}
+
+/** The list entry: the path, tagged by kind; JSON is untagged (spec 002 FR-008). */
+function label(field: JsonField): string {
+  if (field.source === "xml") return `${field.path} · XML`;
+  if (field.source === "form") return `${field.path} · ${t("panelKindForm")}`;
+  return field.path;
 }
 
 function kindOf(row: JsonRow): string {

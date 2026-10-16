@@ -1,10 +1,12 @@
-// Flattens an Elasticsearch hit into a dot-path field map (spec §7.1), JSON and XML text included (Plan 6 spec §5).
+// Flattens an Elasticsearch hit into a dot-path field map (spec §7.1), JSON, XML (Plan 6 spec §5) and form text
+// (spec 002 FR-003) included.
+import { parseForm } from "./form";
 import type { RawHit } from "./types";
 import { isXmlText, parseXml } from "./xml";
 
 export type FieldMap = Record<string, unknown>;
 
-/** At most this many JSON or XML texts are opened one inside another (Plan 6 spec §5.1). */
+/** At most this many JSON, XML or form texts are opened one inside another (Plan 6 spec §5.1). */
 export const MAX_TEXT_DEPTH = 5;
 
 export function isPlainObject(value: unknown): value is Record<string, unknown> {
@@ -29,14 +31,28 @@ export function formatValue(value: unknown): string {
   return JSON.stringify(value);
 }
 
-/** The parsed value when `text` is JSON for an object or array, or XML (Plan 6 spec §5.1); otherwise undefined. */
-export function parseStructuredText(text: string): Record<string, unknown> | unknown[] | undefined {
-  return isXmlText(text) ? parseXml(text) : parseJsonText(text);
+/** The kinds of structured text, in one place (constitution II); every consumer reads the kind from parseStructured. */
+export const STRUCTURED_KINDS = ["json", "xml", "form"] as const;
+export type StructuredKind = (typeof STRUCTURED_KINDS)[number];
+
+/**
+ * `text` parsed with its kind, or undefined when it is not structured. The first non-space character picks the kind:
+ * `<` is XML, `{` or `[` JSON, anything else form data (spec 002 FR-006: form text never starts with those).
+ */
+export function parseStructured(text: string): { kind: StructuredKind; value: Record<string, unknown> | unknown[] } | undefined {
+  const trimmed = text.trim();
+  const kind: StructuredKind = isXmlText(trimmed) ? "xml" : trimmed.startsWith("{") || trimmed.startsWith("[") ? "json" : "form";
+  const value = kind === "xml" ? parseXml(trimmed) : kind === "json" ? parseJsonText(trimmed) : parseForm(trimmed);
+  return value === undefined ? undefined : { kind, value };
 }
 
-function parseJsonText(text: string): Record<string, unknown> | unknown[] | undefined {
-  const trimmed = text.trim();
-  if (!trimmed.startsWith("{") && !trimmed.startsWith("[")) return undefined;
+/** The parsed value when `text` is JSON for an object or array, XML (Plan 6 spec §5.1) or form data; otherwise undefined. */
+export function parseStructuredText(text: string): Record<string, unknown> | unknown[] | undefined {
+  return parseStructured(text)?.value;
+}
+
+/** `trimmed` starts with `{` or `[`. */
+function parseJsonText(trimmed: string): Record<string, unknown> | unknown[] | undefined {
   try {
     const parsed: unknown = JSON.parse(trimmed);
     if (Array.isArray(parsed) || isPlainObject(parsed)) return parsed;
@@ -47,7 +63,7 @@ function parseJsonText(text: string): Record<string, unknown> | unknown[] | unde
 }
 
 /**
- * `value` with every JSON or XML text inside it parsed, however deep it sits (Plan 6 spec §5.1).
+ * `value` with every JSON, XML or form text inside it parsed, however deep it sits (Plan 6 spec §5.1).
  * At most MAX_TEXT_DEPTH texts are parsed one inside another; deeper text stays a string.
  */
 export function expandStructured(value: unknown, depth = 0): unknown {
@@ -58,7 +74,7 @@ export function expandStructured(value: unknown, depth = 0): unknown {
   return parsed === undefined ? value : expandStructured(parsed, depth + 1);
 }
 
-/** Dot-path leaves of `_source`. JSON and XML text is also expanded under its own path unless `expandJson` is false. */
+/** Dot-path leaves of `_source`. JSON, XML and form text is also expanded under its own path unless `expandJson` is false. */
 export function flattenSource(source: Record<string, unknown>, expandJson = true): FieldMap {
   const fields: FieldMap = Object.create(null);
   flattenInto(fields, "", source, expandJson ? 0 : MAX_TEXT_DEPTH);

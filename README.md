@@ -30,8 +30,9 @@ a bar above it with:
 
 ### Placeholders and conditions
 
-- `{field}` is a field of the raw log. Nested fields use dots (`context.user_id`), and fields that hold JSON
-  or XML text can be read inside too (`context.body.amount`, `context.request.Envelope.Body.Id`; see [XML](#xml)).
+- `{field}` is a field of the raw log. Nested fields use dots (`context.user_id`), and fields that hold JSON,
+  XML or form text can be read inside too (`context.body.amount`, `context.request.Envelope.Body.Id`; see
+  [XML and form data](#xml-and-form-data)).
 - `{a|b|c}` uses the first field that has a value. If none has one, the button is hidden.
 - `{env.name}` is a variable of the environment you are in (see **Variables**), e.g. `{env.adminUrl}/users/{user_id}`.
   It goes into links as it is and is quoted like a field in KQL. A link may start with one if its value is an
@@ -55,7 +56,7 @@ These are in [`examples/kibanatool-settings.json`](examples/kibanatool-settings.
 | This user in all logs | Discover on the `*_log` data view, 60-minute window | `user_id:{user_id}` |
 | ±5 minutes | Discover, 5-minute window | empty query |
 
-### XML
+### XML and form data
 
 Fields that hold XML text, such as SOAP request and response bodies, are read as JSON: in the JSON view, in
 both copies and in placeholders.
@@ -70,13 +71,17 @@ both copies and in placeholders.
   `ID 10000000146` and its value is still masked.
 - Text that is not well-formed XML, such as an HTML error page, stays as it is.
 
+URL-encoded form text with two or more `&`-joined pairs, such as `username=…&password=…&grant_type=…`, is
+read the same way and tagged "form" in the JSON view. Values are decoded and stay text, a repeated key becomes
+a list, and a single `key=value` stays text. Masks reach its keys, so `*password*` hides a password inside it.
+
 ### Copy and masking
 
 "Copy as JSON" copies the log's `_index`, `_id` and `_source`, with the JSON and XML text inside it expanded.
 
 Both copies mask every field whose path matches a pattern under **Copy and masking** (by default
 `*authorization*`, `*password*`, `*token*`, `*secret*`, `*cookie*` and `*php-auth-*`, the Basic-auth user and
-password that Symfony copies out of `Authorization`), keys inside JSON and XML text included.
+password that Symfony copies out of `Authorization`), keys inside JSON, XML and form text included.
 
 They also look inside every value, such as plain-text bodies that a field name cannot reach, and replace each
 of these with `***`. Each kind can be turned off under **Mask inside values**:
@@ -102,8 +107,8 @@ level, also gets "Copy as cURL": a bash or zsh command that sends the request ag
   `forwarded`, `x-forwarded-*`, `x-real-ip`, `cf-*`, `cdn-loop`, `x-php-ob-level` and `php-auth-*`.
   `accept-encoding` becomes `--compressed`.
 - The command is masked like the other copies, so a token reads `-H 'authorization: ***'`: put in your own before
-  you run it. JSON text inside the request is masked inside and stays JSON text; plain, HTML and XML text stays
-  as it is, with only the value masks.
+  you run it. JSON and form text inside the request is masked inside and stays JSON or form text; plain, HTML
+  and XML text stays as it is, with only the value masks.
 
 ## Privacy
 

@@ -214,3 +214,43 @@ describe("buildCurl (spec §5)", () => {
     expect(curl({ method: "GET", url: URL, headers: { "x-secret": "synthetic" } })).toBe(lines(`curl '${URL}'`, "-H 'x-secret: ***'"));
   });
 });
+
+describe("buildCurl with form text (spec 002 FR-005)", () => {
+  const formType = json({ "content-type": ["application/x-www-form-urlencoded"] });
+
+  it("keeps form text inside a JSON body as form text, masked inside", () => {
+    const body = json({ payload: "user=a&password=b" });
+    expect(curl(request({ method: "POST", headers: json({ "content-type": ["application/json"] }), body }))).toContain(
+      `--data-raw '{"payload":"user=a&password=***"}'`,
+    );
+  });
+
+  it("sends a form-text body as form text under any content type, unchanged pairs byte for byte", () => {
+    const body = "user=a&password=b&note=x+y%21";
+    expect(curl(request({ method: "POST", headers: formType, body }))).toBe(
+      lines(`curl '${URL}'`, "-H 'content-type: application/x-www-form-urlencoded'", "--data-raw 'user=a&password=***&note=x+y%21'"),
+    );
+    expect(curl(request({ method: "POST", body }))).toBe(lines(`curl '${URL}'`, "--data-raw 'user=a&password=***&note=x+y%21'"));
+  });
+
+  it("appends a form-text query masked, and still drops any other text query", () => {
+    expect(curl(request({ query: "page=2&token=t" }))).toBe(`curl '${URL}?page=2&token=***'`);
+    // Plain text: the spaces keep it from being form data, even though its masked text would look like it.
+    expect(curl(request({ query: "a=1&b=0555 000 00 00" }))).toBe(`curl '${URL}'`);
+    expect(curl(request({ query: "x" }))).toBe(`curl '${URL}'`);
+    expect(curl(request({ query: "[]" }))).toBe(`curl '${URL}'`);
+  });
+
+  it("re-encodes only the values a value mask changed", () => {
+    expect(curl(request({ method: "POST", body: "gsm=05550000000&a=1" }))).toBe(lines(`curl '${URL}'`, "--data-raw 'gsm=***&a=1'"));
+    expect(curl(request({ method: "POST", body: "note=x:05550000000&a=1" }))).toBe(lines(`curl '${URL}'`, "--data-raw 'note=x%3A***&a=1'"));
+  });
+
+  it("masks form text nested past the five-text cap as a whole", () => {
+    let body: unknown = { a: "v=x&w=y" };
+    for (let level = 0; level < 4; level++) body = { a: json(body) };
+    let expected: unknown = { a: "***" };
+    for (let level = 0; level < 4; level++) expected = { a: json(expected) };
+    expect(curl(request({ method: "POST", body: json(body) }), [], [])).toBe(lines(`curl '${URL}'`, `--data-raw '${json(expected)}'`));
+  });
+});

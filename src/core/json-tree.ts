@@ -1,14 +1,13 @@
-// The JSON view's data (spec §7.6): JSON- and XML-text fields (Plan 6 spec §5.3) and a flat, pre-ordered row list,
-// so collapsing, search and revealing a match are plain array operations.
-import { expandStructured, flattenSource, isPlainObject } from "./fields";
-import { isXmlText } from "./xml";
+// The JSON view's data (spec §7.6): JSON-, XML- (Plan 6 spec §5.3) and form-text fields (spec 002 FR-003) and a flat,
+// pre-ordered row list, so collapsing, search and revealing a match are plain array operations.
+import { type StructuredKind, expandStructured, flattenSource, isPlainObject, parseStructured } from "./fields";
 
 export interface JsonField {
-  /** Dot path of the `_source` field that holds the JSON or XML text. */
+  /** Dot path of the `_source` field that holds the structured text. */
   path: string;
-  /** The parsed text, with JSON and XML text inside it parsed too. */
+  /** The parsed text, with the structured text inside it parsed too. */
   value: Record<string, unknown> | unknown[];
-  source: "json" | "xml";
+  source: StructuredKind;
 }
 
 export interface JsonRow {
@@ -21,13 +20,14 @@ export interface JsonRow {
   container: "object" | "array" | null;
 }
 
-/** `_source` fields whose text is a JSON object or array, or XML, in field order. */
+/** `_source` fields whose text is a JSON object or array, XML or form data, in field order. */
 export function jsonTextFields(source: Record<string, unknown>): JsonField[] {
   return Object.entries(flattenSource(source, false)).flatMap(([path, text]): JsonField[] => {
     if (typeof text !== "string") return [];
+    const kind = parseStructured(text)?.kind;
     const value = expandStructured(text);
-    if (!isPlainObject(value) && !Array.isArray(value)) return [];
-    return [{ path, value, source: isXmlText(text) ? "xml" : "json" }];
+    if (kind === undefined || (!isPlainObject(value) && !Array.isArray(value))) return [];
+    return [{ path, value, source: kind }];
   });
 }
 

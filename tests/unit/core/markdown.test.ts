@@ -249,4 +249,18 @@ describe("buildMarkdown with XML (Plan 6 spec §5.4)", () => {
       "[Open in Kibana](u)",
     ]);
   });
+
+  it("writes form text as a masked json block, like XML (spec 002 FR-004)", () => {
+    const form = { ...hit, _source: { context: { options: { body: "username=u&password=p&grant_type=password" } } } };
+    expect(buildMarkdown(options({ hit: form, timeField: undefined, maskPatterns: ["*password*"] })).split("\n").slice(1, -1)).toEqual([
+      "- `context.options.body`:",
+      "  ```json",
+      "  {",
+      '    "username": "u",',
+      '    "password": "***",',
+      '    "grant_type": "password"',
+      "  }",
+      "  ```",
+    ]);
+  });
 });

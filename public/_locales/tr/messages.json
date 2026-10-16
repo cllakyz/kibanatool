@@ -53,6 +53,7 @@
   "jsonToggle": { "message": "Aç/kapa" },
   "jsonCopyValue": { "message": "Değeri kopyala" },
   "jsonCopyPath": { "message": "Yolu kopyala" },
+  "panelKindForm": { "message": "form" },
   "optionsEnvUrl": { "message": "Kibana adresi" },
   "optionsPending": { "message": "İzin bekliyor" },
   "optionsPermissionError": {

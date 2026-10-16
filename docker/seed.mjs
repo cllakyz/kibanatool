@@ -81,8 +81,9 @@ for (let i = 1; i <= 30; i++) {
   );
 }
 // app-031 and app-032 (Plan 7): request logs shaped like the team's Symfony listeners, where every header maps to a
-// list of values and a form body arrives as JSON. Older than every other app_log log and of user 100009, so other
-// specs' rows, counts and windows stay the same. tests/e2e/copy.spec.ts expects their cURL copies exactly.
+// list of values and a form body arrives as JSON. app-033 (spec 002): an iys-style token request whose form body is
+// form-urlencoded text. All three are older than every other app_log log and of user 100009, so other specs' rows,
+// counts and windows stay the same. tests/e2e/copy.spec.ts expects their copies exactly.
 const symfonyHeaders = (headers) => JSON.stringify(Object.fromEntries(Object.entries(headers).map(([name, value]) => [name, [value]])));
 const requestLog = (n, appName, context) => ({
   message: "User action processed",
@@ -137,6 +138,26 @@ add(
     body: JSON.stringify({ oldPassword: "synthetic-old", newPassword: "synthetic-new", note: "Ali'nin şifresi", settings: JSON.stringify({ lang: "tr" }) }),
     query: "[]",
   }),
+);
+add(
+  { index: { _index: "app_log", _id: "app-033" } },
+  {
+    message: "Token requested",
+    level: 200,
+    level_name: "INFO",
+    channel: "app",
+    datetime: minutesBefore(233),
+    app_name: "api",
+    user_id: 100009,
+    // The JSON headers give the panel a second field, so its list and the "form" tag show (tests/e2e/json.spec.ts).
+    context: {
+      options: {
+        body: "username=dev&password=synthetic-pass&grant_type=password",
+        headers: JSON.stringify({ accept: "application/json" }),
+      },
+    },
+    extra: { uid: "uid-033" },
+  },
 );
 for (let i = 1; i <= 10; i++) {
   add({ index: { _index: "legacy_log", _id: `legacy-${pad(i)}` } }, { message: `legacy event ${i}`, datetime: minutesBefore(i), user_id: 500000 + i });

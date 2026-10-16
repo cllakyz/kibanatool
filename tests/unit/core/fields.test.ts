@@ -1,5 +1,13 @@
 import { describe, expect, it } from "vitest";
-import { expandStructured, flattenDoc, flattenSource, formatValue, isMissing, parseStructuredText } from "../../../src/core/fields";
+import {
+  expandStructured,
+  flattenDoc,
+  flattenSource,
+  formatValue,
+  isMissing,
+  parseStructured,
+  parseStructuredText,
+} from "../../../src/core/fields";
 
 const hit = (source: Record<string, unknown>) => ({ _id: "id-1", _index: "logs-a", _source: source });
 
@@ -104,6 +112,36 @@ describe("parseStructuredText", () => {
     expect(parseStructuredText(' <a x="1"><b>2</b></a> ')).toEqual({ a: { "@x": "1", b: "2" } });
     expect(parseStructuredText("<html><br></html>")).toBeUndefined();
     expect(parseStructuredText("<5 dk")).toBeUndefined();
+  });
+});
+
+describe("parseStructured (spec 002 FR-003)", () => {
+  it("names the kind, chosen by the first character", () => {
+    expect(parseStructured('{"a":1}')).toEqual({ kind: "json", value: { a: 1 } });
+    expect(parseStructured("[1]")).toEqual({ kind: "json", value: [1] });
+    expect(parseStructured("<a>1</a>")).toEqual({ kind: "xml", value: { a: "1" } });
+    expect(parseStructured("a=1&b=2")).toEqual({ kind: "form", value: { a: "1", b: "2" } });
+    expect(parseStructured("hello")).toBeUndefined();
+    expect(parseStructured("a=1")).toBeUndefined();
+    expect(parseStructured("{bad")).toBeUndefined();
+  });
+
+  it("is what parseStructuredText returns the value of", () => {
+    expect(parseStructuredText("a=1&b=2")).toEqual({ a: "1", b: "2" });
+  });
+
+  it("opens form text in the field map under its own path", () => {
+    const fields = flattenSource({ context: { body: "user=u&grant_type=password" } });
+    expect(fields["context.body"]).toBe("user=u&grant_type=password");
+    expect(fields["context.body.grant_type"]).toBe("password");
+  });
+
+  it("opens JSON text inside a form value, and counts form text as one level", () => {
+    expect(expandStructured("p=%7B%22a%22%3A1%7D&q=1")).toEqual({ p: { a: 1 }, q: "1" });
+    let inner: unknown = expandStructured(`p=${encodeURIComponent(nestedJson(5))}&q=1`);
+    inner = (inner as { p: unknown }).p;
+    for (let level = 0; level < 4; level++) inner = (inner as { next: unknown }).next;
+    expect(inner).toBe(JSON.stringify({ leaf: "x" }));
   });
 });
 

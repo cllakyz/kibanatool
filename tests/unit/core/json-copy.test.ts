@@ -72,4 +72,13 @@ describe("buildJson (Plan 6 spec §6)", () => {
   it("copies a hit without _source as an empty object", () => {
     expect(JSON.parse(buildJson({ _id: "1", _index: "i" }, [], all))).toEqual({ _index: "i", _id: "1", _source: {} });
   });
+
+  it("expands form text and masks its keys (spec 002 FR-004)", () => {
+    const form = { _id: "f", _index: "iys_log", _source: { context: { options: { body: "username=u&password=p&grant_type=password" } } } };
+    expect(JSON.parse(buildJson(form, ["*password*"], all))._source.context.options.body).toEqual({
+      username: "u",
+      password: "***",
+      grant_type: "password",
+    });
+  });
 });

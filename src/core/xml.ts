@@ -88,8 +88,11 @@ function attach(stack: Element[], element: Element): Entry | undefined {
 function valueOf(element: Element): unknown {
   if (element.entries.length === 0) return joinRuns(element.text);
   const text = joinRuns(element.hasChildren ? element.text.filter((run) => run.trim() !== "") : element.text);
-  const entries: Entry[] = text.trim() === "" ? element.entries : [...element.entries, ["#text", text]];
-  // A repeated key becomes an array at the place it first appeared; fromEntries keeps "__proto__" an own key.
+  return groupRepeated(text.trim() === "" ? element.entries : [...element.entries, ["#text", text]]);
+}
+
+/** A repeated key becomes an array at the place it first appeared; fromEntries keeps "__proto__" an own key. Form text shares the rule (spec 002 FR-002). */
+export function groupRepeated(entries: Entry[]): Record<string, unknown> {
   const grouped = new Map<string, unknown[]>();
   for (const [key, value] of entries) {
     const values = grouped.get(key);
