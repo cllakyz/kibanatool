@@ -50,9 +50,16 @@ export const BAR_CSS = `
 }
 .kt-json-head button:hover, .kt-row-actions button:hover, .kt-fields button:hover { background: var(--kt-fill-hover); }
 .kt-json-head button:disabled { background: var(--kt-surface); color: var(--kt-text-disabled); cursor: default; }
+.kt-json-head button[aria-pressed="true"] { background: var(--kt-fill-hover); }
 .kt-json-close { margin-left: auto; }
 .kt-fields { display: flex; flex-wrap: wrap; gap: 6px; margin: 0; padding: 8px; list-style: none; }
 .kt-json-rows { max-height: 420px; overflow: auto; padding: 4px 0; font: 12px/1.6 var(--kt-font-mono); }
+/* Spec 002 FR-010/FR-011: the text view; <pre> and <mark> drop their user-agent margin, font and colors. */
+.kt-text { margin: 0; max-height: 420px; overflow: auto; padding: 4px 8px; color: var(--kt-text); font: 12px/1.6 var(--kt-font-mono); white-space: pre; }
+.kt-text.kt-wrap { white-space: pre-wrap; overflow-wrap: anywhere; }
+.kt-text:focus-visible { outline: 2px solid var(--kt-text-primary); outline-offset: -2px; }
+.kt-text mark { background: var(--kt-match); color: inherit; }
+.kt-text mark[data-active] { outline: 1px solid var(--kt-warning); outline-offset: -1px; }
 .kt-row { display: flex; align-items: baseline; gap: 6px; padding-right: 8px; white-space: pre-wrap; word-break: break-all; }
 .kt-row:hover { background: var(--kt-row-hover); }
 .kt-match, .kt-match:hover { background: var(--kt-match); }

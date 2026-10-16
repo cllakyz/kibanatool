@@ -82,8 +82,9 @@ for (let i = 1; i <= 30; i++) {
 }
 // app-031 and app-032 (Plan 7): request logs shaped like the team's Symfony listeners, where every header maps to a
 // list of values and a form body arrives as JSON. app-033 (spec 002): an iys-style token request whose form body is
-// form-urlencoded text. All three are older than every other app_log log and of user 100009, so other specs' rows,
-// counts and windows stay the same. tests/e2e/copy.spec.ts expects their copies exactly.
+// form-urlencoded text. app-034 (spec 002): a cron log with multi-line console output and a long one-line error for
+// the text view. All four are older than every other app_log log and of user 100009, so other specs' rows, counts and
+// windows stay the same. tests/e2e/copy.spec.ts and json.spec.ts expect their contents exactly.
 const symfonyHeaders = (headers) => JSON.stringify(Object.fromEntries(Object.entries(headers).map(([name, value]) => [name, [value]])));
 const requestLog = (n, appName, context) => ({
   message: "User action processed",
@@ -157,6 +158,30 @@ add(
       },
     },
     extra: { uid: "uid-033" },
+  },
+);
+// tests/e2e/json.spec.ts repeats this text: "synced" is in exactly two rows.
+const CRON_OUTPUT = [
+  "┌──────────────┬─────────┐",
+  "│ job          │ status  │",
+  "├──────────────┼─────────┤",
+  "│ odds-import  │ synced  │",
+  "│ race-results │ synced  │",
+  "│ bonus-expiry │ skipped │",
+  "└──────────────┴─────────┘",
+].join("\n");
+add(
+  { index: { _index: "app_log", _id: "app-034" } },
+  {
+    message: "Cron finished",
+    level: 200,
+    level_name: "INFO",
+    channel: "app",
+    datetime: minutesBefore(234),
+    app_name: "admin",
+    user_id: 100009,
+    context: { output: CRON_OUTPUT, error: "Sync failed: " + "upstream timeout; ".repeat(30) },
+    extra: { uid: "uid-034" },
   },
 );
 for (let i = 1; i <= 10; i++) {
