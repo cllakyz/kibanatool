@@ -1,11 +1,11 @@
 # Feature Specification: One-Click Action Buttons on Result Rows
 
-**Feature Branch**: decided in the plan. The two user stories can ship as one branch or in sequence.
-Both ship in 1.0.0 (user decision, 2026-10-16).
+**Feature Branch**: `003-row-actions`, one pull request for both user stories (planning decision,
+2026-10-16). Both ship in 1.0.0 (user decision, 2026-10-16).
 
 **Created**: 2026-10-16
 
-**Status**: Draft
+**Status**: Implemented (PR #12, merged 2026-10-17)
 
 **Input**: User description: "Satırdan tek tıkla buton. 7.17'de butonları görmek için önce satırı açmak
 gerekiyor; butonlar doğrudan satırda gösterilebilir. Bu geliştirme için spec dökümanı oluştur." (One-click

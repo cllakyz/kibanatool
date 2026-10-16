@@ -672,7 +672,7 @@ checkbox. Depends on Phase 2 and on US1's T022–T023, which are the wiring and 
   answers in the verification doc:
   - as an amended commit if T037's commit is unpushed;
   - otherwise as a new commit.
-- [ ] T039 Ask the user whether to push and open the PR. Do not push without a yes. On yes:
+- [X] T039 Ask the user whether to push and open the PR. Do not push without a yes. On yes:
   - **Push** with `GH_TOKEN=$(gh auth token --user cllakyz) git -c credential.helper='!gh auth
     git-credential' push -u origin 003-row-actions`.
   - **Open** the PR with `GH_TOKEN=$(gh auth token --user cllakyz) gh pr create`.
@@ -686,7 +686,7 @@ checkbox. Depends on Phase 2 and on US1's T022–T023, which are the wiring and 
 
   After the user says it is merged, pull `main`. Delete the branch locally and on GitHub only if the
   user asks.
-- [ ] T040 Mark spec-kit feature 003 implemented: spec status "Implemented (PR #N, merged
+- [X] T040 Mark spec-kit feature 003 implemented: spec status "Implemented (PR #N, merged
   <date>)", all tasks checked. Ask the user whether this goes directly to `main` (as 002's T038
   did) or into the branch before the merge.
 
