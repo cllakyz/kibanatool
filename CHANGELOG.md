@@ -11,6 +11,11 @@ First public release, for Kibana 7.17, 8.x and 9.x in Chrome.
 
 - An action bar on the log you open in Discover (an expanded row on 7.17, the document flyout on 8.x/9.x),
   built from the log's raw fields, which are read from your Kibana with your own session.
+- Row buttons: actions marked "Show in row" also appear at the right end of a Discover result row when you point
+  at it or focus it, so one click runs them without expanding the row or opening the flyout. They are the bar's
+  own buttons for that log, greyed-out ones included. The rows' logs are read in the background, up to 50 per
+  request, only while an action is marked. On 7.17 a small script in the page's own context reads each row's
+  index and id from Kibana's page data.
 - Link actions: URL templates with `{field|fallback}` placeholders and conditions.
 - Discover actions: a KQL query from the log, optionally ±N minutes around the log's time, in a new tab.
 - Copy menu: the log as Markdown or as JSON with sensitive fields masked, a link to the log, and the current
@@ -40,7 +45,7 @@ First public release, for Kibana 7.17, 8.x and 9.x in Chrome.
   is greyed out with the reason.
 - Discover actions can name their target data view (display name or index pattern) instead of an ID; the
   name is looked up in the current space.
-- Settings files are version 3; settings from pre-release builds (versions 1 and 2) are converted when loaded.
+- Settings files are version 4; settings from pre-release builds (versions 1 to 3) are converted when loaded.
 - English and Turkish.
 - The look of Kibana 9's Borealis theme, in light and dark. The options page follows the system's dark mode;
   the action bar follows the Kibana page it sits on (7.17, 8.x and 9.x).

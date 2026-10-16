@@ -12,7 +12,7 @@ uploaded by hand in the developer dashboard.
 - **Icon:** `public/icon/128.png`
 - **Screenshots:** at least one, 1280×800. Take them from a dev stack (synthetic data only): `./docker/up.sh 9`,
   load `.output/chrome-mv3`, import `examples/kibanatool-settings.json` with the Kibana address changed to
-  `http://localhost:19601`, open a log, show the bar, the View panel and the copy menu.
+  `http://localhost:19601`, open a log, show the bar, a row strip (mark an action "Show in row"), the View panel and the copy menu.
 - **Small promo tile (440×280):** only if the dashboard requires it; same design as the icon.
 
 ### Description (English)
@@ -21,6 +21,7 @@ kibanatool adds a row of action buttons to the log you open in Kibana Discover, 
 It works on Kibana 7.17, 8.x and 9.x.
 
 - Jump to your admin panel, Sentry, Jira or any other tool with a value from the log.
+- Put the actions you use most on the result rows: point at a row and click, without opening the log.
 - Open related logs in a new tab: the same user's logs, or everything ±5 minutes around this log.
 - Read fields that hold JSON text as a searchable tree.
 - Read and search long or multi-line text, such as console output and stack traces, with its line breaks kept.
@@ -41,6 +42,7 @@ kibanatool, Kibana Discover'da açtığınız loga, o logun ham alanlarından ü
 Kibana 7.17, 8.x ve 9.x'te çalışır.
 
 - Logdaki bir değerle admin panelinize, Sentry'ye, Jira'ya ya da başka bir araca tek tıkla geçin.
+- En sık kullandığınız aksiyonları sonuç satırlarına koyun: logu açmadan, satırın üzerine gelip tıklayın.
 - İlgili logları yeni sekmede açın: aynı kullanıcının logları ya da bu logun ±5 dakika çevresi.
 - JSON metni tutan alanları aranabilir bir ağaç olarak okuyun.
 - Konsol çıktısı ve stack trace gibi uzun ve çok satırlı metni satır sonlarıyla okuyun ve içinde arayın.
@@ -61,7 +63,11 @@ ayarlarını tarayıcınızda tutar. Açık kaynak: https://github.com/cllakyz/k
 - **Permission justifications:**
   - `storage`: keeps the user's settings (Kibana addresses, actions, copy settings) locally.
   - `scripting`: registers the extension's script only on the Kibana addresses the user added
-    (`chrome.scripting.registerContentScripts`), instead of declaring a content script for every site.
+    (`chrome.scripting.registerContentScripts`), instead of declaring a content script for every site. On the
+    same addresses it also registers a small script that runs in the Kibana page's own context and reads only
+    the index and id of Discover's result rows (Kibana 7.17 keeps them only in its page data), so the actions the
+    user chose can be shown on the rows. That script has no extension API, sends nothing and stays idle until
+    the extension's own script asks.
   - Host permissions (optional, `http://*/*` and `https://*/*`): requested at runtime for each Kibana address
     the user adds, one origin at a time. Needed to run on that Kibana and to read the opened log through
     Kibana's own API with the user's session. Never requested for any other site.

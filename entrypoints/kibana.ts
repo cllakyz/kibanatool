@@ -158,6 +158,8 @@ async function start(): Promise<void> {
     rowHost.refresh();
     identifyRows();
     const identities = findRows(document, location, prefix).flatMap(({ identity }) => (identity ? [identity] : []));
+    // ponytail: a failed batch is evicted and asked again on the next pass, i.e. at most once per DOM-change pass
+    // while it keeps failing; add a backoff if a persistently failing Kibana ever shows up in practice.
     for (const batch of batches(identities.map(({ index, id }) => ({ index, id })))) void client.prefetchDocs(batch);
     // The strip's Discover buttons need the data view's time field; looked up once, so a hover never waits for it.
     const dataViewId = identities[0]?.dataViewId;

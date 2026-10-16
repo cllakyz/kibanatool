@@ -36,7 +36,7 @@ kibanatool, Kibana Discover'da logla çalışmayı hızlandıran açık kaynak b
 | Test | Vitest (birim) + Playwright (uçtan uca, Docker'daki Kibana'lara karşı) | Sürüm uyumluluğu ancak gerçek Kibana'larda doğrulanabilir. |
 
 Reddedilen yaklaşımlar:
-- **React iç verisini okumak:** belgelenmemiş iç yapıya bağımlı ve kırılgan.
+- **React iç verisini okumak:** belgelenmemiş iç yapıya bağımlı ve kırılgan. *(2026-10-16: 7.17 satır kimliği için kullanıcı kararıyla kabul edildi; bkz. `specs/003-row-actions/`.)*
 - **Discover'ın ağ yanıtlarını dinlemek:** 7.17 ve 8.15'te yanıtlar sıkıştırılmış `bsearch`, 9.5'te `search/ese`. Satırları loglarla eşleştirmek sıraya dayanıyor. Sayfanın `fetch` fonksiyonuna müdahale etmek mağaza incelemesinde hassas.
 - **Graytool'u fork'lamak veya ona katkı vermek.**
 
@@ -359,7 +359,7 @@ interface Condition {
 
 ## 15. Kapsam dışı (v1 sonrası adaylar)
 
-- **Kapalı satırda butonlar** (8.x/9.x'te `dscGridSelectDoc` kimliğiyle mümkün).
+- **Kapalı satırda butonlar** (8.x/9.x'te `dscGridSelectDoc` kimliğiyle mümkün). *(2026-10-16: 7.17, 8.x ve 9.x için yapıldı; 7.17'de kimlik React verisinden okunuyor, kullanıcı kararı. Bkz. `specs/003-row-actions/`.)*
 - **Stack trace'ten koda gitme** (PhpStorm/VS Code/GitHub linkleri ve yol eşleme). v1 sonrasında ilk sıradaki aday.
 - Ortam şeridi, satır renklendirme, ekranda maskeleme modu, sorgu şablonları, düz metinden alan çıkarma.
 - Firefox desteği, Chrome sync, elle dil seçimi, Jira Server wiki biçimi, ES|QL modu, Dashboard panelleri, 7.17'de yeni tablo modu, otomatik mağaza yayını.

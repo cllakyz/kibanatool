@@ -6,7 +6,9 @@ kibanatool is a Chrome extension that adds action buttons to the log you open in
 - **Settings.** Your Kibana addresses, actions and copy settings are stored only in your browser
   (`chrome.storage.local`). They leave your computer only if you export them to a file yourself.
 - **Network.** The extension talks only to the Kibana addresses you add, with your own Kibana session, to
-  read the log you opened and its data view. These requests go from your browser to your Kibana.
+  read the log you opened and its data view. When you have marked actions to show on result rows, it also
+  reads the logs of the rows on screen, kept in memory only while the page is open. These requests go from
+  your browser to your Kibana.
 - **Links.** Buttons open the address that your own action templates build, in a new tab, only when you click them.
 - **Clipboard.** The extension writes to the clipboard only when you choose a copy command. It never reads it.
 - **No telemetry, analytics, ads or remote code.**
@@ -26,7 +28,9 @@ kibanatool, Kibana Discover'da açtığınız loga aksiyon butonları ekleyen bi
 - **Ayarlar.** Kibana adresleriniz, aksiyonlarınız ve kopyalama ayarlarınız yalnızca tarayıcınızda
   (`chrome.storage.local`) saklanır. Ancak siz bir dosyaya dışa aktarırsanız bilgisayarınızdan çıkar.
 - **Ağ.** Eklenti yalnızca eklediğiniz Kibana adresleriyle, kendi Kibana oturumunuzla, açtığınız logu ve
-  data view'ını okumak için konuşur. Bu istekler tarayıcınızdan Kibana'nıza gider.
+  data view'ını okumak için konuşur. Sonuç satırlarında gösterilecek aksiyonlar işaretlediyseniz ekrandaki
+  satırların loglarını da okur ve bunları yalnızca sayfa açıkken bellekte tutar. Bu istekler tarayıcınızdan
+  Kibana'nıza gider.
 - **Linkler.** Butonlar, kendi aksiyon şablonlarınızın ürettiği adresi yalnızca tıkladığınızda yeni sekmede açar.
 - **Pano.** Eklenti panoya yalnızca bir kopyalama komutu seçtiğinizde yazar. Panoyu hiç okumaz.
 - **Telemetri, analitik, reklam ya da uzaktan kod yoktur.**
