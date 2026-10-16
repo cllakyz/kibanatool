@@ -47,7 +47,29 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npx playwright install --with-deps chromium
+      # The stack's Elasticsearch and Kibana images, keyed by their version in docker/up.sh: a run loads them from
+      # the cache instead of pulling them, and the first run after a version change saves them.
+      - name: Stack version
+        id: stack
+        run: |
+          version=$(sed -nE "s/^  ${KT_STACK}\) STACK_VERSION=([^;]+);.*/\1/p" docker/up.sh)
+          test -n "$version"  # an empty key would let the stacks share one cache entry
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+      - name: Image cache
+        id: images
+        uses: actions/cache@v4
+        with:
+          path: ~/docker-images
+          key: docker-images-${{ steps.stack.outputs.version }}
+      - name: Load the images
+        if: steps.images.outputs.cache-hit == 'true'
+        run: docker load --quiet --input ~/docker-images/stack.tar
       - run: ./docker/up.sh ${{ matrix.major }}
+      - name: Save the images
+        if: steps.images.outputs.cache-hit != 'true'
+        run: |
+          mkdir -p ~/docker-images
+          docker save --output ~/docker-images/stack.tar $(docker compose --env-file docker/.env.${{ matrix.major }} -f docker/compose.yml config --images)
       - run: npm run e2e
       - name: Stack logs
         if: failure()
