@@ -38,7 +38,7 @@
   "noticeCopied": { "message": "Kopyalandı" },
   "noticeCopyFailed": { "message": "Kopyalanamadı" },
   "noticeTimeNotConverted": { "message": "Zaman aralığı sabit tarihlere çevrilemedi" },
-  "jsonButton": { "message": "JSON" },
+  "viewButton": { "message": "Görüntüle" },
   "jsonChooseField": { "message": "Bir alan seç" },
   "jsonBack": { "message": "Tüm alanlar" },
   "jsonClose": { "message": "Kapat" },
@@ -54,6 +54,9 @@
   "jsonCopyValue": { "message": "Değeri kopyala" },
   "jsonCopyPath": { "message": "Yolu kopyala" },
   "panelKindForm": { "message": "form" },
+  "panelKindText": { "message": "metin" },
+  "textWrap": { "message": "Satırları kaydır" },
+  "textSearch": { "message": "Metinde ara" },
   "optionsEnvUrl": { "message": "Kibana adresi" },
   "optionsPending": { "message": "İzin bekliyor" },
   "optionsPermissionError": {

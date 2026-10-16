@@ -58,7 +58,7 @@ The list label is `path` for JSON, `path · XML` for XML and `path · ${t("panel
 
 `app-033` added (data-model.md, "Seed contract").
 
-## User Story 2 (`002-text-view`, 1.1.0)
+## User Story 2 (`002-text-view`, 1.0.0)
 
 ### `src/core/mask.ts` (R8)
 
@@ -97,12 +97,10 @@ wrapped in `PanelBoundary`.
 ### Strings
 
 - `jsonButton` is renamed to `viewButton`.
-- `panelKindText` and `textWrap` are added to both locale files.
+- `panelKindText`, `textWrap` and `textSearch` are added to both locale files. `textSearch` was added during
+  implementation, because the tree's "Search keys and values" placeholder does not fit text.
 
 ### Seed
 
 `app-034` added (data-model.md, "Seed contract").
 
-### Version
-
-`package.json` 1.1.0.

@@ -18,7 +18,7 @@ its implementation task lands.
 (research R16):
 - **US1** (`002-form-data`) ships in 1.0.0.
 - **US2** (`002-text-view`) is cut from main only after the user has merged US1, and ships in
-  1.1.0.
+  1.1.0. *(Changed on 2026-10-16: both ship in 1.0.0, see spec clarifications.)*
 
 **Ground rules for every task**:
 - **Unchanged output for logs without form text (FR-019).** In US1, no existing expected value in
@@ -330,7 +330,7 @@ as form text. Branch `002-form-data`, release 1.0.0.
 **Goal**: Text the panel cannot parse, when multi-line or at least 500 characters long, is listed
 and opens in a text view. The text view keeps line breaks, picks wrapping from the text, and
 offers the shared search and an unmasked copy. The button becomes "View". Branch `002-text-view`,
-release 1.1.0.
+release 1.0.0 (changed from 1.1.0 on 2026-10-16).
 
 **Independent Test**:
 - Open seed doc `app-034` (`extra.uid:"uid-034"`). The "View" button lists `context.output · text`
@@ -340,7 +340,7 @@ release 1.1.0.
 
 ### Setup for User Story 2
 
-- [ ] T022 [US2] Only after US1 is merged:
+- [X] T022 [US2] Only after US1 is merged:
   - `git switch main && git pull`;
   - `git switch -c 002-text-view`.
 
@@ -349,7 +349,7 @@ release 1.1.0.
 
 ### Tests for User Story 2 (write first; they must fail until the matching implementation task)
 
-- [ ] T023 [P] [US2] Rework `tests/unit/core/json-tree.test.ts` (research R7, R8):
+- [X] T023 [P] [US2] Rework `tests/unit/core/json-tree.test.ts` (research R7, R8):
   - Rename `jsonTextFields` → `panelFields` and `source` → `kind` in the existing expectations;
     their paths and values stay the same.
   - `panelFields` lists fields in `_source` order. With `{ a: "line1\nline2", b: "x".repeat(500),
@@ -371,7 +371,7 @@ release 1.1.0.
   - `textMatches("İx ab AB", "ab")` gives `[[3,5],[6,8]]`: offsets from the original string, after
     a two-code-unit lower-case letter.
   - `textSegments` splits `"xaby"` with `[[1,3]]` into `[{text:"x"},{text:"ab",match:0},{text:"y"}]`.
-- [ ] T024 [P] [US2] Create `tests/unit/content/json-view.test.ts` with the `// @vitest-environment
+- [X] T024 [P] [US2] Create `tests/unit/content/json-view.test.ts` with the `// @vitest-environment
   happy-dom` header. Mirror the setup in `tests/unit/content/copy-menu.test.ts`
   (`IS_REACT_ACT_ENVIRONMENT`, `createRoot`, `act`). Mock `../../../src/i18n` with
   `t: (key, ...subs) => [key, ...subs].join(" ")`. Then render `JsonView`:
@@ -388,15 +388,15 @@ release 1.1.0.
     `path · XML` and `path · panelKindText`.
   - **`PanelBoundary`.** A child that throws makes it render nothing and calls `console.debug`
     with `"[kibanatool]"` (spy on `console.debug`).
-- [ ] T025 [P] [US2] Extend `tests/unit/theme.test.ts` (research R11): text-primary on `match`
+- [X] T025 [P] [US2] Extend `tests/unit/theme.test.ts` (research R11): text-primary on `match`
   meets the body-text contrast floor already used for text-primary pairs, in both the light and
   dark palettes.
 
 ### Implementation for User Story 2
 
-- [ ] T026 [US2] In `src/core/mask.ts`, export `escapeRegExp` (unchanged body). Nothing else
+- [X] T026 [US2] In `src/core/mask.ts`, export `escapeRegExp` (unchanged body). Nothing else
   changes.
-- [ ] T027 [US2] In `src/core/json-tree.ts` (research R7, R8; contract "User Story 2"):
+- [X] T027 [US2] In `src/core/json-tree.ts` (research R7, R8; contract "User Story 2"):
   - add `TEXT_VIEW_MIN_LENGTH = 500` and `isMultiLine(text)` (`/[\r\n]/.test(text.trim())`);
   - add `PanelField` (the union);
   - replace `jsonTextFields` with `panelFields`. It makes one pass over `flattenSource(source,
@@ -411,7 +411,7 @@ release 1.1.0.
   - update the header comment (spec 002 FR-007, FR-012).
 
   T023 passes.
-- [ ] T028 [US2] In `src/content/JsonView.tsx` (research R9, R12):
+- [X] T028 [US2] In `src/content/JsonView.tsx` (research R9, R12):
   - **`SearchBar`.** Extract from `JsonTree` a `SearchBar({ query, onQuery, status, count,
     onStep })`. It holds the search input, the status span with `aria-live="polite"`, ↑/↓ and
     Enter/Shift+Enter. `JsonTree` uses it, and its behavior is unchanged.
@@ -433,24 +433,24 @@ release 1.1.0.
     `componentDidCatch`.
 
   T024 passes.
-- [ ] T029 [P] [US2] In `src/content/styles.ts`, next to the `.kt-json-rows` rule, add:
+- [X] T029 [P] [US2] In `src/content/styles.ts`, next to the `.kt-json-rows` rule, add:
   - `.kt-text`: `margin: 0; max-height: 420px; overflow: auto; padding: 4px 8px; font: 12px/1.6
     var(--kt-font-mono); white-space: pre;`;
   - `.kt-text.kt-wrap { white-space: pre-wrap; overflow-wrap: anywhere; }`;
   - `.kt-text mark { background: var(--kt-match); color: inherit; }`;
   - `.kt-text mark[data-active] { outline: 1px solid var(--kt-warning); outline-offset: -1px; }`;
   - `.kt-text:focus-visible`: an outline like `.kt-json-head input:focus`.
-- [ ] T030 [US2] In `src/content/ActionBar.tsx`:
+- [X] T030 [US2] In `src/content/ActionBar.tsx`:
   - import `panelFields` and `PanelBoundary`;
   - rename `jsonFields`/`jsonOpen` to `panelEntries`/`panelOpen`;
   - the button label is `t("viewButton")`;
   - wrap the `JsonView` render in `<PanelBoundary key={id}>`, so a new document resets it.
-- [ ] T031 [P] [US2] In both `public/_locales/{en,tr}/messages.json`:
+- [X] T031 [P] [US2] In both `public/_locales/{en,tr}/messages.json`:
   - rename `jsonButton` → `viewButton` with "View" / "Görüntüle";
   - add `panelKindText` ("text" / "metin") and `textWrap` ("Wrap lines" / "Satırları kaydır").
 
   `tests/unit/i18n.test.ts` passes, and `MessageKey` picks the change up from the English file.
-- [ ] T032 [US2] Seed and e2e, in the same commit:
+- [X] T032 [US2] Seed and e2e, in the same commit:
   - **`docker/seed.mjs`**: add `app-034` after `app-033`, with the same "older, user 100009"
     pattern (`minutesBefore(234)`), `message: "Cron finished"`, `channel: "app"` and `extra: { uid:
     "uid-034" }`. Its context:
@@ -471,14 +471,14 @@ release 1.1.0.
       - click copy: `navigator.clipboard.readText()` equals the seeded output.
 
   Re-seed with `./docker/up.sh 9`, then run `KT_STACK=9 npm run e2e -- json`.
-- [ ] T033 [US2] Commit the code, the tests, the seed and the e2e tests with the message `feat:
+- [X] T033 [US2] Commit the code, the tests, the seed and the e2e tests with the message `feat:
   read long and multi-line text in a text view; the panel button becomes View`. The body names
   FR-007–FR-014.
-- [ ] T034 [P] [US2] Release docs (research R15):
-  - **`package.json`**: `"version": "1.1.0"`.
-  - **`CHANGELOG.md`**: a new `## [1.1.0] - Unreleased` section above `[1.0.0]`, with an "Added"
-    bullet for the text view and a "Changed" bullet for the button. Leave `[1.0.0]` as it is,
-    even if it is still "Unreleased" (research R15).
+- [X] T034 [P] [US2] Release docs (research R15):
+  - **`package.json`**: stays `"version": "1.0.0"` (changed on 2026-10-16; at first this task set
+    1.1.0).
+  - **`CHANGELOG.md` `[1.0.0]`**: the "JSON view" bullet becomes the View panel, plus a text-view
+    bullet. (Changed on 2026-10-16; at first this task added a `[1.1.0]` section.)
   - **`README.md`**: a "### Text view" section covering:
     - which fields are listed (multi-line, or 500+ characters, not JSON, XML or form);
     - wrapping by text, and the toggle;
@@ -491,16 +491,15 @@ release 1.1.0.
   - **`CLAUDE.md`**: one sentence in Architecture or Traps: "The panel lists text fields that are
     multi-line or ≥ `TEXT_VIEW_MIN_LENGTH` (500) characters; tree and text search share
     `searchPattern` (`iu`, never `g`: `.test` must not keep `lastIndex`)".
-- [ ] T035 [US2] Validation and record:
+- [X] T035 [US2] Validation and record:
   - Run quickstart "Gates" after re-seeding all three stacks. Expect e2e 30/30/31 with 3 skipped
     each, and more unit tests than T022's count.
   - Run "User Story 2 checks" 1–6. For SC-004, index the 100 KB document *after* the e2e run and
     measure both the open and the one-letter search. If either exceeds 1 s, apply research R10's
     cap in `TextBody`/`textSegments`, add a `ponytail:` comment, and re-run.
   - Write `docs/verification/2026-10-text-view.md` in Turkish, with the SC-004 timings.
-  - Commit T034's docs and the record with the message `docs: text view in README, CHANGELOG
-    1.1.0, store listing and CLAUDE.md`.
-- [ ] T036 [US2] SC-002 on Alpha (quickstart US2 check 7). **Ask the user first**: it runs in the
+  - Commit T034's docs and the record with the message `docs: text view in README, CHANGELOG, store listing and CLAUDE.md`.
+- [X] T036 [US2] SC-002 on Alpha (quickstart US2 check 7). **Ask the user first**: it runs in the
   user's Chrome session on the team Kibana, read-only, counts only. On yes:
   - Write a throwaway script in the session scratchpad, not in the repo. It imports `panelFields`,
     `parseStructured` and `isMultiLine` from `src/core`, fetches the last 500 docs of each data
@@ -512,13 +511,13 @@ release 1.1.0.
 
   Both counts must be 0. Add the result to the verification doc and its commit. Then ask the user
   to run M2 (quickstart US2 check 8), and record that too.
-- [ ] T037 [US2] Ask the user whether to push and open the PR. Do not push without a yes. On yes,
+- [X] T037 [US2] Ask the user whether to push and open the PR. Do not push without a yes. On yes,
   push `002-text-view` the same way as T021 and open a PR titled "Text view for long and
   multi-line text". The body covers US2, the button rename, SC-004's timings and the test counts,
   and ends with the Claude Code line. After the merge, pull `main`; delete the branch only if the
   user asks.
 
-**Checkpoint**: both stories are merged. 1.1.0 is ready to release after 1.0.0.
+**Checkpoint**: both stories are merged. 1.0.0 is ready for the store with both.
 
 ---
 
@@ -575,7 +574,7 @@ T006 markdown.test.ts · T007 json-copy.test.ts · T008 curl.test.ts · T009 jso
 ### Incremental Delivery
 
 1. US1 → PR → merge → 1.0.0 can ship.
-2. US2 on a fresh branch → PR → merge → 1.1.0.
+2. US2 on a fresh branch → PR → merge; it joins 1.0.0 (clarified 2026-10-16).
 
 ## Notes
 

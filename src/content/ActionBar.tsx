@@ -5,7 +5,7 @@ import { buildCurl, requestPrefix } from "../core/curl";
 import { buildDiscoverButtons } from "../core/discover-actions";
 import { flattenDoc } from "../core/fields";
 import { buildJson } from "../core/json-copy";
-import { jsonTextFields } from "../core/json-tree";
+import { panelFields } from "../core/json-tree";
 import { buildLinkButtons } from "../core/link-actions";
 import { buildMarkdown } from "../core/markdown";
 import type { ActionButton, DataViewSummary, DocIdentity, RawHit } from "../core/types";
@@ -17,7 +17,7 @@ import { describePassive } from "../passive-text";
 import { loadDataViews, loadTimeFields, timeFieldTargets } from "./bar-data";
 import { copyText } from "./clipboard";
 import { type CopyItem, CopyMenu } from "./CopyMenu";
-import { JsonView } from "./JsonView";
+import { JsonView, PanelBoundary } from "./JsonView";
 
 type State =
   | { status: "loading" }
@@ -54,7 +54,7 @@ export function ActionBar({ identity, actions, client, prefix, page, now, copy, 
   const [state, setState] = useState<State>({ status: "loading" });
   const [notice, setNotice] = useState<MessageKey | null>(null);
   const rootRef = useRef<HTMLDivElement>(null);
-  const [jsonOpen, setJsonOpen] = useState(false);
+  const [panelOpen, setPanelOpen] = useState(false);
   const { dataViewId, index, id } = identity;
 
   useEffect(() => {
@@ -102,7 +102,7 @@ export function ActionBar({ identity, actions, client, prefix, page, now, copy, 
     };
   }, [state, actions, prefix, dataViewId, hash, environment]);
 
-  const jsonFields = useMemo(() => (state.status === "ready" ? jsonTextFields(state.hit._source ?? {}) : []), [state]);
+  const panelEntries = useMemo(() => (state.status === "ready" ? panelFields(state.hit._source ?? {}) : []), [state]);
 
   const hasRequest = useMemo(() => state.status === "ready" && requestPrefix(state.hit._source ?? {}) !== undefined, [state]);
 
@@ -172,9 +172,9 @@ export function ActionBar({ identity, actions, client, prefix, page, now, copy, 
       <div className="kt-bar">
         {buttons.links.map((button) => actionButton(button, "kt-btn"))}
         {buttons.discover.map((button) => actionButton(button, "kt-btn kt-discover"))}
-        {jsonFields.length > 0 && (
-          <button type="button" className="kt-ghost" aria-expanded={jsonOpen} onClick={() => setJsonOpen(!jsonOpen)}>
-            {t("jsonButton")}
+        {panelEntries.length > 0 && (
+          <button type="button" className="kt-ghost" aria-expanded={panelOpen} onClick={() => setPanelOpen(!panelOpen)}>
+            {t("viewButton")}
           </button>
         )}
         {notice && (
@@ -184,8 +184,11 @@ export function ActionBar({ identity, actions, client, prefix, page, now, copy, 
         )}
         <CopyMenu items={copyItems} onCopy={copyToClipboard} onFail={setNotice} />
       </div>
-      {jsonOpen && jsonFields.length > 0 && (
-        <JsonView fields={jsonFields} onCopy={copyToClipboard} onClose={() => setJsonOpen(false)} />
+      {panelOpen && panelEntries.length > 0 && (
+        // A new log gets a new boundary, so a panel that failed on one log opens on the next (spec 002 FR-017).
+        <PanelBoundary key={`${index}/${id}`}>
+          <JsonView fields={panelEntries} onCopy={copyToClipboard} onClose={() => setPanelOpen(false)} />
+        </PanelBoundary>
       )}
     </div>
   );

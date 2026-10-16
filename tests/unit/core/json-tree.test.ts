@@ -1,23 +1,28 @@
 import { describe, expect, it } from "vitest";
 import {
+  TEXT_VIEW_MIN_LENGTH,
   copyableValue,
   isDescendant,
+  isMultiLine,
   jsonRows,
-  jsonTextFields,
   matchPaths,
+  panelFields,
   revealPath,
+  searchPattern,
+  textMatches,
+  textSegments,
   visibleRows,
 } from "../../../src/core/json-tree";
 
 const doc = { user: { id: 7, name: "Ada" }, items: [{ sku: "A-1" }, { sku: "B-2" }], "odd.key": null };
 const rows = jsonRows(doc);
 
-describe("jsonTextFields", () => {
+describe("panelFields", () => {
   it("finds _source fields whose text is a JSON object or array", () => {
     const source = { message: "x", context: { body: '{"a":1}', query: "[1,2]", raw: "{not json" }, count: 3 };
-    expect(jsonTextFields(source)).toEqual([
-      { path: "context.body", value: { a: 1 }, source: "json" },
-      { path: "context.query", value: [1, 2], source: "json" },
+    expect(panelFields(source)).toEqual([
+      { path: "context.body", value: { a: 1 }, kind: "json" },
+      { path: "context.query", value: [1, 2], kind: "json" },
     ]);
   });
 
@@ -27,20 +32,45 @@ describe("jsonTextFields", () => {
       body: JSON.stringify({ nested: '{"a":1}' }),
       page: "<html><br></html>",
     };
-    expect(jsonTextFields(source)).toEqual([
-      { path: "request", value: { r: { Payload: { race: { runId: "42" } } } }, source: "xml" },
-      { path: "body", value: { nested: { a: 1 } }, source: "json" },
+    expect(panelFields(source)).toEqual([
+      { path: "request", value: { r: { Payload: { race: { runId: "42" } } } }, kind: "xml" },
+      { path: "body", value: { nested: { a: 1 } }, kind: "json" },
     ]);
   });
 });
 
-describe("jsonTextFields with form text (spec 002 FR-003)", () => {
+describe("panelFields with form text (spec 002 FR-003)", () => {
   it("lists form text as its own kind", () => {
     const source = { body: '{"a":1}', options: { body: "user=u&grant_type=password" }, plain: "a=1" };
-    expect(jsonTextFields(source)).toEqual([
-      { path: "body", value: { a: 1 }, source: "json" },
-      { path: "options.body", value: { user: "u", grant_type: "password" }, source: "form" },
+    expect(panelFields(source)).toEqual([
+      { path: "body", value: { a: 1 }, kind: "json" },
+      { path: "options.body", value: { user: "u", grant_type: "password" }, kind: "form" },
     ]);
+  });
+});
+
+describe("panelFields with text (spec 002 FR-007)", () => {
+  it("lists multi-line and long text in field order, beside structured text", () => {
+    const long = "x".repeat(TEXT_VIEW_MIN_LENGTH);
+    const source = { a: "line1\nline2", b: long, c: "x".repeat(TEXT_VIEW_MIN_LENGTH - 1), d: '{"k":1}', e: "  trailing\n  " };
+    expect(panelFields(source)).toEqual([
+      { path: "a", kind: "text", text: "line1\nline2" },
+      { path: "b", kind: "text", text: long },
+      { path: "d", value: { k: 1 }, kind: "json" },
+    ]);
+  });
+
+  it("lists only text leaves, not array items or numbers", () => {
+    expect(panelFields({ lines: ["a\nb"], n: 5, t: "a\r\nb" })).toEqual([{ path: "t", kind: "text", text: "a\r\nb" }]);
+  });
+});
+
+describe("isMultiLine", () => {
+  it("is true when a line break remains after trimming", () => {
+    expect(isMultiLine("a\r\nb")).toBe(true);
+    expect(isMultiLine("a\rb")).toBe(true);
+    expect(isMultiLine("a\n")).toBe(false);
+    expect(isMultiLine("abc")).toBe(false);
   });
 });
 
@@ -100,6 +130,46 @@ describe("matchPaths", () => {
     expect(matchPaths(rows, "1")).toEqual([".items[0].sku"]);
     expect(matchPaths(rows, "null")).toEqual(['["odd.key"]']);
     expect(matchPaths(rows, "  ")).toEqual([]);
+  });
+
+  it("finds consecutive matching rows: the pattern keeps no lastIndex between them", () => {
+    const pair = jsonRows({ a: "match", b: "match" });
+    expect(matchPaths(pair, "match")).toEqual([".a", ".b"]);
+  });
+
+  it("treats the query as plain text, not a pattern", () => {
+    expect(matchPaths(jsonRows({ a: "x.y", b: "xzy" }), "x.y")).toEqual([".a"]);
+  });
+});
+
+describe("searchPattern (spec 002 FR-012)", () => {
+  it("is undefined for a blank query, case-insensitive and not global", () => {
+    expect(searchPattern("  ")).toBeUndefined();
+    const pattern = searchPattern("ISTANBUL");
+    expect(pattern?.test("istanbul")).toBe(true);
+    expect(pattern?.flags.includes("g")).toBe(false);
+    // As before with toLowerCase(): "İSTANBUL".toLowerCase() is "i̇stanbul", so a dotted capital İ never matches i.
+    expect(searchPattern("istanbul")?.test("İSTANBUL")).toBe(false);
+  });
+});
+
+describe("textMatches and textSegments (spec 002 FR-012)", () => {
+  it("returns offsets into the original text, also after a letter whose lower case is longer", () => {
+    expect(textMatches("İx ab AB", "ab")).toEqual([
+      [3, 5],
+      [6, 8],
+    ]);
+    expect(textMatches("abc", " ")).toEqual([]);
+    expect(textMatches("a+b a+b", "a+b")).toEqual([
+      [0, 3],
+      [4, 7],
+    ]);
+  });
+
+  it("splits the text into plain runs and numbered matches", () => {
+    expect(textSegments("xaby", [[1, 3]])).toEqual([{ text: "x" }, { text: "ab", match: 0 }, { text: "y" }]);
+    expect(textSegments("ab", [[0, 2]])).toEqual([{ text: "ab", match: 0 }]);
+    expect(textSegments("abc", [])).toEqual([{ text: "abc" }]);
   });
 });
 

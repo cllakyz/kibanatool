@@ -4,7 +4,7 @@ import { MASK, type ValueMaskKind, maskText } from "./value-mask";
 
 export { MASK };
 
-const escapeRegExp = (text: string): string => text.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+export const escapeRegExp = (text: string): string => text.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 
 /** `*` matches any run of characters; the whole dot path must match, ignoring case. */
 export function maskMatcher(patterns: string[]): (path: string) => boolean {

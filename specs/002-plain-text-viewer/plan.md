@@ -1,6 +1,6 @@
 # Implementation Plan: Plain-Text Request/Response Viewer
 
-**Branches**: `002-form-data` (User Story 1 → 1.0.0), then `002-text-view` (User Story 2 → 1.1.0) |
+**Branches**: `002-form-data` (User Story 1), then `002-text-view` (User Story 2); both ship in 1.0.0 |
 **Date**: 2026-10-15 | **Spec**: [spec.md](spec.md)
 
 **Input**: Feature specification from `/specs/002-plain-text-viewer/spec.md`
@@ -16,7 +16,7 @@ consumers. This closes the leak where `iys_log` copies carry a credential unmask
 needs an explicit kind dispatch, because otherwise it would turn form text into JSON (R5). Form
 text there is masked pair by pair and its unchanged bytes are kept.
 
-**User Story 2 (1.1.0)** lists text that the panel cannot parse when it is multi-line or at least
+**User Story 2 (also 1.0.0, clarified 2026-10-16)** lists text that the panel cannot parse when it is multi-line or at least
 500 characters long (R7). It opens in a text view: monospace, wrapping chosen by the text, the
 tree's search through one shared matcher and one shared search bar (R8, R9), and an unmasked copy.
 The panel button becomes "View". A small error boundary keeps a panel failure from removing the
@@ -106,7 +106,6 @@ src/content/
 └── styles.ts          # .kt-text, mark, wrap                                             (US2)
 public/_locales/{en,tr}/messages.json   # panelKindForm (US1); viewButton, panelKindText, textWrap (US2)
 docker/seed.mjs        # app-033 form (US1); app-034 text (US2)
-package.json           # 1.1.0                                                            (US2)
 
 tests/unit/
 ├── core/form.test.ts            # NEW                                                    (US1)

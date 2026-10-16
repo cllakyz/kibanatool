@@ -12,7 +12,8 @@ a bar above it with:
 
 - **Link actions** that jump to another system with a value from the log, e.g. `https://admin.example.com/users/{user_id}`.
 - **Discover actions** that open related logs in a new tab: the same user's logs, or everything ±5 minutes around this log.
-- **JSON**: fields that hold JSON or XML text, such as a request body, as a tree you can search and copy from.
+- **View**: fields that hold JSON, XML or form text, such as a request body, as a tree you can search and copy
+  from, and long or multi-line text, such as console output or a stack trace, as text you can search.
 - **⋯** to copy the log as Markdown or JSON with sensitive fields and values masked, the request it records as a cURL command, a link to the log, or the current view with its time range fixed.
 
 ## Set up
@@ -74,6 +75,19 @@ both copies and in placeholders.
 URL-encoded form text with two or more `&`-joined pairs, such as `username=…&password=…&grant_type=…`, is
 read the same way and tagged "form" in the JSON view. Values are decoded and stay text, a repeated key becomes
 a list, and a single `key=value` stays text. Masks reach its keys, so `*password*` hides a password inside it.
+
+### Text view
+
+The **View** panel also lists text that is not JSON, XML or form data when it has more than one line or is at
+least 500 characters long, such as console output, stack traces and long error messages. Shorter one-line
+values, such as tokens and headers, are left out.
+
+- The text is shown as stored, in a monospace font. An HTML page shows as its source; nothing in it runs.
+- Multi-line text opens unwrapped, so console tables keep their columns; one-line text opens wrapped.
+  **Wrap lines** switches either way.
+- Search marks every match, shows the count and steps through them with ↑/↓ or Enter and Shift+Enter.
+- **Copy value** copies the whole text as it is. Like the tree's copy buttons, it is not masked: use the ⋯ menu
+  to share a log.
 
 ### Copy and masking
 

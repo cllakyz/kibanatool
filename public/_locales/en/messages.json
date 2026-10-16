@@ -38,7 +38,7 @@
   "noticeCopied": { "message": "Copied" },
   "noticeCopyFailed": { "message": "Could not copy" },
   "noticeTimeNotConverted": { "message": "Could not convert the time range to fixed dates" },
-  "jsonButton": { "message": "JSON" },
+  "viewButton": { "message": "View" },
   "jsonChooseField": { "message": "Choose a field" },
   "jsonBack": { "message": "All fields" },
   "jsonClose": { "message": "Close" },
@@ -54,6 +54,9 @@
   "jsonCopyValue": { "message": "Copy value" },
   "jsonCopyPath": { "message": "Copy path" },
   "panelKindForm": { "message": "form" },
+  "panelKindText": { "message": "text" },
+  "textWrap": { "message": "Wrap lines" },
+  "textSearch": { "message": "Search the text" },
   "optionsEnvUrl": { "message": "Kibana address" },
   "optionsPending": { "message": "Waiting for access" },
   "optionsPermissionError": {

@@ -234,7 +234,8 @@ explicit branch and a unit test:
       kaydır").
 
   The search, copy, back and close strings are reused. `i18n.test.ts` keeps the two locale files
-  in step.
+  in step. Implementation added `textSearch` ("Search the text" / "Metinde ara") as the text
+  view's search placeholder, because the tree's "Search keys and values" does not fit text.
 
 ## R14 — Seed and e2e (FR-016, SC-006)
 
@@ -270,10 +271,10 @@ explicit branch and a unit test:
     rule.
   - **`docs/verification/2026-10-form-data.md`** (Turkish).
 - **User Story 2**:
-  - **`package.json`**: version 1.1.0.
-  - **CHANGELOG**: a new `[1.1.0] - Unreleased` section. If 1.0.0 is still untagged when User
-    Story 2 merges, two "Unreleased" headings stand together. That is expected and is fixed when
-    1.0.0 is tagged.
+  - **Version**: stays 1.0.0 (spec clarification 2026-10-16). The text view joins the unreleased
+    1.0.0, so there is no 1.1.0 section and no version bump.
+  - **CHANGELOG `[1.0.0]`**: the "JSON view" bullet becomes the View panel, with a text-view bullet
+    beside it.
   - **README**: a "Text view" section.
   - **Store listing**: a new bullet in EN and TR.
   - **CLAUDE.md**: the threshold and the search matcher.
