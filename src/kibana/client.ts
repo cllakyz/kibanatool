@@ -20,8 +20,16 @@ export interface DataViewInfo {
   timeFieldName?: string;
 }
 
+/** One document to fetch: its index and id (spec 003 research R6). */
+export interface DocRef {
+  index: string;
+  id: string;
+}
+
 export interface KibanaClient {
   fetchDoc(index: string, id: string): Promise<RawHit>;
+  /** Spec 003 FR-013: one request for the distinct refs not cached yet; fills the cache per ref. Never rejects. */
+  prefetchDocs(refs: readonly DocRef[]): Promise<void>;
   getDataView(id: string): Promise<DataViewInfo>;
   getVersion(): Promise<string | undefined>;
   /** The open space's data views (Plan 4 spec §5.2). */
@@ -36,6 +44,12 @@ export const DOC_FETCH_HEADERS = {
   "x-elastic-internal-origin": "Kibana",
   "content-type": "application/json",
 };
+
+/**
+ * Spec 003 FR-016: the most documents kept in memory; the oldest goes first.
+ * ponytail: fixed cap, twice the largest result list (500 rows); raise it if long sessions refetch noticeably.
+ */
+export const DOC_CACHE_LIMIT = 1000;
 
 /** A request that has not answered by then is abandoned and reported as "network". */
 export const REQUEST_TIMEOUT_MS = 15_000;
@@ -95,10 +109,18 @@ export function createKibanaClient(options: { prefix: string; fetch: FetchFn; ti
     let pending = cache.get(key);
     if (!pending) {
       pending = load();
-      cache.set(key, pending);
-      pending.catch(() => cache.delete(key));
+      remember(cache, key, pending);
     }
     return pending;
+  }
+
+  function remember<T>(cache: Map<string, Promise<T>>, key: string, pending: Promise<T>): void {
+    cache.set(key, pending);
+    pending.catch(() => {
+      if (cache.get(key) === pending) cache.delete(key);
+    });
+    // Only the document cache grows with the page; Map keeps insertion order, so the first key is the oldest.
+    if (cache === docs && docs.size > DOC_CACHE_LIMIT) docs.delete(docs.keys().next().value as string);
   }
 
   async function loadDoc(index: string, id: string): Promise<RawHit> {
@@ -114,6 +136,50 @@ export function createKibanaClient(options: { prefix: string; fetch: FetchFn; ti
     const hit = hits[0];
     if (!hit) throw new KibanaError("notFound", "Document not found");
     return hit;
+  }
+
+  /** Research R6: one exact request; a plain ids query across indices could also match the same id elsewhere. */
+  async function loadDocs(byIndex: Map<string, string[]>): Promise<Map<string, RawHit>> {
+    const should = [...byIndex].map(([index, ids]) => ({ bool: { filter: [{ term: { _index: index } }, { ids: { values: ids } }] } }));
+    const size = [...byIndex.values()].reduce((total, ids) => total + ids.length, 0);
+    const response = await request("/internal/search/es", {
+      method: "POST",
+      headers: DOC_FETCH_HEADERS,
+      body: JSON.stringify({
+        params: { index: [...byIndex.keys()].join(","), body: { size, query: { bool: { should, minimum_should_match: 1 } } } },
+      }),
+    });
+    if (!response.ok) throw errorFor(response.status);
+    const body = await readJson<{ rawResponse?: { hits?: { hits?: RawHit[] } } }>(response);
+    const hits = body.rawResponse?.hits?.hits;
+    if (!Array.isArray(hits)) throw new KibanaError("incompatible", "Unexpected response");
+    return new Map(hits.map((hit) => [`${hit._index}/${hit._id}`, hit]));
+  }
+
+  async function prefetchDocs(refs: readonly DocRef[]): Promise<void> {
+    const byIndex = new Map<string, string[]>();
+    const keys = new Set<string>();
+    for (const ref of refs) {
+      const key = `${ref.index}/${ref.id}`;
+      if (docs.has(key) || keys.has(key)) continue;
+      keys.add(key);
+      byIndex.set(ref.index, [...(byIndex.get(ref.index) ?? []), ref.id]);
+    }
+    if (keys.size === 0) return;
+    const batch = loadDocs(byIndex);
+    for (const key of keys) {
+      remember(
+        docs,
+        key,
+        batch.then((found) => {
+          const hit = found.get(key);
+          if (!hit) throw new KibanaError("notFound", "Document not found");
+          return hit;
+        }),
+      );
+    }
+    // The entries carry the outcome; the caller only starts the fetch.
+    await batch.catch(() => undefined);
   }
 
   async function loadDataView(id: string): Promise<DataViewInfo> {
@@ -160,6 +226,7 @@ export function createKibanaClient(options: { prefix: string; fetch: FetchFn; ti
 
   return {
     fetchDoc: (index, id) => cached(docs, `${index}/${id}`, () => loadDoc(index, id)),
+    prefetchDocs,
     getDataView: (id) => cached(dataViews, id, () => loadDataView(id)),
     listDataViews: () => cached(lists, "all", loadDataViewList),
     async getVersion() {

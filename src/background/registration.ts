@@ -3,13 +3,17 @@ import { type Config, originPattern } from "../core/config";
 
 export const CONTENT_SCRIPT_ID = "kibanatool";
 export const CONTENT_SCRIPT_FILE = "kibana.js";
+/** Spec 003 research R3: the page-context script that reads 7.17 row identities (entrypoints/kibana-bridge.ts). */
+export const BRIDGE_SCRIPT_ID = "kibanatool-bridge";
+export const BRIDGE_SCRIPT_FILE = "kibana-bridge.js";
 
 export interface RegisteredScript {
   id: string;
   matches: string[];
   js: string[];
-  runAt: "document_idle";
+  runAt: "document_start" | "document_idle";
   persistAcrossSessions: boolean;
+  world?: "MAIN";
 }
 
 export interface ScriptingLike {
@@ -38,26 +42,31 @@ export function serialized(task: () => Promise<void>): () => Promise<void> {
   return () => (queue = queue.then(task, task));
 }
 
-/** Registers, updates or removes the content script; returns the origins it now runs on. */
+/**
+ * Registers, updates or removes the content script and the page-context script together; returns the origins they
+ * now run on. Existence is checked per id: an install from before spec 003 holds the content script but not the
+ * bridge, and updating an unknown id throws (research R3).
+ */
 export async function syncContentScripts(
   config: Config,
   deps: { scripting: ScriptingLike; permissions: PermissionsLike },
 ): Promise<string[]> {
   const matches = await grantedPatterns(config, deps.permissions);
-  const registered = await deps.scripting.getRegisteredContentScripts({ ids: [CONTENT_SCRIPT_ID] });
-  const exists = registered.some((script) => script.id === CONTENT_SCRIPT_ID);
+  const ids = [CONTENT_SCRIPT_ID, BRIDGE_SCRIPT_ID];
+  const registered = new Set((await deps.scripting.getRegisteredContentScripts({ ids })).map((script) => script.id));
   if (matches.length === 0) {
-    if (exists) await deps.scripting.unregisterContentScripts({ ids: [CONTENT_SCRIPT_ID] });
+    const present = ids.filter((id) => registered.has(id));
+    if (present.length > 0) await deps.scripting.unregisterContentScripts({ ids: present });
     return matches;
   }
-  const script: RegisteredScript = {
-    id: CONTENT_SCRIPT_ID,
-    matches,
-    js: [CONTENT_SCRIPT_FILE],
-    runAt: "document_idle",
-    persistAcrossSessions: true,
-  };
-  if (exists) await deps.scripting.updateContentScripts([script]);
-  else await deps.scripting.registerContentScripts([script]);
+  const scripts: RegisteredScript[] = [
+    { id: CONTENT_SCRIPT_ID, matches, js: [CONTENT_SCRIPT_FILE], runAt: "document_idle", persistAcrossSessions: true },
+    // It only adds a listener, so it is ready before the content script's first pass (research R3).
+    { id: BRIDGE_SCRIPT_ID, matches, js: [BRIDGE_SCRIPT_FILE], runAt: "document_start", persistAcrossSessions: true, world: "MAIN" },
+  ];
+  const present = scripts.filter((script) => registered.has(script.id));
+  const missing = scripts.filter((script) => !registered.has(script.id));
+  if (present.length > 0) await deps.scripting.updateContentScripts(present);
+  if (missing.length > 0) await deps.scripting.registerContentScripts(missing);
   return matches;
 }

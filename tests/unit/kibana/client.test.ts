@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { KibanaError, createKibanaClient } from "../../../src/kibana/client";
+import { DOC_CACHE_LIMIT, KibanaError, createKibanaClient } from "../../../src/kibana/client";
 
 interface Call {
   url: string;
@@ -226,5 +226,111 @@ describe("listDataViews", () => {
   it("reports incompatible when the list is not an array", async () => {
     const { fetch } = fakeFetch(() => json({ data_view: "nope" }));
     expect(await kindOf(createKibanaClient({ prefix: "", fetch }).listDataViews())).toBe("incompatible");
+  });
+});
+
+describe("prefetchDocs (spec 003 FR-013, research R6, R7)", () => {
+  const hit = (index: string, id: string) => ({ _index: index, _id: id, _source: { id } });
+  /** Answers a batch with the requested hits, except the ids listed in `missing`. */
+  function batchFetch(missing: string[] = []) {
+    return fakeFetch((_url, init) => {
+      const body = JSON.parse(String(init?.body)) as {
+        params: { body: { query: { bool?: { should: Array<{ bool: { filter: [{ term: { _index: string } }, { ids: { values: string[] } }] } }> }; ids?: { values: string[] } } } };
+      };
+      const query = body.params.body.query;
+      const hits = query.bool
+        ? query.bool.should.flatMap(({ bool: { filter: [term, ids] } }) =>
+            ids.ids.values.filter((id) => !missing.includes(id)).map((id) => hit(term.term._index, id)),
+          )
+        : [];
+      return json({ rawResponse: { hits: { hits } } });
+    });
+  }
+
+  it("sends one exact request per batch: index list, size and one term + ids filter per index", async () => {
+    const { fetch, calls } = batchFetch();
+    const client = createKibanaClient({ prefix: "/kibana", fetch });
+    await client.prefetchDocs([
+      { index: "app_log", id: "a" },
+      { index: "app_log", id: "b" },
+      { index: "legacy_log", id: "c" },
+      { index: "app_log", id: "a" },
+    ]);
+    expect(calls).toHaveLength(1);
+    expect(calls[0]!.url).toBe("/kibana/internal/search/es");
+    expect(calls[0]!.init).toMatchObject({ method: "POST", headers: { "kbn-xsrf": "kibanatool", "x-elastic-internal-origin": "Kibana" } });
+    expect(JSON.parse(String(calls[0]!.init!.body))).toEqual({
+      params: {
+        index: "app_log,legacy_log",
+        body: {
+          size: 3,
+          query: {
+            bool: {
+              minimum_should_match: 1,
+              should: [
+                { bool: { filter: [{ term: { _index: "app_log" } }, { ids: { values: ["a", "b"] } }] } },
+                { bool: { filter: [{ term: { _index: "legacy_log" } }, { ids: { values: ["c"] } }] } },
+              ],
+            },
+          },
+        },
+      },
+    });
+  });
+
+  it("fills the shared cache: fetchDoc then needs no request; a missing ref is retried alone, as a failure is", async () => {
+    const { fetch, calls } = batchFetch(["b"]);
+    const client = createKibanaClient({ prefix: "", fetch });
+    await client.prefetchDocs([
+      { index: "app_log", id: "a" },
+      { index: "app_log", id: "b" },
+    ]);
+    await expect(client.fetchDoc("app_log", "a")).resolves.toEqual(hit("app_log", "a"));
+    expect(calls).toHaveLength(1);
+    expect(await kindOf(client.fetchDoc("app_log", "b"))).toBe("notFound");
+    expect(calls).toHaveLength(2);
+    expect(JSON.parse(String(calls[1]!.init!.body)).params.body).toEqual({ size: 1, query: { ids: { values: ["b"] } } });
+  });
+
+  it("leaves out refs already cached, and sends nothing when all are", async () => {
+    const { fetch, calls } = batchFetch();
+    const client = createKibanaClient({ prefix: "", fetch });
+    await client.prefetchDocs([{ index: "app_log", id: "a" }]);
+    await client.prefetchDocs([
+      { index: "app_log", id: "a" },
+      { index: "app_log", id: "b" },
+    ]);
+    await client.prefetchDocs([{ index: "app_log", id: "b" }]);
+    expect(calls).toHaveLength(2);
+    expect(JSON.parse(String(calls[1]!.init!.body)).params.body.size).toBe(1);
+  });
+
+  it("never rejects; a failed batch is evicted, so fetchDoc retries one by one", async () => {
+    for (const failing of [() => json({}, 403), () => Promise.reject(new TypeError("Failed to fetch"))]) {
+      let first = true;
+      const { fetch, calls } = fakeFetch(() => {
+        if (first) {
+          first = false;
+          return failing();
+        }
+        return searchOk();
+      });
+      const client = createKibanaClient({ prefix: "", fetch });
+      await expect(client.prefetchDocs([{ index: "app_log", id: "abc" }])).resolves.toBeUndefined();
+      await expect(client.fetchDoc("app_log", "abc")).resolves.toEqual(HIT);
+      expect(JSON.parse(String(calls[1]!.init!.body)).params.body).toEqual({ size: 1, query: { ids: { values: ["abc"] } } });
+    }
+  });
+
+  it(`keeps at most ${DOC_CACHE_LIMIT} documents, dropping the oldest first`, async () => {
+    const { fetch, calls } = batchFetch();
+    const client = createKibanaClient({ prefix: "", fetch });
+    const refs = Array.from({ length: DOC_CACHE_LIMIT + 1 }, (_, i) => ({ index: "app_log", id: `d${i}` }));
+    for (let start = 0; start < refs.length; start += 50) await client.prefetchDocs(refs.slice(start, start + 50));
+    const sent = calls.length;
+    await client.fetchDoc("app_log", `d${DOC_CACHE_LIMIT}`);
+    expect(calls).toHaveLength(sent);
+    await client.fetchDoc("app_log", "d0").catch(() => undefined);
+    expect(calls).toHaveLength(sent + 1);
   });
 });

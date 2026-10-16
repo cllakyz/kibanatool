@@ -11,10 +11,11 @@ import {
   emptyConfig,
   originPattern,
   parseConfig,
+  rowActions,
 } from "../../../src/core/config";
 
 const validConfig = (): Config => ({
-  schemaVersion: 3,
+  schemaVersion: 4,
   environments: [{ id: "prod", name: "Prod", kibanaUrl: "https://kibana.example.com", variables: {} }],
   actions: [
     {
@@ -22,6 +23,7 @@ const validConfig = (): Config => ({
       kind: "link",
       label: "Admin",
       enabled: true,
+      showInRow: false,
       environmentIds: [],
       conditions: [{ field: "user_id", op: "exists" }],
       urlTemplate: "https://admin.example.com/users/{user_id}",
@@ -31,6 +33,7 @@ const validConfig = (): Config => ({
       kind: "discover",
       label: "Same user",
       enabled: true,
+      showInRow: false,
       environmentIds: ["prod"],
       conditions: [],
       queryTemplate: "user_id:{user_id}",
@@ -163,7 +166,7 @@ describe("basePathOf", () => {
 });
 
 describe("parseConfig version 2 (Plan 4)", () => {
-  it("migrates a version 1 config: version 3, environments without variables get none, every value mask is on", () => {
+  it("migrates a version 1 config: version 4, environments without variables get none, every value mask is on", () => {
     const v1 = {
       ...validConfig(),
       schemaVersion: 1,
@@ -173,8 +176,8 @@ describe("parseConfig version 2 (Plan 4)", () => {
     expect(parseConfig(v1)).toEqual({ ok: true, config: validConfig() });
   });
 
-  it("rejects versions other than 1, 2 and 3", () => {
-    expect(errorsOf({ ...validConfig(), schemaVersion: 4 })[0]).toMatch(/^schemaVersion: /);
+  it("rejects versions other than 1 to 4", () => {
+    expect(errorsOf({ ...validConfig(), schemaVersion: 5 })[0]).toMatch(/^schemaVersion: /);
     expect(errorsOf({ ...validConfig(), schemaVersion: 0 })[0]).toMatch(/^schemaVersion: /);
   });
 
@@ -225,7 +228,7 @@ describe("parseConfig version 2 (Plan 4)", () => {
 describe("parseConfig version 3 (Plan 5)", () => {
   const v2 = () => ({ ...validConfig(), schemaVersion: 2, copy: { markdownFields: ["level"], maskPatterns: ["*token*"] } });
 
-  it("migrates a version 2 config: version 3 with every value mask on, the rest unchanged", () => {
+  it("migrates a version 2 config: version 4 with every value mask on, the rest unchanged", () => {
     expect(parseConfig(v2())).toEqual({
       ok: true,
       config: { ...validConfig(), copy: { markdownFields: ["level"], maskPatterns: ["*token*"], valueMasks: ["iban", "tckn", "gsm", "card"] } },
@@ -246,6 +249,44 @@ describe("parseConfig version 3 (Plan 5)", () => {
 
   it("turns every value mask on in the empty config", () => {
     expect(emptyConfig().copy.valueMasks).toEqual(["iban", "tckn", "gsm", "card"]);
+  });
+});
+
+describe("parseConfig version 4 (spec 003 FR-001 – FR-004)", () => {
+  /** validConfig() as an earlier version wrote it: no showInRow on any action. */
+  const withoutShowInRow = (schemaVersion: number) => ({
+    ...validConfig(),
+    schemaVersion,
+    actions: validConfig().actions.map(({ showInRow: _, ...action }) => action),
+  });
+
+  it("migrates a version 3 config: version 4, every action off the rows, nothing else changed", () => {
+    expect(parseConfig(withoutShowInRow(3))).toEqual({ ok: true, config: validConfig() });
+  });
+
+  it("migrates versions 1 and 2 the same way, on top of their own conversion", () => {
+    const { valueMasks: _, ...copy } = validConfig().copy;
+    for (const schemaVersion of [1, 2]) {
+      expect(parseConfig({ ...withoutShowInRow(schemaVersion), copy })).toEqual({ ok: true, config: validConfig() });
+    }
+  });
+
+  it("keeps showInRow in version 4 and rejects an action without it", () => {
+    const config = validConfig();
+    config.actions[0] = { ...config.actions[0]!, showInRow: true };
+    expect(parseConfig(config)).toEqual({ ok: true, config });
+    expect(errorsOf(withoutShowInRow(4))[0]).toMatch(/^actions\.0\.showInRow: /);
+  });
+
+  it("writes version 4 in the empty config", () => {
+    expect(emptyConfig().schemaVersion).toBe(4);
+  });
+
+  it("rowActions keeps only the actions marked to show in rows, in order", () => {
+    const [admin, sameUser] = validConfig().actions;
+    const marked = [{ ...admin!, showInRow: true }, sameUser!, { ...sameUser!, id: "b", showInRow: true }];
+    expect(rowActions(marked).map((action) => action.id)).toEqual(["admin", "b"]);
+    expect(rowActions([])).toEqual([]);
   });
 });
 

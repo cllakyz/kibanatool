@@ -2,6 +2,7 @@
   "extName": { "message": "kibanatool" },
   "extDescription": { "message": "Speeds up working with logs in Kibana Discover: action buttons built from log fields." },
   "barLoading": { "message": "kibanatool: loading the log…" },
+  "rowStripLabel": { "message": "kibanatool actions" },
   "errorForbidden": { "message": "kibanatool: you are not allowed to read this log" },
   "errorNotFound": { "message": "kibanatool: log not found" },
   "errorIncompatible": {
@@ -91,6 +92,7 @@
   "optionsAllEnvironments": { "message": "All environments" },
   "optionsLabel": { "message": "Label" },
   "optionsEnabled": { "message": "Enabled" },
+  "optionsShowInRow": { "message": "Show in row" },
   "optionsActionEnvironments": { "message": "Environments (none selected: all)" },
   "optionsUrlTemplate": { "message": "URL template: {field} comes from the log, {env.name} from the environment, e.g. {env.adminUrl}/users/{user_id}" },
   "optionsQueryTemplate": { "message": "KQL query template; values are quoted for you, e.g. user_id:{user_id}" },

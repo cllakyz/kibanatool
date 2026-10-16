@@ -9,14 +9,17 @@ import { EXTENSION_DIR, stack } from "./stack";
 // The extension APIs used inside worker.evaluate (the background service worker), typed as far as needed.
 declare const chrome: {
   storage: { local: { get(key: string): Promise<Record<string, unknown>>; set(items: Record<string, unknown>): Promise<void> } };
-  scripting: { getRegisteredContentScripts(): Promise<Array<{ matches?: string[] }>> };
+  scripting: {
+    getRegisteredContentScripts(): Promise<Array<{ matches?: string[] }>>;
+    unregisterContentScripts(filter: { ids: string[] }): Promise<void>;
+  };
 };
 
 /** The actions every spec uses; the expected values come from the seeded logs (docker/seed.mjs). */
 export function e2eConfig(): Config {
-  const shared = { enabled: true, environmentIds: [], conditions: [] };
+  const shared = { enabled: true, showInRow: false, environmentIds: [], conditions: [] };
   return {
-    schemaVersion: 3,
+    schemaVersion: 4,
     environments: [{ id: "stack", name: `Kibana ${stack.version}`, kibanaUrl: stack.kibana, variables: {} }],
     actions: [
       { ...shared, id: "user", kind: "link", label: "User", urlTemplate: "https://admin.example.com/users/{user_id|user.id}" },
@@ -35,12 +38,22 @@ export function e2eConfig(): Config {
   };
 }
 
+/** A copy of `config` with the given actions shown on result rows (spec 003). */
+export function markInRow(config: Config, ids: string[]): Config {
+  return { ...config, actions: config.actions.map((action) => (ids.includes(action.id) ? { ...action, showInRow: true } : action)) };
+}
+
 export function readStored(worker: Worker): Promise<unknown> {
   return worker.evaluate(async (key) => (await chrome.storage.local.get(key))[key], CONFIG_KEY);
 }
 
 export function writeStored(worker: Worker, value: unknown): Promise<void> {
   return worker.evaluate(([key, item]) => chrome.storage.local.set({ [key]: item }), [CONFIG_KEY, value] as const);
+}
+
+/** Removes one registered script, as an install without it would be (spec 003 SC-007). */
+export function unregisterScript(worker: Worker, id: string): Promise<void> {
+  return worker.evaluate((scriptId) => chrome.scripting.unregisterContentScripts({ ids: [scriptId] }), id);
 }
 
 /** Origins the background registered the content script for. */

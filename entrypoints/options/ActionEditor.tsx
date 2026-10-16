@@ -62,6 +62,10 @@ export function ActionEditor({ action, environments, onChange, onSave, onCancel 
         <input type="checkbox" checked={action.enabled} onChange={(event) => update({ enabled: event.target.checked })} />
         {t("optionsEnabled")}
       </label>
+      <label className="inline">
+        <input type="checkbox" checked={action.showInRow} onChange={(event) => update({ showInRow: event.target.checked })} />
+        {t("optionsShowInRow")}
+      </label>
       <fieldset>
         <legend>{t("optionsActionEnvironments")}</legend>
         {environments.map((environment) => (

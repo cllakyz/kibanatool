@@ -1,5 +1,5 @@
 {
-  "schemaVersion": 3,
+  "schemaVersion": 4,
   "environments": [
     {
       "id": "prod",
@@ -14,6 +14,7 @@
       "kind": "link",
       "label": "User in admin",
       "enabled": true,
+      "showInRow": true,
       "environmentIds": [],
       "conditions": [],
       "urlTemplate": "{env.adminUrl}/users/{user_id|context.user_id|user.id}"
@@ -23,6 +24,7 @@
       "kind": "link",
       "label": "Sentry",
       "enabled": true,
+      "showInRow": false,
       "environmentIds": [],
       "conditions": [{ "field": "level_name", "op": "equals", "value": "ERROR" }],
       "urlTemplate": "https://acme.sentry.io/issues/?query={message}"
@@ -32,6 +34,7 @@
       "kind": "link",
       "label": "Jira",
       "enabled": true,
+      "showInRow": false,
       "environmentIds": [],
       "conditions": [],
       "urlTemplate": "{env.jiraUrl}/issues/?jql=text%20~%20{user_id|user.id}"
@@ -41,6 +44,7 @@
       "kind": "discover",
       "label": "This user's logs",
       "enabled": true,
+      "showInRow": false,
       "environmentIds": [],
       "conditions": [],
       "queryTemplate": "user_id:{user_id}"
@@ -50,6 +54,7 @@
       "kind": "discover",
       "label": "This user in all logs",
       "enabled": true,
+      "showInRow": false,
       "environmentIds": [],
       "conditions": [],
       "queryTemplate": "user_id:{user_id}",
@@ -61,6 +66,7 @@
       "kind": "discover",
       "label": "±5 minutes",
       "enabled": true,
+      "showInRow": false,
       "environmentIds": [],
       "conditions": [],
       "queryTemplate": "",

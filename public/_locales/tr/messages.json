@@ -2,6 +2,7 @@
   "extName": { "message": "kibanatool" },
   "extDescription": { "message": "Kibana Discover'da logla çalışmayı hızlandırır: log alanlarından üretilen aksiyon butonları." },
   "barLoading": { "message": "kibanatool: log yükleniyor…" },
+  "rowStripLabel": { "message": "kibanatool aksiyonları" },
   "errorForbidden": { "message": "kibanatool: bu logu okuma yetkin yok" },
   "errorNotFound": { "message": "kibanatool: log bulunamadı" },
   "errorIncompatible": {
@@ -91,6 +92,7 @@
   "optionsAllEnvironments": { "message": "Tüm ortamlar" },
   "optionsLabel": { "message": "Etiket" },
   "optionsEnabled": { "message": "Açık" },
+  "optionsShowInRow": { "message": "Satırda göster" },
   "optionsActionEnvironments": { "message": "Ortamlar (hiçbiri seçili değilse: hepsi)" },
   "optionsUrlTemplate": { "message": "URL şablonu: {alan} logdan, {env.ad} ortamdan gelir, örn. {env.adminUrl}/users/{user_id}" },
   "optionsQueryTemplate": { "message": "KQL sorgu şablonu; değerler otomatik tırnaklanır, örn. user_id:{user_id}" },

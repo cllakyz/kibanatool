@@ -15,6 +15,7 @@ const discover = (overrides: Partial<DiscoverAction> = {}): DiscoverAction => ({
   kind: "discover",
   label: "Same user",
   enabled: true,
+  showInRow: false,
   environmentIds: [],
   conditions: [],
   queryTemplate: "user_id:{user_id}",
@@ -139,7 +140,7 @@ describe("buildDiscoverButtons", () => {
 
   it("skips link actions and hidden Discover actions", () => {
     const actions: Action[] = [
-      { id: "l", kind: "link", label: "L", enabled: true, environmentIds: [], conditions: [], urlTemplate: "https://x.test" },
+      { id: "l", kind: "link", label: "L", enabled: true, showInRow: false, environmentIds: [], conditions: [], urlTemplate: "https://x.test" },
       discover({ id: "off", enabled: false }),
       discover({ id: "ok" }),
     ];

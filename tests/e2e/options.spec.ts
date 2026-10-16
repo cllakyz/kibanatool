@@ -77,6 +77,7 @@ test("edits environment variables in the table and clears the action's warning",
     kind: "link",
     label: "Needs var",
     enabled: true,
+    showInRow: false,
     environmentIds: [],
     conditions: [],
     urlTemplate: "{env.adminUrl}/users/{user_id}",
@@ -111,7 +112,7 @@ test("keeps the inner space of a target data view name typed in the editor", asy
     .toMatchObject({ kind: "discover", dataViewName: "App logs" });
 });
 
-test("imports a version 1 settings file and stores it as version 3", async ({ context, extension, configure }) => {
+test("imports a version 1 settings file and stores it as the current version", async ({ context, extension, configure }) => {
   const { environments, copy, ...rest } = e2eConfig();
   await configure({ ...e2eConfig(), actions: [], copy: { ...copy, valueMasks: [] } }); // differs from what the import must produce
   const options = await openOptions(context, extension.id);
@@ -119,6 +120,7 @@ test("imports a version 1 settings file and stores it as version 3", async ({ co
   const v1 = {
     ...rest,
     schemaVersion: 1,
+    actions: rest.actions.map(({ showInRow: _, ...action }) => action),
     environments: environments.map(({ id, name, kibanaUrl }) => ({ id, name, kibanaUrl })),
     copy: { markdownFields: copy.markdownFields, maskPatterns: copy.maskPatterns },
   };
