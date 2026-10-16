@@ -8,6 +8,7 @@ const discover = (id: string, extra: { windowMinutes?: number; dataViewId?: stri
   kind: "discover",
   label: id,
   enabled: true,
+  showInRow: false,
   environmentIds: [],
   conditions: [],
   queryTemplate: "",

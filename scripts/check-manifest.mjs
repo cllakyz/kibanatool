@@ -29,6 +29,9 @@ for (const size of ["16", "32", "48", "128"]) {
 if (!existsSync(`${dir}/kibana.js`)) {
   errors.push("kibana.js (unlisted content script) is missing from the build output");
 }
+if (!existsSync(`${dir}/kibana-bridge.js`)) {
+  errors.push("kibana-bridge.js (unlisted page-context script) is missing from the build output");
+}
 
 if (errors.length > 0) {
   console.error(`Manifest check failed:\n- ${errors.join("\n- ")}`);

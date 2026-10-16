@@ -36,6 +36,7 @@ describe("discoverTarget", () => {
     kind: "discover",
     label: "D",
     enabled: true,
+    showInRow: false,
     environmentIds: [],
     conditions: [],
     queryTemplate: "",

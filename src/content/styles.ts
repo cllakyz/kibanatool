@@ -1,4 +1,4 @@
-// Styles for the action bar; they live inside each host's shadow root, isolated from Kibana's CSS.
+// Styles for the action bar and the row strip; they live inside each host's shadow root, isolated from Kibana's CSS.
 // The host's data-kt-theme (set from the page behind it, see themeBehind) picks the light or dark palette.
 import { DARK, LIGHT, cssVars } from "../theme";
 
@@ -75,5 +75,13 @@ export const BAR_CSS = `
   font-family: var(--kt-font-sans);
 }
 .kt-row:hover .kt-row-actions, .kt-row:focus-within .kt-row-actions { opacity: 1; }
+.kt-row-root { color: var(--kt-text); font: 12px/1.5 var(--kt-font-sans); }
+/* Spec 003 research R10: the host is a zero-size anchor at the strip's top-right corner; the strip grows left. */
+.kt-strip {
+  position: absolute; right: 0; top: 0;
+  display: inline-flex; align-items: center; gap: 4px; white-space: nowrap;
+  padding: 2px 4px; border: 1px solid var(--kt-border); border-radius: 6px; background: var(--kt-surface);
+  box-shadow: var(--kt-shadow-menu);
+}
 @media (prefers-reduced-motion: reduce) { .kt-btn { transition: none; } }
 `;

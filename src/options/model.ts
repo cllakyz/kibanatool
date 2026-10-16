@@ -22,7 +22,7 @@ export function withoutEnvironment(config: Config, environmentId: string): Parse
 
 /** A blank action for the editor; the label must be filled in before it validates. */
 export function newAction(kind: Action["kind"], id: string = crypto.randomUUID()): Action {
-  const base = { id, label: "", enabled: true, environmentIds: [], conditions: [] };
+  const base = { id, label: "", enabled: true, showInRow: false, environmentIds: [], conditions: [] };
   return kind === "link" ? { ...base, kind, urlTemplate: "https://" } : { ...base, kind, queryTemplate: "" };
 }
 

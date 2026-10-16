@@ -16,6 +16,7 @@ test("a user with read-only privileges gets the bar", async ({ context, configur
     queryTemplate: "user_id:{user_id}",
     dataViewName: "*_log",
     enabled: true,
+    showInRow: false,
     environmentIds: [],
     conditions: [],
   });

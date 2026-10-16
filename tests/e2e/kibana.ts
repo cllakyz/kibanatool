@@ -47,6 +47,43 @@ export async function openDoc(context: BrowserContext, target: DiscoverTarget): 
   return { page, detail };
 }
 
+/** Opens Discover on `target` in `page` and waits for the first result row; nothing is expanded (spec 003). */
+export async function openTable(page: Page, target: DiscoverTarget): Promise<Page> {
+  const { space, dataViewId, query, time = SEED_TIME } = target;
+  await page.goto(stack.origin + discoverUrl({ prefix: prefixOf(space), dataViewId, query, time }));
+  await resultRows(page).first().waitFor({ timeout: 90_000 });
+  return page;
+}
+
+/** Collapsed result rows: the legacy table on 7.17, the data grid on 8.x/9.x. */
+export function resultRows(page: Page): Locator {
+  return page.locator(stack.major === 7 ? '[data-test-subj="docTableRow"]' : '[role="row"]:has([data-test-subj^="dscGridSelectDoc-"])');
+}
+
+/** The row strip; Playwright's CSS selectors pierce its open shadow root. */
+export function strip(page: Page): Locator {
+  return page.locator("kibanatool-row");
+}
+
+/** The extension's own Kibana requests (its kbn-xsrf value), with their parsed bodies, from now on. */
+export function extensionRequests(page: Page): Array<{ url: string; body: unknown }> {
+  const requests: Array<{ url: string; body: unknown }> = [];
+  page.on("request", (request) => {
+    if (request.headers()["kbn-xsrf"] !== "kibanatool") return;
+    const text = request.postData();
+    requests.push({ url: request.url(), body: text ? JSON.parse(text) : undefined });
+  });
+  return requests;
+}
+
+/** Label → href of the row strip's link and Discover buttons. */
+export async function stripLinks(page: Page): Promise<Record<string, string>> {
+  const entries = await strip(page)
+    .locator("a.kt-btn")
+    .evaluateAll((links) => links.map((link): [string, string] => [link.textContent ?? "", link.getAttribute("href") ?? ""]));
+  return Object.fromEntries(entries);
+}
+
 /** Label → href of the bar's link and Discover buttons. */
 export async function barLinks(detail: Locator): Promise<Record<string, string>> {
   const entries = await bar(detail)

@@ -21,6 +21,7 @@ const action = {
   kind: "link",
   label: "Admin",
   enabled: true,
+  showInRow: false,
   environmentIds: ["e1"],
   conditions: [],
   urlTemplate: "https://admin.example.com/users/{user_id}",
@@ -79,6 +80,7 @@ describe("actions", () => {
       kind: "link",
       label: "",
       enabled: true,
+      showInRow: false,
       environmentIds: [],
       conditions: [],
       urlTemplate: "https://",
@@ -88,6 +90,7 @@ describe("actions", () => {
       kind: "discover",
       label: "",
       enabled: true,
+      showInRow: false,
       environmentIds: [],
       conditions: [],
       queryTemplate: "",
@@ -101,6 +104,11 @@ describe("actions", () => {
     if (!second.ok) throw new Error(second.errors.join("; "));
     const replaced = withAction(second.config, { ...second.config.actions[0]!, label: "Admin 2" });
     expect(replaced.ok && replaced.config.actions.map((action) => action.label)).toEqual(["Admin 2", "Logs"]);
+  });
+
+  it("keeps an action's showInRow choice (spec 003 FR-001)", () => {
+    const saved = withAction(base(), { ...newAction("link", "x"), label: "Admin", showInRow: true });
+    expect(saved.ok && saved.config.actions[0]?.showInRow).toBe(true);
   });
 
   it("reports schema errors for an invalid action", () => {
@@ -149,13 +157,13 @@ describe("parseImport", () => {
 
   it("rejects bad JSON and invalid configs with field paths", () => {
     expect(parseImport("{").ok).toBe(false);
-    const result = parseImport(JSON.stringify({ ...emptyConfig(), schemaVersion: 4 }));
+    const result = parseImport(JSON.stringify({ ...emptyConfig(), schemaVersion: 5 }));
     expect(!result.ok && result.errors[0]).toMatch(/^schemaVersion: /);
   });
 
-  it("imports a version 1 file as version 3", () => {
+  it("imports a version 1 file as version 4", () => {
     const result = parseImport(JSON.stringify({ ...emptyConfig(), schemaVersion: 1 }));
-    expect(result.ok && result.config.schemaVersion).toBe(3);
+    expect(result.ok && result.config.schemaVersion).toBe(4);
   });
 });
 
@@ -249,6 +257,7 @@ describe("variableWarnings", () => {
     kind: "link",
     label: "L",
     enabled: true,
+    showInRow: false,
     environmentIds,
     conditions: [],
     urlTemplate,
@@ -268,6 +277,7 @@ describe("variableWarnings", () => {
       kind: "discover",
       label: "D",
       enabled: true,
+      showInRow: false,
       environmentIds: [],
       conditions: [],
       queryTemplate: "app:{env.app} or app2:{env.app}",

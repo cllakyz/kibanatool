@@ -8,7 +8,7 @@ import { stack } from "./stack";
 /** e2eConfig plus a variable in a link, one that is never set, and Discover targets by name. */
 function variablesConfig(): Config {
   const config = e2eConfig();
-  const shared = { enabled: true, environmentIds: [], conditions: [] };
+  const shared = { enabled: true, showInRow: false, environmentIds: [], conditions: [] };
   config.environments[0]!.variables = { adminUrl: "https://admin.example.com" };
   config.actions.push(
     { ...shared, id: "var-user", kind: "link", label: "Var user", urlTemplate: "{env.adminUrl}/users/{user_id}" },

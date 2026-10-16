@@ -2,32 +2,17 @@
 import { type SyntheticEvent, useEffect, useMemo, useRef, useState } from "react";
 import type { Action, Config, Environment } from "../core/config";
 import { buildCurl, requestPrefix } from "../core/curl";
-import { buildDiscoverButtons } from "../core/discover-actions";
-import { flattenDoc } from "../core/fields";
 import { buildJson } from "../core/json-copy";
 import { panelFields } from "../core/json-tree";
-import { buildLinkButtons } from "../core/link-actions";
 import { buildMarkdown } from "../core/markdown";
-import type { ActionButton, DataViewSummary, DocIdentity, RawHit } from "../core/types";
+import type { ActionButton, DocIdentity } from "../core/types";
 import { type MessageKey, t } from "../i18n";
-import { type KibanaClient, KibanaError } from "../kibana/client";
-import { readGlobalTime } from "../kibana/discover-state";
-import { discoverUrl, fixedTimeUrl, singleDocPath } from "../kibana/url";
-import { describePassive } from "../passive-text";
-import { loadDataViews, loadTimeFields, timeFieldTargets } from "./bar-data";
+import type { KibanaClient } from "../kibana/client";
+import { fixedTimeUrl, singleDocPath } from "../kibana/url";
 import { copyText } from "./clipboard";
 import { type CopyItem, CopyMenu } from "./CopyMenu";
 import { JsonView, PanelBoundary } from "./JsonView";
-
-type State =
-  | { status: "loading" }
-  | {
-      status: "ready";
-      hit: RawHit;
-      timeFields: ReadonlyMap<string, string | undefined>;
-      dataViews: readonly DataViewSummary[] | null;
-    }
-  | { status: "error"; message: string };
+import { ActionButtons, buildButtons, useLogState } from "./log-buttons";
 
 export interface ActionBarProps {
   identity: DocIdentity;
@@ -51,33 +36,11 @@ export interface ActionBarProps {
 const keepInside = (event: SyntheticEvent): void => event.stopPropagation();
 
 export function ActionBar({ identity, actions, client, prefix, page, now, copy, environment }: ActionBarProps) {
-  const [state, setState] = useState<State>({ status: "loading" });
+  const state = useLogState(identity, actions, client);
   const [notice, setNotice] = useState<MessageKey | null>(null);
   const rootRef = useRef<HTMLDivElement>(null);
   const [panelOpen, setPanelOpen] = useState(false);
   const { dataViewId, index, id } = identity;
-
-  useEffect(() => {
-    let cancelled = false;
-    setState({ status: "loading" });
-    const barData = async () => {
-      const dataViews = await loadDataViews(client, actions);
-      const timeFields = await loadTimeFields(client, timeFieldTargets(actions, dataViewId, dataViews));
-      return { dataViews, timeFields };
-    };
-    Promise.all([client.fetchDoc(index, id), barData()]).then(
-      ([hit, { dataViews, timeFields }]) => {
-        if (!cancelled) setState({ status: "ready", hit, timeFields, dataViews });
-      },
-      async (error: unknown) => {
-        const message = await describeError(error, client);
-        if (!cancelled) setState({ status: "error", message });
-      },
-    );
-    return () => {
-      cancelled = true;
-    };
-  }, [dataViewId, index, id, actions, client]);
 
   useEffect(() => {
     if (notice === null) return;
@@ -88,18 +51,8 @@ export function ActionBar({ identity, actions, client, prefix, page, now, copy, 
   const hash = page.hash;
   const buttons = useMemo((): { links: ActionButton[]; discover: ActionButton[] } => {
     if (state.status !== "ready") return { links: [], discover: [] };
-    const fields = flattenDoc(state.hit);
-    return {
-      links: buildLinkButtons(actions, fields, environment.variables),
-      discover: buildDiscoverButtons(actions, fields, {
-        link: (target) => discoverUrl({ prefix, ...target }),
-        dataViewId,
-        currentTime: readGlobalTime(hash),
-        timeFields: state.timeFields,
-        variables: environment.variables,
-        dataViews: state.dataViews,
-      }),
-    };
+    const { hit, timeFields, dataViews } = state;
+    return buildButtons(hit, actions, { prefix, dataViewId, hash, environment, timeFields, dataViews });
   }, [state, actions, prefix, dataViewId, hash, environment]);
 
   const panelEntries = useMemo(() => (state.status === "ready" ? panelFields(state.hit._source ?? {}) : []), [state]);
@@ -155,23 +108,10 @@ export function ActionBar({ identity, actions, client, prefix, page, now, copy, 
     { label: t("menuCopyFixedView"), text: () => fixedTimeUrl(page.href, now()), unavailable: "noticeTimeNotConverted" },
   ];
 
-  // A working link opens in a new tab; Plan 4 spec §5.3: a passive one is greyed out, with the reason as its tooltip.
-  const actionButton = (button: ActionButton, className: string) =>
-    "url" in button ? (
-      <a key={button.id} className={className} href={button.url} target="_blank" rel="noopener noreferrer">
-        {button.label}
-      </a>
-    ) : (
-      <span key={button.id} className="kt-btn kt-disabled" aria-disabled="true" tabIndex={0} title={describePassive(button.passive, environment.name)}>
-        {button.label}
-      </span>
-    );
-
   return (
     <div className="kt-root" ref={rootRef} onClick={keepInside} onKeyDown={keepInside}>
       <div className="kt-bar">
-        {buttons.links.map((button) => actionButton(button, "kt-btn"))}
-        {buttons.discover.map((button) => actionButton(button, "kt-btn kt-discover"))}
+        <ActionButtons links={buttons.links} discover={buttons.discover} environmentName={environment.name} />
         {panelEntries.length > 0 && (
           <button type="button" className="kt-ghost" aria-expanded={panelOpen} onClick={() => setPanelOpen(!panelOpen)}>
             {t("viewButton")}
@@ -192,22 +132,4 @@ export function ActionBar({ identity, actions, client, prefix, page, now, copy, 
       )}
     </div>
   );
-}
-
-async function describeError(error: unknown, client: KibanaClient): Promise<string> {
-  if (!(error instanceof KibanaError)) return t("errorUnknown");
-  switch (error.kind) {
-    case "forbidden":
-      return t("errorForbidden");
-    case "notFound":
-      return t("errorNotFound");
-    case "network":
-      return t("errorNetwork");
-    case "server":
-      return t("errorServer", String(error.status ?? "?"));
-    case "incompatible":
-      return t("errorIncompatible", (await client.getVersion()) ?? "?");
-    default:
-      return t("errorUnknown");
-  }
 }

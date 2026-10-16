@@ -2,12 +2,17 @@ import { createElement } from "react";
 import { type Root, createRoot } from "react-dom/client";
 import { defineUnlistedScript } from "#imports";
 import { browser } from "wxt/browser";
-import { findDetailViews } from "../src/adapters/detect";
+import { findDetailViews, findRows, rowIdentity, rowOf } from "../src/adapters/detect";
+import { IDENTIFY_ROWS_EVENT, rowControlsLeft } from "../src/adapters/legacy-rows";
 import type { DetailView } from "../src/adapters/types";
 import { ActionBar } from "../src/content/ActionBar";
+import { loadDataViews, loadTimeFields, timeFieldTargets } from "../src/content/bar-data";
 import { type Mount, type MountHandle, reconcileMounts } from "../src/content/mounts";
+import { createRowHost } from "../src/content/row-host";
+import { ROW_HOST_TAG, batches } from "../src/content/rows";
+import { RowStrip } from "../src/content/RowStrip";
 import { BAR_CSS } from "../src/content/styles";
-import { type Action, type Config, actionsForEnvironment, activeEnvironment, basePathOf } from "../src/core/config";
+import { type Action, type Config, actionsForEnvironment, activeEnvironment, basePathOf, rowActions } from "../src/core/config";
 import { createKibanaClient } from "../src/kibana/client";
 import { kibanaPrefix } from "../src/kibana/prefix";
 import { createConfigStore } from "../src/storage";
@@ -36,10 +41,56 @@ async function start(): Promise<void> {
   // Recomputed only when the config changes: the bars refetch when this array changes identity.
   let environment = activeEnvironment(config, location.href);
   let actions = currentActions();
+  // Spec 003 FR-004: the strip's actions; same lifetime as `actions`, so the strip's fetch effect stays put too.
+  let marked = rowActions(actions);
+  /** Data views whose lookups for the strip's Discover buttons were started (research R8; SC-003). */
+  const warmed = new Set<string>();
 
   function currentActions(): Action[] {
     return environment ? actionsForEnvironment(config, environment.id) : [];
   }
+
+  // Spec 003: one strip host that moves into the active result row (research R9).
+  const rowHostElement = document.createElement(ROW_HOST_TAG);
+  const rowShadow = rowHostElement.attachShadow({ mode: "open" });
+  const rowStyle = document.createElement("style");
+  rowStyle.textContent = BAR_CSS;
+  const rowContainer = document.createElement("div");
+  rowShadow.append(rowStyle, rowContainer);
+  const rowRoot: Root = createRoot(rowContainer, {
+    onUncaughtError: (error: unknown) => console.debug(LOG, "row strip failed:", error),
+  });
+  // On 7.17 the page-context script answers this during dispatchEvent, so the rows' attributes are fresh (research R2).
+  const identifyRows = (): boolean => document.dispatchEvent(new CustomEvent(IDENTIFY_ROWS_EVENT));
+  const rowHost = createRowHost(document, {
+    host: rowHostElement,
+    rowOf,
+    identify: (row) => {
+      identifyRows();
+      return rowIdentity(row, location, prefix);
+    },
+    controlsLeft: rowControlsLeft,
+    render(target) {
+      const open = environment;
+      if (target && open) {
+        const theme = themeBehind(rowHostElement);
+        if (rowHostElement.dataset.ktTheme !== theme) rowHostElement.dataset.ktTheme = theme;
+      }
+      rowRoot.render(
+        target && open
+          ? createElement(RowStrip, {
+              key: `${target.identity.index}/${target.identity.id}`,
+              identity: target.identity,
+              actions: marked,
+              client,
+              prefix,
+              page: location,
+              environment: open,
+            })
+          : null,
+      );
+    },
+  });
 
   function createMount(host: HTMLElement): MountHandle {
     const shadow = host.attachShadow({ mode: "open" });
@@ -92,6 +143,30 @@ async function start(): Promise<void> {
     } catch (error) {
       console.debug(LOG, "reconcile failed:", error);
     }
+    try {
+      syncRows();
+    } catch (error) {
+      console.debug(LOG, "row pass failed:", error);
+    }
+  }
+
+  /** Spec 003 research R8: only while a marked action applies; otherwise no row is read, fetched or changed (FR-014). */
+  function syncRows(): void {
+    const on = environment !== undefined && marked.length > 0;
+    rowHost.setActive(on);
+    if (!on) return;
+    rowHost.refresh();
+    identifyRows();
+    const identities = findRows(document, location, prefix).flatMap(({ identity }) => (identity ? [identity] : []));
+    // ponytail: a failed batch is evicted and asked again on the next pass, i.e. at most once per DOM-change pass
+    // while it keeps failing; add a backoff if a persistently failing Kibana ever shows up in practice.
+    for (const batch of batches(identities.map(({ index, id }) => ({ index, id })))) void client.prefetchDocs(batch);
+    // The strip's Discover buttons need the data view's time field; looked up once, so a hover never waits for it.
+    const dataViewId = identities[0]?.dataViewId;
+    if (dataViewId === undefined || warmed.has(dataViewId)) return;
+    warmed.add(dataViewId);
+    const targets = marked;
+    void loadDataViews(client, targets).then((views) => loadTimeFields(client, timeFieldTargets(targets, dataViewId, views)));
   }
 
   let scheduled: number | undefined;
@@ -103,6 +178,7 @@ async function start(): Promise<void> {
     }, 100);
   }
 
+  // attributeFilter must stay narrow: the page-context script's row attributes must not trigger passes (spec 003 R9).
   new MutationObserver(schedule).observe(document.body, {
     childList: true,
     subtree: true,
@@ -117,6 +193,10 @@ async function start(): Promise<void> {
         config = loaded.config;
         environment = activeEnvironment(config, location.href);
         actions = currentActions();
+        marked = rowActions(actions);
+        warmed.clear();
+        // The strip shows the new row actions from the next pointer move on (spec 003 FR-014a).
+        rowHost.setActive(false);
         run();
       })
       .catch((error: unknown) => console.debug(LOG, "config reload failed:", error));

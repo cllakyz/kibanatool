@@ -19,6 +19,8 @@ const actionBase = {
   id: z.string().min(1),
   label: z.string().min(1),
   enabled: z.boolean(),
+  /** Spec 003 FR-001: also shown on Discover result rows. */
+  showInRow: z.boolean(),
   environmentIds: z.array(z.string()),
   conditions: z.array(conditionSchema),
 };
@@ -51,7 +53,7 @@ const environmentSchema = z.object({
 
 export const configSchema = z
   .object({
-    schemaVersion: z.literal(3),
+    schemaVersion: z.literal(4),
     environments: z.array(environmentSchema),
     actions: z.array(z.discriminatedUnion("kind", [linkActionSchema, discoverActionSchema])),
     copy: z.object({
@@ -112,17 +114,25 @@ export type DiscoverAction = Extract<Action, { kind: "discover" }>;
 
 export type ParseResult = { ok: true; config: Config } | { ok: false; errors: string[] };
 
-export const SCHEMA_VERSION = 3;
+export const SCHEMA_VERSION = 4;
 
 /**
  * Converts older settings, so both imported files and settings already in chrome.storage (storage.ts) load
  * instead of being dropped. Version 1 had no variables and no dataViewName (Plan 4 spec §3); the schema
  * defaults the variables. Versions 1 and 2 had no valueMasks, so they get every kind (Plan 5 spec §6).
+ * Versions 1 to 3 had no showInRow, so no action shows on rows (spec 003 FR-002).
  */
 function migrate(input: unknown): unknown {
-  if (!isPlainObject(input) || (input.schemaVersion !== 1 && input.schemaVersion !== 2)) return input;
-  const copy = isPlainObject(input.copy) ? { ...input.copy, valueMasks: [...VALUE_MASK_KINDS] } : input.copy;
-  return { ...input, schemaVersion: SCHEMA_VERSION, copy };
+  if (!isPlainObject(input) || ![1, 2, 3].includes(input.schemaVersion as number)) return input;
+  const copy =
+    input.schemaVersion !== 3 && isPlainObject(input.copy) ? { ...input.copy, valueMasks: [...VALUE_MASK_KINDS] } : input.copy;
+  // Anything that is not an action object is left for the schema to reject.
+  const actions = Array.isArray(input.actions)
+    ? input.actions.map((action: unknown) =>
+        isPlainObject(action) && typeof action.showInRow !== "boolean" ? { ...action, showInRow: false } : action,
+      )
+    : input.actions;
+  return { ...input, schemaVersion: SCHEMA_VERSION, copy, actions };
 }
 
 export function parseConfig(input: unknown): ParseResult {
@@ -224,4 +234,9 @@ export function appliesTo(action: Pick<Action, "environmentIds">, environmentId:
 
 export function actionsForEnvironment(config: Config, environmentId: string): Action[] {
   return config.actions.filter((action) => action.enabled && appliesTo(action, environmentId));
+}
+
+/** Spec 003 FR-004: the actions shown on result rows. The only place for this rule (constitution II). */
+export function rowActions(actions: Action[]): Action[] {
+  return actions.filter((action) => action.showInRow);
 }

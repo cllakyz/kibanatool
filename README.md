@@ -16,6 +16,12 @@ a bar above it with:
   from, and long or multi-line text, such as console output or a stack trace, as text you can search.
 - **⋯** to copy the log as Markdown or JSON with sensitive fields and values masked, the request it records as a cURL command, a link to the log, or the current view with its time range fixed.
 
+Actions you mark with **Show in row** also appear on the result rows themselves: point at a row, or move
+keyboard focus into it, and they show at the row's right end, so one click runs them without opening the log.
+The bar keeps every action, the View panel and the copy menu. On 7.17, whose collapsed rows carry no log id, a
+small script in the Kibana page's own context reads each row's index and id from Kibana's page data, only
+while an action is marked.
+
 ## Set up
 
 1. Install kibanatool from the Chrome Web Store, or build it (see [Development](#development)) and load
@@ -26,6 +32,7 @@ a bar above it with:
 4. **Variables:** values that differ per environment, like your admin panel's address. Each row is a
    variable, each column an environment; use them in templates as `{env.name}`.
 5. **Actions:** add link or Discover actions, and paste a sample log into the preview to see the result.
+   Mark **Show in row** on the ones you also want on the result rows.
    Or import [`examples/kibanatool-settings.json`](examples/kibanatool-settings.json) under **Export and import** and edit it.
 6. Reload your Kibana tab and open a log.
 
