@@ -5,7 +5,7 @@
 
 **Created**: 2026-10-15
 
-**Status**: Draft
+**Status**: Implemented (PR #10 and PR #11, merged 2026-10-16)
 
 **Input**: User description: "Düz metin istek/yanıt görüntüleyici. Bu metinler XML, SOAP ya da form verisi
 olabilir. JSON görünümü şu an bunları açamıyor. Biçimlerini henüz doğrulamadım. Yukarıdaki geliştirme için

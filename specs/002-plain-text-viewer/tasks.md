@@ -523,7 +523,7 @@ release 1.0.0 (changed from 1.1.0 on 2026-10-16).
 
 ## Phase 5: Polish & Cross-Cutting Concerns
 
-- [ ] T038 After both PRs merge, set `**Status**: Implemented` in
+- [X] T038 After both PRs merge, set `**Status**: Implemented` in
   `specs/002-plain-text-viewer/spec.md`. Commit it in the next docs commit on `main`'s next branch,
   or ask the user whether to commit it on its own. Check that
   `grep -n "jsonTextFields\|jsonButton" -r src tests public` is empty.
