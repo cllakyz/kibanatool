@@ -1,10 +1,10 @@
 # Feature Specification: Explain How Far a Field-Name Mask Reaches
 
-**Feature Branch**: decided in the plan.
+**Feature Branch**: `004-mask-scope-docs`, one pull request (planning decision, 2026-10-19).
 
 **Created**: 2026-10-19
 
-**Status**: Draft
+**Status**: Implemented (PR #14, merged 2026-10-19)
 
 **Input**: User description (a heads-up written in Turkish, summarized): the default `*token*` and `*password*`
 patterns now also match XML element names. A field-name mask looks for its word anywhere in the field's full

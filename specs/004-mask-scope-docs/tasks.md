@@ -148,7 +148,7 @@ section (quickstart checks 2–4). `npx vitest run tests/unit/core/mask.test.ts`
 - [X] T012 Commit everything in one commit: the code, the tests, the README, `specs/004-mask-scope-docs/`
   (with this file's checkboxes up to date) and `.specify/feature.json`. Message: `docs: explain how far a
   field-name mask reaches; spec-kit feature 004`.
-- [ ] T013 Ask the user whether to push and open the PR. Do not push without a yes. On yes:
+- [X] T013 Ask the user whether to push and open the PR. Do not push without a yes. On yes:
   - **Push** with `GH_TOKEN=$(gh auth token --user cllakyz) git -c credential.helper='!gh auth
     git-credential' push -u origin 004-mask-scope-docs`.
   - **Open** the PR with `GH_TOKEN=$(gh auth token --user cllakyz) gh pr create`.
@@ -162,7 +162,7 @@ section (quickstart checks 2–4). `npx vitest run tests/unit/core/mask.test.ts`
 
   After the user says it is merged, pull `main`. Delete the branch locally and on GitHub only if the user
   asks.
-- [ ] T014 Mark spec-kit feature 004 implemented:
+- [X] T014 Mark spec-kit feature 004 implemented:
   - spec status "Implemented (PR #N, merged <date>)", all tasks checked;
   - add 004 to the spec-kit features listed in `CLAUDE.md` "Docs".
 
