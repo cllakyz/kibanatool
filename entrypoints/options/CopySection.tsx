@@ -42,8 +42,15 @@ export function CopySection({ config, onSave }: SectionProps) {
       </label>
       <label>
         {t("optionsMaskPatterns")}
-        <textarea rows={5} spellCheck={false} value={patterns} onChange={(event) => setPatterns(event.target.value)} />
+        <textarea
+          rows={5}
+          spellCheck={false}
+          aria-describedby="mask-patterns-help"
+          value={patterns}
+          onChange={(event) => setPatterns(event.target.value)}
+        />
       </label>
+      <p className="muted" id="mask-patterns-help">{t("optionsMaskPatternsHelp")}</p>
       <fieldset>
         <legend>{t("optionsValueMasks")}</legend>
         {VALUE_MASK_KINDS.map((kind) => (

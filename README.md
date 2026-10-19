@@ -104,6 +104,18 @@ Both copies mask every field whose path matches a pattern under **Copy and maski
 `*authorization*`, `*password*`, `*token*`, `*secret*`, `*cookie*` and `*php-auth-*`, the Basic-auth user and
 password that Symfony copies out of `Authorization`), keys inside JSON, XML and form text included.
 
+A field whose path matches is masked with everything inside it: an object, a list or an XML element becomes
+a single `***`. That is what you want for a header list or a `<Token Type="…" Value="…"/>` element. But it
+also hides a wrapper whose name merely contains the word, such as a SOAP operation `GetTokenRequest`.
+
+To keep such a wrapper readable, narrow the pattern instead of removing it. `*token` matches names that end
+in "token", such as `platform-token`, `ConfirmationToken` and `_token`, but not `GetTokenRequest`. Any
+narrower pattern trades coverage for readability:
+
+- `*token` misses a name like `tokenValue`;
+- `*.token` matches only names that are exactly `token`, so it would leave `platform-token` or
+  `refreshToken` in plain text.
+
 They also look inside every value, such as plain-text bodies that a field name cannot reach, and replace each
 of these with `***`. Each kind can be turned off under **Mask inside values**:
 

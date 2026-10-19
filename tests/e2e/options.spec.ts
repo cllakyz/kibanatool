@@ -60,6 +60,14 @@ test("turns one value mask off and keeps the others", async ({ context, extensio
     .toEqual(["iban", "tckn", "card"]);
 });
 
+test("describes the mask patterns field with a note (spec 004 FR-002)", async ({ context, extension, configure }) => {
+  await configure();
+  const options = await openOptions(context, extension.id);
+  const copy = options.locator('section[aria-labelledby="copy-title"]');
+  // The Markdown fields come first, then the mask patterns.
+  await expect(copy.locator("textarea").nth(1)).toHaveAccessibleDescription(/\S/);
+});
+
 test("exports a corrupt stored value as it is, so it can be repaired", async ({ context, extension }) => {
   const corrupt = { schemaVersion: 99, environments: "broken" };
   await writeStored(extension.worker, corrupt);

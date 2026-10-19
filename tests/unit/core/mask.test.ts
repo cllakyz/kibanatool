@@ -62,6 +62,37 @@ describe("maskValue", () => {
     expect(maskValue("body", "<a>1</a>", isMasked, [])).toBe(MASK);
   });
 
+  it("masks a matching object, list or XML element whole (spec 004 FR-006)", () => {
+    const request = expandStructured("<Envelope><Body><GetTokenRequest><User>u</User></GetTokenRequest></Body></Envelope>");
+    expect(maskValue("context.request", request, isMasked, [])).toEqual({ Envelope: { Body: { GetTokenRequest: MASK } } });
+    expect(maskValue("context.headers", { "platform-token": ["a", "b"], accept: "json" }, isMasked, [])).toEqual({ "platform-token": MASK, accept: "json" });
+    expect(maskValue("context.response", { tokenInfo: { scope: "read" } }, isMasked, [])).toEqual({ tokenInfo: MASK });
+  });
+
+  it("with *token in place of *token*, a wrapper opens and the measured token names stay masked (spec 004 FR-006, SC-004)", () => {
+    const narrowed = maskMatcher(DEFAULT_MASK_PATTERNS.map((pattern) => (pattern === "*token*" ? "*token" : pattern)));
+    // Every token name the Alpha measurement found (research R2).
+    for (const path of [
+      "context.headers.platform-token",
+      "context.headers.postman-token",
+      "context.request.PKT.Method.Params.Token",
+      "context.response.PKT.Result.Returnset.Token",
+      "context.request_content.Token",
+      "context.response.data.token",
+      "context.response.Data.TransactionSavingToken",
+      "context.response.Data.ConfirmationToken",
+      "context.request.ApplicationToken",
+      "context.response.refreshToken",
+      "context.request.body._token",
+    ]) {
+      expect([path, isMasked(path), narrowed(path)]).toEqual([path, true, true]);
+    }
+    const request = expandStructured('<Envelope><Body><GetTokenRequest><User>u</User><Amount>1</Amount><Token Type="a" Value="v"/></GetTokenRequest></Body></Envelope>');
+    expect(maskValue("context.request", request, narrowed, [])).toEqual({
+      Envelope: { Body: { GetTokenRequest: { User: "u", Amount: "1", Token: MASK } } },
+    });
+  });
+
   it("masks inside arrays and nested objects", () => {
     expect(maskValue("items", [{ token: "t", id: 1 }], isMasked, [])).toEqual([{ token: MASK, id: 1 }]);
     expect(maskValue("body", { user: { Password: "p", name: "n" } }, isMasked, [])).toEqual({ user: { Password: MASK, name: "n" } });
