@@ -3,19 +3,6 @@
 All notable changes are listed here. The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/)
 and versions follow [Semantic Versioning](https://semver.org/).
 
-## [Unreleased]
-
-### Added
-
-- The options page has a theme switch in its top bar: System, Light or Dark. The choice stays on this device and
-  is not part of the exported settings.
-
-### Changed
-
-- The options page is split into five tabs (Environments, Variables, Actions, Copy and masking, Export and import),
-  each with its own address.
-- The action editor opens in a dialog, and the action list shows which actions appear on result rows.
-
 ## [1.0.0] - 2026-10-20
 
 First public release, for Kibana 7.17, 8.x and 9.x in Chrome.
@@ -51,8 +38,9 @@ First public release, for Kibana 7.17, 8.x and 9.x in Chrome.
   `query`, as in Symfony request logs): a bash command that sends the request again, with proxy headers dropped,
   masked with the same settings as the other copies; JSON and form text inside the request is masked inside and
   kept as JSON or form text, and plain, HTML and XML text keeps only the value masks.
-- Options page: environments with per-site access, an action editor with a live preview, copy and masking
-  settings, export and import.
+- Options page in five tabs, each with its own address: Environments (per-site access), Variables, Actions,
+  Copy and masking, and Export and import. Actions are edited in a dialog with a live preview, and the action
+  list shows which actions appear on result rows.
 - Environment variables: `{env.name}` placeholders take each environment's own value, set in a variables
   table on the options page, so one set of actions works in every Kibana. A button whose variable is not set
   is greyed out with the reason.
@@ -60,8 +48,9 @@ First public release, for Kibana 7.17, 8.x and 9.x in Chrome.
   name is looked up in the current space.
 - Settings files are version 4; settings from pre-release builds (versions 1 to 3) are converted when loaded.
 - English and Turkish.
-- The look of Kibana 9's Borealis theme, in light and dark. The options page follows the system's dark mode;
-  the action bar follows the Kibana page it sits on (7.17, 8.x and 9.x).
+- The look of Kibana 9's Borealis theme, in light and dark. The options page has a theme switch in its top bar
+  (System, Light or Dark); the choice stays on this device and is not part of the exported settings. The action
+  bar follows the Kibana page it sits on (7.17, 8.x and 9.x).
 - A magnifier-and-chart icon, in a light and a dark version; the toolbar shows the one that matches the
   browser's color scheme once the options page or a Kibana tab has been open.
 - Text and form controls meet WCAG AA contrast in both themes: text at 4.5:1, input borders, the focus ring

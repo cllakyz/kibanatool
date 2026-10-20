@@ -117,6 +117,7 @@ docs/verification/2026-10-tabbed-options.md  # M1–M4 and the visual check (R9)
 - The spec-kit files and the implementation are committed on it.
 - It goes up as one pull request only after the user's yes, so the CI matrix (G4) runs before it reaches main.
 - The 1.0.0 tag still goes on `d5d3281` once the store accepts it. This feature belongs to the next version.
+  **Changed 2026-10-20 (user decision):** it ships in 1.0.0 after all; the `[Unreleased]` entries were folded into the 1.0.0 entry, and the `v1.0.0` tag goes on that release commit once the store accepts the package.
 
 ## Complexity Tracking
 

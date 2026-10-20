@@ -183,7 +183,7 @@ it, and after the import the page is still Light.
 ## Assumptions
 
 - **Release:** this ships with the tabbed page (spec 005) in the next version, likely 1.1.0, under the CHANGELOG's
-  `[Unreleased]` entry.
+  `[Unreleased]` entry. **Changed 2026-10-20 (user decision):** it ships in 1.0.0 after all; the `[Unreleased]` entries were folded into the 1.0.0 entry, and the `v1.0.0` tag goes on that release commit once the store accepts the package.
 - **Navbar spacing:** a probe of the current build found that a three-button control with today's 32px gaps leaves
   the Turkish tabs about 11px short at 1000px. The plan may tighten the bar's spacing or the control's size to keep
   SC-003; the design system's other proportions stay.

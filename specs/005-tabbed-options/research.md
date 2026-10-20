@@ -216,6 +216,7 @@ follows it and where it departs, and why.
 - **CHANGELOG.md**: a new `## [Unreleased]` section with a "Changed" line.
   - 1.0.0 stays as dated, and its tag still goes on `d5d3281` after the store accepts it.
   - The version bump to 1.1.0 is a release decision for later.
+  - **Changed 2026-10-20 (user decision):** it ships in 1.0.0 after all; the `[Unreleased]` entries were folded into the 1.0.0 entry, and the `v1.0.0` tag goes on that release commit once the store accepts the package.
 - **Store listing**: its screenshots don't show the options page, so nothing needs retaking.
 - **The design system artifact**: after merge, its "Proposed" tokens are real. Updating its "Not synced" note is a
   follow-up to offer, not part of this feature.

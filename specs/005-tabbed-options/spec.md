@@ -256,6 +256,7 @@ horizontal fields, and the footer Save against the design system's previews.
 - **Release:** 1.0.0 is dated and packaged and waits for the store review; its tag goes on the commit before this
   feature. This feature ships in a later version (likely 1.1.0) and gets a CHANGELOG entry then. Store screenshots
   of the options page, if any, need retaking after it ships.
+  **Changed 2026-10-20 (user decision):** it ships in 1.0.0 after all; the `[Unreleased]` entries were folded into the 1.0.0 entry, and the `v1.0.0` tag goes on that release commit once the store accepts the package.
 - **Environments empty state:** the design shows none, because the add form sits right under the list. An empty
   environment list shows no extra line.
 - **The dialog and the "one draft at a time" rule:** with a modal dialog only one action can be edited at a time;

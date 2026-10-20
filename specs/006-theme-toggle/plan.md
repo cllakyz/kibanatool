@@ -110,7 +110,7 @@ docs/verification/2026-10-theme-switch.md # M1–M5 and the visual check (R7)
 - The branch `006-theme-toggle` was cut from main at `3ea227e`; the spec is `0a67df6`.
 - The spec-kit files and the implementation are committed on it. It goes up as one pull request only after the
   user's yes, so the CI matrix (G4) runs before it reaches main.
-- It ships with spec 005 in the next version, under `[Unreleased]`.
+- It ships with spec 005 in the next version, under `[Unreleased]`. **Changed 2026-10-20 (user decision):** it ships in 1.0.0 after all; the `[Unreleased]` entries were folded into the 1.0.0 entry, and the `v1.0.0` tag goes on that release commit once the store accepts the package.
 
 ## Complexity Tracking
 
