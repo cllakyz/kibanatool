@@ -4,7 +4,7 @@
 
 **Created**: 2026-10-20
 
-**Status**: Draft
+**Status**: Implemented (PR #15, merged 2026-10-20)
 
 **Input**: User description (summarized): the options page is one long column today. Environments, variables,
 actions, copy and masking, and export and import are stacked under one heading. Split it into tabs, in the style of

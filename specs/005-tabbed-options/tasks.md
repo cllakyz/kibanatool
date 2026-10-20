@@ -461,7 +461,7 @@ check (T025) matches the design's previews.
   - "The action editor opens in a dialog, and the action list shows which actions appear on result rows."
 - [X] T029 Commit everything in one commit: the code, the tests, the docs, and this file with its checkboxes
   up to date. Message: `feat(options): split the options page into tabs; spec-kit feature 005`.
-- [ ] T030 Ask the user whether to push and open the PR. Do not push without a yes. On yes:
+- [X] T030 Ask the user whether to push and open the PR. Do not push without a yes. On yes:
   - **Push** with `GH_TOKEN=$(gh auth token --user cllakyz) git -c credential.helper='!gh auth git-credential'
     push -u origin 005-tabbed-options`.
   - **Open** the PR with `GH_TOKEN=$(gh auth token --user cllakyz) gh pr create`.
@@ -478,7 +478,7 @@ check (T025) matches the design's previews.
     - The body ends with `🤖 Generated with [Claude Code](https://claude.com/claude-code)`.
 
   After the user says it is merged, pull `main`. Delete the branch only if the user asks.
-- [ ] T031 After the merge, mark the feature implemented:
+- [X] T031 After the merge, mark the feature implemented:
   - spec status "Implemented (PR #N, merged <date>)", with every task checked.
 
   Ask the user whether this goes directly to `main` (as 004's T014 did) or into the branch before the merge.
