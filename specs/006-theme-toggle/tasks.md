@@ -340,7 +340,7 @@ tabs and the control fit at 1000px.
   `feat(options): theme switch on the options page; spec-kit feature 006`, with the trailer. Mark T001–T024
   `[X]` in this file in the same commit. Then ask the user whether to push and open the pull request; don't do
   either without a yes.
-- [ ] T025 After the user merges the pull request, and only when they ask:
+- [X] T025 After the user merges the pull request, and only when they ask:
   - set the spec's Status to "Implemented (PR #<n>, merged <date>)" and mark T025 `[X]`;
   - when the user reports M1–M5, record them in `docs/verification/2026-10-theme-switch.md`. Record M2's result
     as spec 005's M3 too, in `docs/verification/2026-10-tabbed-options.md`.

@@ -4,7 +4,7 @@
 
 **Created**: 2026-10-20
 
-**Status**: Draft
+**Status**: Implemented (PR #16, merged 2026-10-20)
 
 **Input**: User description: "Açık/Koyu tema değişikliği için uygun olan yere güzel bir toggle buton koyalım. Aklına
 bir şey takılırsa mutlaka bana sor." (Put a nice toggle button for switching between light and dark in a suitable
