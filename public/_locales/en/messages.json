@@ -17,6 +17,7 @@
   "errorUnknown": { "message": "kibanatool: something went wrong" },
   "optionsLoading": { "message": "Loading…" },
   "optionsIntro": { "message": "Add the Kibana addresses you use, grant access, then define link actions. Reload open Kibana tabs after changes." },
+  "optionsNavLabel": { "message": "Settings sections" },
   "optionsLoadError": { "message": "The stored settings are invalid, so empty settings are in use. Saving anything replaces the stored settings:" },
   "optionsSavedReload": { "message": "Saved. Reload open Kibana tabs to apply." },
   "optionsEnvironments": { "message": "Environments" },
@@ -65,8 +66,9 @@
     "placeholders": { "error": { "content": "$1", "example": "Permission denied" } }
   },
   "optionsCopy": { "message": "Copy and masking" },
-  "optionsMarkdownFields": { "message": "Fields for \"Copy as Markdown\", one per line (empty: every field, alphabetically)" },
-  "optionsMaskPatterns": { "message": "Masked fields, one pattern per line (* matches anything; case does not matter)" },
+  "optionsMarkdownFieldsHelp": { "message": "One field per line. Empty: every field, alphabetically." },
+  "optionsMaskPatternsShort": { "message": "Masked fields" },
+  "optionsMaskPatternsLine": { "message": "One pattern per line. * matches anything; case does not matter." },
   "optionsMaskPatternsHelp": { "message": "A field or element whose name matches is masked with everything inside it, keys inside JSON, XML and form text included. To keep a wrapper such as GetTokenRequest readable, narrow the pattern instead of removing it: *token (names that end in \"token\") in place of *token*. Avoid *.token: it masks only names that are exactly \"token\", so tokens such as platform-token stay readable." },
   "optionsValueMasks": { "message": "Mask inside values" },
   "optionsValueMasksHelp": { "message": "Searched inside every value, whatever the field's name. Applies to every copy: Markdown, JSON and cURL." },
@@ -76,7 +78,9 @@
   "optionsValueMaskCard": { "message": "Card number (Visa, Mastercard, Amex, Troy)" },
   "optionsTransfer": { "message": "Export and import" },
   "optionsExport": { "message": "Export settings" },
+  "optionsExportHelp": { "message": "Saves environments, variables, actions, and copy and masking settings as one JSON file." },
   "optionsImport": { "message": "Import a settings file" },
+  "optionsImportHelp": { "message": "Importing replaces all current settings." },
   "optionsImportPreview": {
     "message": "This file has $ENVIRONMENTS$ environments and $ACTIONS$ actions. Importing replaces all current settings; grant access to the environments afterwards.",
     "placeholders": { "environments": { "content": "$1", "example": "2" }, "actions": { "content": "$2", "example": "5" } }
@@ -86,6 +90,7 @@
   "optionsCancel": { "message": "Cancel" },
   "optionsAddLink": { "message": "Add link action" },
   "optionsAddDiscover": { "message": "Add Discover action" },
+  "optionsEmptyActions": { "message": "No actions yet. Add a link or Discover action to get started." },
   "optionsEdit": { "message": "Edit" },
   "optionsKindLink": { "message": "Link" },
   "optionsKindDiscover": { "message": "Discover" },

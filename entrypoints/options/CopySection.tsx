@@ -35,42 +35,76 @@ export function CopySection({ config, onSave }: SectionProps) {
 
   return (
     <section aria-labelledby="copy-title">
-      <h2 id="copy-title">{t("optionsCopy")}</h2>
-      <label>
-        {t("optionsMarkdownFields")}
-        <textarea rows={4} spellCheck={false} value={fields} onChange={(event) => setFields(event.target.value)} />
-      </label>
-      <label>
-        {t("optionsMaskPatterns")}
-        <textarea
-          rows={5}
-          spellCheck={false}
-          aria-describedby="mask-patterns-help"
-          value={patterns}
-          onChange={(event) => setPatterns(event.target.value)}
-        />
-      </label>
-      <p className="muted" id="mask-patterns-help">{t("optionsMaskPatternsHelp")}</p>
-      <fieldset>
-        <legend>{t("optionsValueMasks")}</legend>
-        {VALUE_MASK_KINDS.map((kind) => (
-          <label className="inline" key={kind}>
-            <input
-              type="checkbox"
-              name="valueMask"
-              value={kind}
-              checked={valueMasks.includes(kind)}
-              onChange={(event) => toggle(kind, event.target.checked)}
+      <div className="panel-head">
+        <h2 id="copy-title">{t("optionsCopy")}</h2>
+      </div>
+      <div className="fields">
+        <div className="field-h">
+          <div>
+            <label className="field-h-title" htmlFor="markdown-fields">
+              {t("menuCopyMarkdown")}
+            </label>
+            <p className="field-h-help" id="markdown-fields-help">{t("optionsMarkdownFieldsHelp")}</p>
+          </div>
+          <div className="field-h-control">
+            <textarea
+              id="markdown-fields"
+              rows={4}
+              spellCheck={false}
+              aria-describedby="markdown-fields-help"
+              value={fields}
+              onChange={(event) => setFields(event.target.value)}
             />
-            {t(VALUE_MASK_LABELS[kind])}
-          </label>
-        ))}
-        <p className="muted">{t("optionsValueMasksHelp")}</p>
-      </fieldset>
-      <button type="button" className="primary" onClick={() => void submit(withCopySettings(config, fields, patterns, valueMasks))}>
-        {t("optionsSave")}
-      </button>
-      <Feedback errors={errors} saved={saved} />
+          </div>
+        </div>
+        <div className="field-h">
+          <div>
+            <label className="field-h-title" htmlFor="mask-patterns">
+              {t("optionsMaskPatternsShort")}
+            </label>
+            <p className="field-h-help" id="mask-patterns-line">{t("optionsMaskPatternsLine")}</p>
+          </div>
+          <div className="field-h-control">
+            <textarea
+              id="mask-patterns"
+              rows={5}
+              spellCheck={false}
+              aria-describedby="mask-patterns-line mask-patterns-help"
+              value={patterns}
+              onChange={(event) => setPatterns(event.target.value)}
+            />
+            <p className="field-h-help" id="mask-patterns-help">{t("optionsMaskPatternsHelp")}</p>
+          </div>
+        </div>
+        <div className="field-h">
+          <div>
+            <span className="field-h-title" id="value-masks">
+              {t("optionsValueMasks")}
+            </span>
+            <p className="field-h-help">{t("optionsValueMasksHelp")}</p>
+          </div>
+          <div className="field-h-control checks" role="group" aria-labelledby="value-masks">
+            {VALUE_MASK_KINDS.map((kind) => (
+              <label className="inline" key={kind}>
+                <input
+                  type="checkbox"
+                  name="valueMask"
+                  value={kind}
+                  checked={valueMasks.includes(kind)}
+                  onChange={(event) => toggle(kind, event.target.checked)}
+                />
+                {t(VALUE_MASK_LABELS[kind])}
+              </label>
+            ))}
+          </div>
+        </div>
+      </div>
+      <div className="panel-foot">
+        <Feedback errors={errors} saved={saved} />
+        <button type="button" className="primary" onClick={() => void submit(withCopySettings(config, fields, patterns, valueMasks))}>
+          {t("optionsSave")}
+        </button>
+      </div>
     </section>
   );
 }

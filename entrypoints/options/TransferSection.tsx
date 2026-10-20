@@ -49,30 +49,47 @@ export function TransferSection({ onSave, exportValue }: SectionProps & { export
 
   return (
     <section aria-labelledby="transfer-title">
-      <h2 id="transfer-title">{t("optionsTransfer")}</h2>
-      <div className="row">
-        <button type="button" onClick={exportSettings}>
-          {t("optionsExport")}
-        </button>
-        <label>
-          {t("optionsImport")}
-          <input type="file" accept="application/json,.json" onChange={choose} />
-        </label>
+      <div className="panel-head">
+        <h2 id="transfer-title">{t("optionsTransfer")}</h2>
       </div>
-      {pending && (
-        <div className="warning">
-          <p>{t("optionsImportPreview", String(pending.environments.length), String(pending.actions.length))}</p>
-          <div className="row">
-            <button type="button" className="primary" onClick={replace}>
-              {t("optionsImportConfirm")}
-            </button>
-            <button type="button" className="link" onClick={() => setPending(null)}>
-              {t("optionsCancel")}
+      <div className="fields">
+        <div className="field-h">
+          <div>
+            <span className="field-h-title">{t("optionsExport")}</span>
+            <p className="field-h-help">{t("optionsExportHelp")}</p>
+          </div>
+          <div className="field-h-control">
+            <button type="button" onClick={exportSettings}>
+              {t("optionsExport")}
             </button>
           </div>
         </div>
-      )}
-      <Feedback errors={errors} saved={saved} />
+        <div className="field-h">
+          <div>
+            <label className="field-h-title" htmlFor="import-file">
+              {t("optionsImport")}
+            </label>
+            <p className="field-h-help">{t("optionsImportHelp")}</p>
+          </div>
+          <div className="field-h-control">
+            <input id="import-file" type="file" accept="application/json,.json" onChange={choose} />
+            {pending && (
+              <div className="warning">
+                <p>{t("optionsImportPreview", String(pending.environments.length), String(pending.actions.length))}</p>
+                <div className="row">
+                  <button type="button" className="primary" onClick={replace}>
+                    {t("optionsImportConfirm")}
+                  </button>
+                  <button type="button" className="link" onClick={() => setPending(null)}>
+                    {t("optionsCancel")}
+                  </button>
+                </div>
+              </div>
+            )}
+            <Feedback errors={errors} saved={saved} />
+          </div>
+        </div>
+      </div>
     </section>
   );
 }
