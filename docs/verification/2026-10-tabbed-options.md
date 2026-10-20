@@ -55,9 +55,11 @@ renk geçişinin ortasında çekilmiş görüntü olduğu anlaşıldı (500 ms s
 
 ## Elle yapılacak kontroller
 
+2026-10-20: kullanıcı M1 ve M4'ü main'deki `3762da8`'den derlenen `.output/chrome-mv3` ile elle yaptı; ikisi de geçti. M2 ve M3 açık.
+
 | # | Kontrol | Sonuç |
 |---|---|---|
-| M1 | Klavye: sayfanın başından Tab ile marka, beş sekme ve içerik sırayla geliyor, her birinde odak halkası var. Aksiyonlar'da Düzenle'ye Enter; Tab diyaloğun içinde kalıyor; Escape kapatıyor ve odak Düzenle'de (SC-006, FR-005). | Açık (kullanıcı) |
+| M1 | Klavye: sayfanın başından Tab ile marka, beş sekme ve içerik sırayla geliyor, her birinde odak halkası var. Aksiyonlar'da Düzenle'ye Enter; Tab diyaloğun içinde kalıyor; Escape kapatıyor ve odak Düzenle'de (SC-006, FR-005). | Geçti (kullanıcı, 2026-10-20) |
 | M2 | Ekran okuyucu: VoiceOver açık sekmeyi "geçerli sayfa" olarak, barı da adıyla okuyor (FR-005). | Açık (kullanıcı) |
 | M3 | Tema: sayfa açıkken macOS açık ve koyu arasında değiştirilince renkler ve işaret değişiyor (FR-007, SC-005). | Açık (kullanıcı) |
-| M4 | Akışlar: ortam ekleyip izin verme, değişken düzenleme, aksiyon ekleme, düzenleme ve silme, kopyalama ayarlarını kaydetme, dışa aktarma, örnek dosyayı içe aktarma (FR-019, SC-003). | Açık (kullanıcı) |
+| M4 | Akışlar: ortam ekleyip izin verme, değişken düzenleme, aksiyon ekleme, düzenleme ve silme, kopyalama ayarlarını kaydetme, dışa aktarma, örnek dosyayı içe aktarma (FR-019, SC-003). | Geçti (kullanıcı, 2026-10-20) |
