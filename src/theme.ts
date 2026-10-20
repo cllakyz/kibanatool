@@ -108,6 +108,30 @@ export function applyTheme(root: HTMLElement, choice: ThemeChoice, systemDark: b
   root.dataset.theme = choice === "system" ? (systemDark ? "dark" : "light") : choice;
 }
 
+export const THEME_KEY = "kibanatool.theme";
+
+// The theme choice lives in the extension's localStorage, apart from the settings: it is synchronous, so the
+// options page's head script reads it before the first frame, and export and import never carry it (spec 006
+// FR-008, FR-010). Anything unreadable or unknown means System (FR-011). It is read here, not in storage.ts, so
+// that script stays free of the settings schema (constitution V, exception).
+export function loadThemeChoice(area: Pick<Storage, "getItem">): ThemeChoice {
+  try {
+    const stored = area.getItem(THEME_KEY);
+    return THEME_CHOICES.find((choice) => choice === stored) ?? "system";
+  } catch (error) {
+    console.debug("[kibanatool] theme choice unreadable:", error);
+    return "system";
+  }
+}
+
+export function saveThemeChoice(area: Pick<Storage, "setItem">, choice: ThemeChoice): void {
+  try {
+    area.setItem(THEME_KEY, choice);
+  } catch (error) {
+    console.debug("[kibanatool] theme choice not saved:", error);
+  }
+}
+
 /** [r, g, b, a] from `#rgb`, `#rrggbb` or the `rgb()`/`rgba()` form getComputedStyle returns; null otherwise. */
 export function parseColor(text: string): [number, number, number, number] | null {
   const hex = /^#([0-9a-f]{3}|[0-9a-f]{6})$/i.exec(text.trim());

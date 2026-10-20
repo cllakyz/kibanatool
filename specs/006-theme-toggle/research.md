@@ -50,6 +50,7 @@ The probes below ran on 2026-10-20 against the build of `3ea227e` in Playwright 
     over 15 reloads each, the first frame came at a median 10.3 ms with it and 9.8 ms with the 3 kB version, and
     the theme was in place in both. The half millisecond doesn't justify an exception to Principle V, so the
     choice stays in `src/storage.ts`.
+  - **Changed 2026-10-20 (user decision, smaller package):** `THEME_KEY`, `loadThemeChoice` and `saveThemeChoice` moved to `src/theme.ts`, and constitution 1.0.7 names this exception to Principle V. `options-theme.js` is 3.6 kB without zod, and the store package went from 303.37 kB to 276.94 kB.
   - The build prints `<script src="/options-theme.js"> … can't be bundled without type="module" attribute`. That is
     expected: the file is built by WXT, and adding `type="module"` would make it deferred and bring the flash back.
     Whether a `vite-ignore` attribute silences the warning is checked during implementation; it is kept only if

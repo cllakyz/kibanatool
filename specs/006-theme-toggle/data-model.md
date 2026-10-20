@@ -6,7 +6,7 @@ The settings (`Config`, schemaVersion 4) and the export file don't change (spec 
 
 | Field | Value |
 |---|---|
-| Where | the extension origin's `localStorage`, key `kibanatool.theme` (`THEME_KEY` in `src/storage.ts`) |
+| Where | the extension origin's `localStorage`, key `kibanatool.theme` (`THEME_KEY`, in `src/theme.ts` since 2026-10-20; first in `src/storage.ts`) |
 | Values | `"system"`, `"light"`, `"dark"` (`THEME_CHOICES` in `src/theme.ts`) |
 | Default | `"system"`: when the key is missing, holds anything else, or can't be read |
 | Written by | the control, on every pick; System is written as `"system"` |

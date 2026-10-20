@@ -13,7 +13,7 @@
 |---|---|
 | `npx vitest run` | 581 test geçti (45 dosya). Başlangıçta 571 test vardı; 10 yeni test: `applyTheme` (3) ve tema tercihinin okunup yazılması (7). |
 | `npm run typecheck`, `npm run build`, `npm run check:manifest` | Üçü de geçti. Manifest değişmedi. |
-| Build'deki `options.html` | `<head>`'deki ilk script `<script src="/options-theme.js">`; `type` yok, yani klasik script. `options-theme.js` 97,5 kB (zod'u `src/storage.ts` üzerinden taşıyor; research R2). |
+| Build'deki `options.html` | `<head>`'deki ilk script `<script src="/options-theme.js">`; `type` yok, yani klasik script. `options-theme.js` 97,5 kB (zod'u `src/storage.ts` üzerinden taşıyor; research R2). 2026-10-20, sonra: tercih fonksiyonları `src/theme.ts`'e taşındı (anayasa 1.0.7), script 3,6 kB oldu; ilk kare probu yine 10/10. |
 | Vite uyarısı | Etikete `vite-ignore` eklenince "can't be bundled without type=module" uyarısı kalktı ve build'deki etiket klasik kaldı. Özellik bırakıldı. |
 | E2E `options` (9.5) | 11 test geçti: 10 eski test ve yeni tema testi (7 adım). |
 | E2E 9.5, tamamı | 42 geçti, 5 atlandı, 1.3 dk. Atlananlar önceki özelliklerdekiyle aynı. |
