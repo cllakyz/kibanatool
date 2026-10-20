@@ -50,10 +50,13 @@ ile, sistemin tersi seçilerek çekildi.
 
 ## Elle yapılacak kontroller
 
+2026-10-20: kullanıcı M1–M5'i `006-theme-toggle` dalındaki build ile elle yaptı; beşi de geçti. M2 aynı zamanda spec
+005'in M3'ünü kapattı (`docs/verification/2026-10-tabbed-options.md`).
+
 | # | Kontrol | Spec | Sonuç |
 |---|---|---|---|
-| M1 | Klavye ve VoiceOver: üstten Tab ile işaret, beş sekme, sonra seçicide tek durak, odak halkasıyla. Ok tuşları temayı değiştiriyor. VoiceOver "Tema", seçeneğin adını ve "seçili" diyor. Fareyle üzerine gelince her seçeneğin adı çıkıyor. | FR-004, FR-005, SC-006 | Bekliyor |
-| M2 | Sistem değişikliği: sayfa açık ve Sistem seçiliyken macOS açık/koyu arasında değiştirilince palet ve işaret izliyor. Açık ya da Koyu seçiliyken sayfa değişmiyor. Bu kontrol spec 005'in açık M3'ünü de kapatır. | FR-007 | Bekliyor |
-| M3 | Parlama yok, tercih kalıcı: sistem açık, seçim Koyu; sayfa birkaç kez yenilenip yeniden açılınca hiç açık kare görünmüyor. Chrome kapatılıp açılınca hâlâ Koyu. | FR-008, FR-009, SC-002 | Bekliyor |
-| M4 | Kibana değişmiyor: seçim Koyu, Kibana açık temada; aksiyon barı ve satır butonları eskisi gibi açık. Araç çubuğu ikonu seçimi değil tarayıcıyı izliyor. | FR-012, SC-007 | Bekliyor |
-| M5 | İçe aktarma: seçim Açık, `examples/kibanatool-settings.json` içe aktarılınca sayfa Açık kalıyor. | FR-010 | Bekliyor |
+| M1 | Klavye ve VoiceOver: üstten Tab ile işaret, beş sekme, sonra seçicide tek durak, odak halkasıyla. Ok tuşları temayı değiştiriyor. VoiceOver "Tema", seçeneğin adını ve "seçili" diyor. Fareyle üzerine gelince her seçeneğin adı çıkıyor. | FR-004, FR-005, SC-006 | Geçti (kullanıcı, 2026-10-20) |
+| M2 | Sistem değişikliği: sayfa açık ve Sistem seçiliyken macOS açık/koyu arasında değiştirilince palet ve işaret izliyor. Açık ya da Koyu seçiliyken sayfa değişmiyor. Bu kontrol spec 005'in açık M3'ünü de kapatır. | FR-007 | Geçti (kullanıcı, 2026-10-20) |
+| M3 | Parlama yok, tercih kalıcı: sistem açık, seçim Koyu; sayfa birkaç kez yenilenip yeniden açılınca hiç açık kare görünmüyor. Chrome kapatılıp açılınca hâlâ Koyu. | FR-008, FR-009, SC-002 | Geçti (kullanıcı, 2026-10-20) |
+| M4 | Kibana değişmiyor: seçim Koyu, Kibana açık temada; aksiyon barı ve satır butonları eskisi gibi açık. Araç çubuğu ikonu seçimi değil tarayıcıyı izliyor. | FR-012, SC-007 | Geçti (kullanıcı, 2026-10-20) |
+| M5 | İçe aktarma: seçim Açık, `examples/kibanatool-settings.json` içe aktarılınca sayfa Açık kalıyor. | FR-010 | Geçti (kullanıcı, 2026-10-20) |
