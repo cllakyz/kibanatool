@@ -1,5 +1,6 @@
-// The single access point to stored configuration (spec §8, §10).
+// The single access point to stored configuration (spec §8, §10) and to the options page's theme choice (spec 006).
 import { type Config, emptyConfig, parseConfig } from "./core/config";
+import { THEME_CHOICES, type ThemeChoice } from "./theme";
 
 export const CONFIG_KEY = "kibanatool.config";
 
@@ -38,4 +39,27 @@ export function createConfigStore(area: StorageAreaLike) {
       });
     },
   };
+}
+
+export const THEME_KEY = "kibanatool.theme";
+
+// The theme choice lives in the extension's localStorage, apart from the settings: it is synchronous, so the
+// options page's head script reads it before the first frame, and export and import never carry it (spec 006
+// FR-008, FR-010). Anything unreadable or unknown means System (FR-011).
+export function loadThemeChoice(area: Pick<Storage, "getItem">): ThemeChoice {
+  try {
+    const stored = area.getItem(THEME_KEY);
+    return THEME_CHOICES.find((choice) => choice === stored) ?? "system";
+  } catch (error) {
+    console.debug("[kibanatool] theme choice unreadable:", error);
+    return "system";
+  }
+}
+
+export function saveThemeChoice(area: Pick<Storage, "setItem">, choice: ThemeChoice): void {
+  try {
+    area.setItem(THEME_KEY, choice);
+  } catch (error) {
+    console.debug("[kibanatool] theme choice not saved:", error);
+  }
 }

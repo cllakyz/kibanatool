@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { DARK, LIGHT, type Palette, luminance, parseColor, themeBehind } from "../../src/theme";
+import { DARK, LIGHT, type Palette, applyTheme, luminance, parseColor, themeBehind } from "../../src/theme";
 
 function contrast(palette: Palette, foreground: string, background: string): number {
   const [a, b] = [foreground, background].map((name) => {
@@ -67,6 +67,27 @@ describe("parseColor", () => {
   it("returns null for anything else", () => {
     expect(parseColor("transparent")).toBeNull();
     expect(parseColor("oklch(0.2 0.03 260)")).toBeNull();
+  });
+});
+
+describe("applyTheme (spec 006)", () => {
+  // The unit tests run without a DOM; applyTheme only writes dataset.theme.
+  const root = () => ({ dataset: {} }) as unknown as HTMLElement;
+
+  it.each(["light", "dark"] as const)("holds %s whatever the system says", (choice) => {
+    for (const systemDark of [false, true]) {
+      const element = root();
+      applyTheme(element, choice, systemDark);
+      expect(element.dataset.theme).toBe(choice);
+    }
+  });
+
+  it("follows the system on System", () => {
+    const light = root();
+    const dark = root();
+    applyTheme(light, "system", false);
+    applyTheme(dark, "system", true);
+    expect([light.dataset.theme, dark.dataset.theme]).toEqual(["light", "dark"]);
   });
 });
 

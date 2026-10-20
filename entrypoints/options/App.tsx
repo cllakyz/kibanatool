@@ -10,6 +10,7 @@ import { iconPaths } from "../../src/toolbar-icon";
 import { ActionsSection } from "./ActionsSection";
 import { CopySection } from "./CopySection";
 import { EnvironmentsSection } from "./EnvironmentsSection";
+import { ThemeSwitch } from "./ThemeSwitch";
 import { TransferSection } from "./TransferSection";
 import { VariablesSection } from "./VariablesSection";
 
@@ -86,10 +87,8 @@ export function App() {
     <>
       <header className="nav">
         <a className="nav-brand" href="#environments">
-          <picture>
-            <source media="(prefers-color-scheme: dark)" srcSet={iconPaths(true)["48"]} />
-            <img src={iconPaths(false)["48"]} alt="" width={24} height={24} />
-          </picture>
+          <img className="logo-light" src={iconPaths(false)["48"]} alt="" width={24} height={24} />
+          <img className="logo-dark" src={iconPaths(true)["48"]} alt="" width={24} height={24} />
           kibanatool
         </a>
         <nav className="nav-tabs" aria-label={t("optionsNavLabel")}>
@@ -99,6 +98,7 @@ export function App() {
             </a>
           ))}
         </nav>
+        <ThemeSwitch />
         <span className="nav-version">v{browser.runtime.getManifest().version}</span>
       </header>
       <main>

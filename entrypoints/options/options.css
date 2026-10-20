@@ -1,19 +1,19 @@
 /* Colors, font stacks and the page sizes are --kt-* custom properties from src/theme.ts (Kibana 9 Borealis, light
-   and dark). The layout is the "kibanatool options" design system's (spec-kit 005). */
-:root { color-scheme: light dark; }
+   and dark), injected by options-theme.js and picked by html[data-theme], which also sets color-scheme (spec-kit
+   006). The layout is the "kibanatool options" design system's (spec-kit 005). */
 body { margin: 0; min-height: 100vh; background: var(--kt-surface-page); color: var(--kt-text); font: 14px/1.5 var(--kt-font-sans); }
 
 /* Navbar and tabs */
 .nav {
-  position: sticky; top: 0; z-index: var(--kt-z-nav); display: flex; align-items: stretch; gap: 32px;
+  position: sticky; top: 0; z-index: var(--kt-z-nav); display: flex; align-items: stretch; gap: 24px;
   height: var(--kt-height-navbar); padding: 0 24px; background: var(--kt-surface); border-bottom: 1px solid var(--kt-border);
 }
 .nav-brand {
   display: flex; align-items: center; gap: 8px; color: var(--kt-text); text-decoration: none; white-space: nowrap;
   font-size: 16px; line-height: 24px; font-weight: 600; letter-spacing: -0.2px;
 }
-.nav-brand picture, .nav-brand img { display: block; }
-.nav-brand img { width: 24px; height: 24px; }
+.nav-brand img { display: block; width: 24px; height: 24px; }
+:root[data-theme="dark"] .logo-light, :root:not([data-theme="dark"]) .logo-dark { display: none; }
 .nav-tabs { display: flex; align-items: stretch; gap: 4px; min-width: 0; overflow-x: auto; scrollbar-width: none; }
 .tab {
   display: flex; align-items: center; padding: 0 12px; color: var(--kt-text); text-decoration: none; white-space: nowrap;
@@ -23,7 +23,20 @@ body { margin: 0; min-height: 100vh; background: var(--kt-surface-page); color: 
 .tab:hover { color: var(--kt-text-primary); box-shadow: inset 0 -2px 0 var(--kt-border-plain); }
 .tab[aria-current="page"] { color: var(--kt-text-primary); box-shadow: inset 0 -2px 0 var(--kt-primary); }
 .tab:focus-visible { outline: 2px solid var(--kt-text-primary); outline-offset: -2px; }
-.nav-version { margin-left: auto; align-self: center; color: var(--kt-text-muted); font-size: 12px; white-space: nowrap; }
+.nav-version { align-self: center; color: var(--kt-text-muted); font-size: 12px; white-space: nowrap; }
+.theme-switch { flex: none; display: flex; align-self: center; margin-left: auto; border: 1px solid var(--kt-border-plain); border-radius: 6px; }
+.theme-switch label {
+  position: relative; display: grid; place-items: center; width: 28px; height: 28px; margin: 0; color: var(--kt-text-muted); cursor: pointer;
+  transition: color 120ms ease-in, background-color 120ms ease-in;
+}
+.theme-switch label:first-child { border-radius: 5px 0 0 5px; }
+.theme-switch label:last-child { border-radius: 0 5px 5px 0; }
+.theme-switch label:hover { color: var(--kt-text-primary); }
+/* After :hover, so the selected segment keeps its icon color under the mouse. */
+.theme-switch label:has(:checked) { background: var(--kt-primary); color: var(--kt-on-primary); }
+.theme-switch label:has(:focus-visible) { z-index: 1; outline: 2px solid var(--kt-text-primary); outline-offset: 2px; }
+.theme-switch input { position: absolute; width: 1px; height: 1px; margin: 0; opacity: 0; pointer-events: none; }
+.theme-switch svg { display: block; }
 
 /* Page */
 main { max-width: var(--kt-width-content); margin: 0 auto; padding: 24px 24px 64px; }
