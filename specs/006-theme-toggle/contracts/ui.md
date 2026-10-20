@@ -60,11 +60,16 @@ export (spec 006 FR-016)"**, with `configure()` (the e2e config):
    its label.
    - `html` has `data-theme="dark"`, that radio is checked, and `body`'s background is `DARK["surface-page"]`.
 4. Reload.
-   - `window.__ktFirstFrameTheme` is `"dark"`, and the dark radio is still checked.
+   - `window.__ktFirstFrameTheme` is `"dark"`, read with `expect.poll`: the first frame can come a moment after
+     the `h1` counts as visible (3 of 20 probe reloads).
+   - The dark radio is still checked.
 5. Click the System label, then `emulateMedia({ colorScheme: "dark" })` after the page has loaded, so the head
    script's `change` listener fires.
    - `data-theme` is `dark`. Then `emulateMedia({ colorScheme: "light" })`: `data-theme` is `light`.
-6. Click the Dark label, open `#transfer` and export.
+6. Keyboard (spec FR-004): focus `a.tab[href="#transfer"]` and press Tab.
+   - `input[name="theme"][value="system"]`, the checked one, is focused.
+   - Press ArrowRight twice: `input[value="dark"]` is checked, and `data-theme` is `dark`.
+7. Open `#transfer` and export.
    - The file equals `e2eConfig()`.
 
 No assertion reads localized text; the names are checked by the manual VoiceOver check (M1).

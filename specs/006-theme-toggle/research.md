@@ -45,6 +45,11 @@ The probes below ran on 2026-10-20 against the build of `3ea227e` in Playwright 
     media.matches)`, and on the media query's `change` does the same again, re-reading the stored choice so a
     choice made since load counts.
   - `main.tsx` no longer injects the palette. It keeps `reportTheme` for the toolbar icon, unchanged.
+  - **Size:** importing `src/storage.ts` brings `src/core/config.ts` and zod along (its top-level `z.config(…)`
+    and schemas are side effects, so they don't tree-shake): the script is about 97 kB instead of 3 kB. Measured
+    over 15 reloads each, the first frame came at a median 10.3 ms with it and 9.8 ms with the 3 kB version, and
+    the theme was in place in both. The half millisecond doesn't justify an exception to Principle V, so the
+    choice stays in `src/storage.ts`.
   - The build prints `<script src="/options-theme.js"> … can't be bundled without type="module" attribute`. That is
     expected: the file is built by WXT, and adding `type="module"` would make it deferred and bring the flash back.
     Whether a `vite-ignore` attribute silences the warning is checked during implementation; it is kept only if
@@ -55,6 +60,8 @@ The probes below ran on 2026-10-20 against the build of `3ea227e` in Playwright 
     (Principle II).
   - A Vite plugin that puts `blocking="render"` back. Build-time patching for one attribute, and it still could not
     wait for an asynchronous read.
+  - The choice's read and write in their own small module, keeping the head script at 3 kB. It needs an exception
+    to Principle V ("storage goes through `src/storage.ts`") for 0.5 ms.
 
 ## R3. Palette rules and the resolved theme
 
