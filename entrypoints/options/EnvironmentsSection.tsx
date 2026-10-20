@@ -74,29 +74,39 @@ export function EnvironmentsSection({ config, onSave }: SectionProps) {
 
   return (
     <section aria-labelledby="environments-title">
-      <h2 id="environments-title">{t("optionsEnvironments")}</h2>
-      <ul className="list">
+      <div className="panel-head">
+        <h2 id="environments-title">
+          {t("optionsEnvironments")} <span className="badge">{config.environments.length}</span>
+        </h2>
+      </div>
+      <ul className="items">
         {config.environments.map((environment) => (
-          <li key={environment.id}>
-            <span className="name">{environment.name}</span>
-            <code>{environment.kibanaUrl}</code>
-            {granted[environment.id] ? (
-              <span className="ok">{t("optionsGranted")}</span>
-            ) : (
-              <>
-                <span className="pending">{t("optionsPending")}</span>
-                <button type="button" aria-label={`${t("optionsGrant")}: ${environment.name}`} onClick={() => grant(environment)}>
-                  {t("optionsGrant")}
-                </button>
-              </>
-            )}
-            <button
-              type="button"
-              className="link"
-              aria-label={`${t("optionsRemove")}: ${environment.name}`}
-              onClick={() => void submit(withoutEnvironment(config, environment.id))}>
-              {t("optionsRemove")}
-            </button>
+          <li className="item" key={environment.id}>
+            <div className="item-main">
+              <div className="item-title">
+                <span className="name">{environment.name}</span>
+              </div>
+              <div className="item-sub">{environment.kibanaUrl}</div>
+            </div>
+            <div className="item-actions">
+              {granted[environment.id] ? (
+                <span className="ok">{t("optionsGranted")}</span>
+              ) : (
+                <>
+                  <span className="pending">{t("optionsPending")}</span>
+                  <button type="button" aria-label={`${t("optionsGrant")}: ${environment.name}`} onClick={() => grant(environment)}>
+                    {t("optionsGrant")}
+                  </button>
+                </>
+              )}
+              <button
+                type="button"
+                className="link"
+                aria-label={`${t("optionsRemove")}: ${environment.name}`}
+                onClick={() => void submit(withoutEnvironment(config, environment.id))}>
+                {t("optionsRemove")}
+              </button>
+            </div>
           </li>
         ))}
       </ul>

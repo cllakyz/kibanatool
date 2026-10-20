@@ -17,6 +17,7 @@
   "errorUnknown": { "message": "kibanatool: bir şeyler ters gitti" },
   "optionsLoading": { "message": "Yükleniyor…" },
   "optionsIntro": { "message": "Kullandığın Kibana adreslerini ekle, erişim izni ver, sonra link aksiyonlarını tanımla. Değişikliklerden sonra açık Kibana sekmelerini yenile." },
+  "optionsNavLabel": { "message": "Ayar bölümleri" },
   "optionsLoadError": { "message": "Kayıtlı ayarlar geçersiz, bu yüzden boş ayarlar kullanılıyor. Yapılacak ilk kayıt, kayıtlı ayarların yerine geçer:" },
   "optionsSavedReload": { "message": "Kaydedildi. Uygulanması için açık Kibana sekmelerini yenile." },
   "optionsEnvironments": { "message": "Ortamlar" },
@@ -65,8 +66,9 @@
     "placeholders": { "error": { "content": "$1", "example": "Permission denied" } }
   },
   "optionsCopy": { "message": "Kopyalama ve maskeleme" },
-  "optionsMarkdownFields": { "message": "\"Markdown olarak kopyala\" için alanlar, her satıra bir tane (boş: bütün alanlar, alfabetik)" },
-  "optionsMaskPatterns": { "message": "Maskelenecek alanlar, her satıra bir desen (* her şeyle eşleşir; büyük/küçük harf fark etmez)" },
+  "optionsMarkdownFieldsHelp": { "message": "Her satıra bir alan. Boş bırakılırsa bütün alanlar, alfabetik sırayla." },
+  "optionsMaskPatternsShort": { "message": "Maskelenecek alanlar" },
+  "optionsMaskPatternsLine": { "message": "Her satıra bir desen. * her şeyle eşleşir; büyük/küçük harf fark etmez." },
   "optionsMaskPatternsHelp": { "message": "Adı eşleşen bir alan ya da eleman içindeki her şeyle birlikte maskelenir; JSON, XML ve form metninin içindeki anahtarlar da buna dahil. GetTokenRequest gibi bir sarmalayıcıyı okunur tutmak için deseni silmek yerine daraltın: *token* yerine *token (adı \"token\" ile bitenler). *.token kullanmayın: yalnızca adı tam olarak \"token\" olanları maskeler, platform-token gibi token'lar okunur kalır." },
   "optionsValueMasks": { "message": "Değerin içinde maskele" },
   "optionsValueMasksHelp": { "message": "Alan adından bağımsız olarak her değerin içinde aranır. Bütün kopyalara uygulanır: Markdown, JSON ve cURL." },
@@ -76,7 +78,9 @@
   "optionsValueMaskCard": { "message": "Kart numarası (Visa, Mastercard, Amex, Troy)" },
   "optionsTransfer": { "message": "Dışa ve içe aktarma" },
   "optionsExport": { "message": "Ayarları dışa aktar" },
+  "optionsExportHelp": { "message": "Ortamları, değişkenleri, aksiyonları ve kopyalama ile maskeleme ayarlarını tek bir JSON dosyasına kaydeder." },
   "optionsImport": { "message": "Ayar dosyası içe aktar" },
+  "optionsImportHelp": { "message": "İçe aktarma, mevcut bütün ayarların yerine geçer." },
   "optionsImportPreview": {
     "message": "Bu dosyada $ENVIRONMENTS$ ortam ve $ACTIONS$ aksiyon var. İçe aktarma mevcut ayarların hepsinin yerine geçer; ardından ortamlara erişim izni ver.",
     "placeholders": { "environments": { "content": "$1", "example": "2" }, "actions": { "content": "$2", "example": "5" } }
@@ -86,6 +90,7 @@
   "optionsCancel": { "message": "Vazgeç" },
   "optionsAddLink": { "message": "Link aksiyonu ekle" },
   "optionsAddDiscover": { "message": "Discover aksiyonu ekle" },
+  "optionsEmptyActions": { "message": "Henüz aksiyon yok. Başlamak için bir link ya da Discover aksiyonu ekleyin." },
   "optionsEdit": { "message": "Düzenle" },
   "optionsKindLink": { "message": "Link" },
   "optionsKindDiscover": { "message": "Discover" },

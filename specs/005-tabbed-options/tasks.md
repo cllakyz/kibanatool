@@ -47,11 +47,11 @@ Everything stays on the branch `005-tabbed-options` and goes up as one pull requ
 
 ## Phase 1: Setup
 
-- [ ] T001 Check the starting point:
+- [X] T001 Check the starting point:
   - `git branch --show-current` is `005-tabbed-options`;
   - `git log --oneline -1` is `98bd247` (spec and plan) or later;
   - the tree is clean.
-- [ ] T002 Record the baseline:
+- [X] T002 Record the baseline:
   - `npx vitest run` passes with 565 tests.
   - The 9.x stack answers. If not, run `./docker/up.sh 9`.
   - `KT_STACK=9 npm run e2e -- options` passes its 8 tests.
@@ -60,7 +60,7 @@ Everything stays on the branch `005-tabbed-options` and goes up as one pull requ
 
 ## Phase 2: Foundational (blocks every story)
 
-- [ ] T003 [P] In `src/theme.ts`, add seven entries right after `"shadow-menu"` in both palettes (R3; values from
+- [X] T003 [P] In `src/theme.ts`, add seven entries right after `"shadow-menu"` in both palettes (R3; values from
   the design's `project/tokens.json`):
   - `LIGHT`:
     - `overlay: "rgba(29, 42, 62, 0.5)"`;
@@ -74,7 +74,7 @@ Everything stays on the branch `005-tabbed-options` and goes up as one pull requ
 
   The palettes now hold the options page's sizes too, so the first comment line says that they also carry "the
   options page's sizes". `cssVars` doesn't change.
-- [ ] T004 [P] In `tests/unit/theme.test.ts`, add three entries to `PAIRS`, before the `["border-input", …]`
+- [X] T004 [P] In `tests/unit/theme.test.ts`, add three entries to `PAIRS`, before the `["border-input", …]`
   lines:
   - `["text-primary", "surface", 4.5]`: the open tab's label (spec 005);
   - `["text", "discover", 4.5]`: the intro callout;
@@ -82,7 +82,7 @@ Everything stays on the branch `005-tabbed-options` and goes up as one pull requ
 
   The existing `["text-primary", "surface", 3]` entry stays. Run `npx vitest run tests/unit/theme.test.ts`: all
   pass, since the colors are unchanged. If one fails, stop and report the ratio.
-- [ ] T005 [P] In `public/_locales/en/messages.json`, add the seven keys from `contracts/strings.md`, one line
+- [X] T005 [P] In `public/_locales/en/messages.json`, add the seven keys from `contracts/strings.md`, one line
   each:
   - `optionsNavLabel` after `optionsIntro`;
   - `optionsMarkdownFieldsHelp` after `optionsMarkdownFields`;
@@ -92,9 +92,9 @@ Everything stays on the branch `005-tabbed-options` and goes up as one pull requ
   - `optionsEmptyActions` after `optionsAddDiscover`.
 
   Do not remove anything yet (T022 does).
-- [ ] T006 [P] In `public/_locales/tr/messages.json`, add the same seven keys at the same places, with the Turkish
+- [X] T006 [P] In `public/_locales/tr/messages.json`, add the same seven keys at the same places, with the Turkish
   text from `contracts/strings.md`.
-- [ ] T007 [P] Rewrite `entrypoints/options/options.css` from the design's `bundle.css` (R3).
+- [X] T007 [P] Rewrite `entrypoints/options/options.css` from the design's `bundle.css` (R3).
   - **Scope and themes:**
     - Drop every `.options ` prefix. `.options { … }` becomes `body { … }`.
     - Keep `:root { color-scheme: light dark; }`, and drop the `[data-theme="dark"]` rules.
@@ -137,7 +137,7 @@ pass.
 
 ### Tests for User Story 1
 
-- [ ] T008 [US1] In `tests/e2e/options.spec.ts`, give `openOptions` an optional third parameter `tab?: string`
+- [X] T008 [US1] In `tests/e2e/options.spec.ts`, give `openOptions` an optional third parameter `tab?: string`
   that goes to `options.html#<tab>` (no hash when it is omitted). Then make every existing test reach its section
   through its tab:
   - **"adds an environment and a link action…":** no tab. Before the first `actions` locator, click
@@ -150,7 +150,7 @@ pass.
   - **`"actions"`:** "keeps the inner space of a target data view name…".
 
   Keep every other selector for now. US2 and US3 change them along with the markup.
-- [ ] T009 [US1] In the same file, add the test "opens the tab the address names, keeps it on reload and Back,
+- [X] T009 [US1] In the same file, add the test "opens the tab the address names, keeps it on reload and Back,
   and keeps unsaved edits (spec 005 FR-002–FR-005)":
   1. **Setup:** `await configure()` and `const options = await openOptions(context, extension.id)`, with no
      hash. Take `section = (tab) => options.locator(\`section[aria-labelledby="${tab}-title"]\`)` and
@@ -175,7 +175,7 @@ pass.
 
 ### Implementation for User Story 1
 
-- [ ] T010 [US1] Rewrite the render of `entrypoints/options/App.tsx` (R1, R4, contracts/ui.md "Page"). Needs T005.
+- [X] T010 [US1] Rewrite the render of `entrypoints/options/App.tsx` (R1, R4, contracts/ui.md "Page"). Needs T005.
   - **Tab list:** a module-level `TABS` list with `satisfies readonly { id: string; title: MessageKey;
     intro?: MessageKey }[]`:
     - `environments`: `optionsEnvironments`, intro `optionsIntro`;
@@ -210,7 +210,7 @@ pass.
   - **Removed:** the old `<h1>kibanatool</h1>` and the `<p className="muted">{t("optionsIntro")}</p>`.
   - **Header comment:** update it to say the page is five tabs (spec-kit 005).
   - Keep the `save` function and the load effect unchanged.
-- [ ] T011 [P] [US1] Remove the help paragraphs that now show as tab intros:
+- [X] T011 [P] [US1] Remove the help paragraphs that now show as tab intros:
   - `<p className="muted">{t("optionsVariablesHelp")}</p>` in `entrypoints/options/VariablesSection.tsx`;
   - `<p className="muted">{t("optionsActionsHelp")}</p>` in `entrypoints/options/ActionsSection.tsx`.
 
@@ -228,7 +228,7 @@ in a modal dialog that closes on Escape, ×, Cancel, Save and `hashchange`, and 
 
 ### Tests for User Story 2
 
-- [ ] T012 [US2] In `tests/e2e/options.spec.ts`, move the action selectors to the new markup (contracts/ui.md,
+- [X] T012 [US2] In `tests/e2e/options.spec.ts`, move the action selectors to the new markup (contracts/ui.md,
   "e2e selector migration"):
   - **"adds an environment and a link action…":**
     - "Add link action" is `actions.locator(".panel-head button").first()`.
@@ -239,7 +239,7 @@ in a modal dialog that closes on Escape, ×, Cancel, Save and `hashchange`, and 
   - **"keeps the inner space of a target data view name…":**
     - "Add Discover action" is `actions.locator(".panel-head button").nth(1)`.
     - Save is `actions.locator('dialog button[type="submit"]')`.
-- [ ] T013 [US2] In the same file, add the test "edits an action in a dialog: badges, Escape, focus and Back
+- [X] T013 [US2] In the same file, add the test "edits an action in a dialog: badges, Escape, focus and Back
   (spec 005 FR-015–FR-017)":
   1. **Setup:** `await configure(markInRow(e2eConfig(), ["user"]))` and `openOptions(context, extension.id)`
      with no hash. Then click `a.tab[href="#actions"]`. Import `markInRow` from `./fixtures`.
@@ -261,20 +261,22 @@ in a modal dialog that closes on Escape, ×, Cancel, Save and `hashchange`, and 
 
 ### Implementation for User Story 2
 
-- [ ] T014 [P] [US2] In `entrypoints/options/feedback.tsx`, add and export
+- [X] T014 [P] [US2] In `entrypoints/options/feedback.tsx`, add and export
   `KindBadge({ kind }: { kind: Action["kind"] })`, which renders
   `<span className="badge">{t(kind === "link" ? "optionsKindLink" : "optionsKindDiscover")}</span>`. Import the
   `Action` type from `../../src/core/config`. It is the one place for the kind label (Principle II).
-- [ ] T015 [US2] Turn `entrypoints/options/ActionEditor.tsx` into the dialog (R2, contracts/ui.md "Action
+- [X] T015 [US2] Turn `entrypoints/options/ActionEditor.tsx` into the dialog (R2, contracts/ui.md "Action
   dialog"). Needs T014.
   - **Props:** add `errors: string[]` to `ActionEditorProps`.
   - **Open and focus:**
     - Take `const dialog = useRef<HTMLDialogElement>(null)`.
     - In a `useLayoutEffect` with `[]` deps:
-      - remember `const opener = document.activeElement`;
-      - call `dialog.current?.showModal()` unless `dialog.current.open`;
-      - return a cleanup that focuses `opener` when it is an `HTMLElement`.
-    - The cleanup MUST NOT call `dialog.current.close()`. Add a one-line comment why: every exit unmounts the
+      - store `document.activeElement` in an `opener` ref;
+      - call `dialog.current?.showModal()` unless `dialog.current.open`.
+    - A `useEffect` with `[]` deps returns a cleanup that focuses `opener.current` when it is an `HTMLElement`.
+      It is passive because a layout cleanup runs while the dialog is still in the page, when the page is still
+      inert.
+    - Neither effect may call `dialog.current.close()`. Add a one-line comment why: every exit unmounts the
       editor, and a `close` event after Save would cancel.
   - **Markup:** `<dialog ref={dialog} className="modal" aria-labelledby="action-editor-title" onClose={onCancel}>`
     wraps the existing `<form onSubmit={submit}>`, which loses `className="editor"`. Inside the form:
@@ -291,13 +293,13 @@ in a modal dialog that closes on Escape, ×, Cancel, Save and `hashchange`, and 
       `div.row` at the end of the form.
   - **Header comment:** "Form editor for one action, in a modal dialog, with a live preview … (spec §9; spec 005
     FR-016–FR-018)".
-- [ ] T016 [US2] Rewrite the render of `entrypoints/options/ActionsSection.tsx` (R2, R5). Needs T014 and T015.
+- [X] T016 [US2] Rewrite the render of `entrypoints/options/ActionsSection.tsx` (R2, R5). Needs T014 and T015.
   - **Hooks:**
     - Destructure `fail` from `useSubmit` too.
     - Add `cancel = () => { setDraft(null); fail([]); }`.
-    - Add an effect with `[]` deps that listens for `hashchange` and calls `setDraft(null)`, removing the listener
-      on cleanup. Comment: "Back or Forward leaves the tab: drop the draft so no hidden modal keeps the page inert
-      (spec 005)".
+    - Add an effect with `[]` deps that listens for `hashchange` and calls `cancel`, removing the listener on
+      cleanup. `cancel` also clears a failed save's errors, which would otherwise show in the panel without their
+      dialog. Comment: "Back or Forward leaves the tab: drop the draft, as Cancel does (spec 005)".
   - **Second line of a row:** add `function template(action: Action): string`:
     - a link action gives `urlTemplate`;
     - a Discover action gives `queryTemplate`, or `t("optionsPreviewEmptyQuery")` when it is empty, plus
@@ -342,7 +344,7 @@ check (T025) matches the design's previews.
 
 ### Tests for User Story 3
 
-- [ ] T017 [US3] In `tests/e2e/options.spec.ts`, move the remaining selectors (contracts/ui.md, "e2e selector
+- [X] T017 [US3] In `tests/e2e/options.spec.ts`, move the remaining selectors (contracts/ui.md, "e2e selector
   migration"):
   - **"adds an environment…":** `environments.locator(".list li .ok")` becomes `.items .ok`.
   - **"exports the settings…" and "exports a corrupt stored value…":** `transfer.locator(".row > button")`
@@ -355,14 +357,14 @@ check (T025) matches the design's previews.
 
 ### Implementation for User Story 3
 
-- [ ] T018 [P] [US3] `entrypoints/options/EnvironmentsSection.tsx`, markup only (contracts/ui.md "Panels"):
+- [X] T018 [P] [US3] `entrypoints/options/EnvironmentsSection.tsx`, markup only (contracts/ui.md "Panels"):
   - **`div.panel-head`:** `<h2 id="environments-title">{t("optionsEnvironments")} <span
     className="badge">{config.environments.length}</span></h2>`, with no buttons.
   - **`ul.items` with one `li.item` per environment:**
     - `div.item-main`: `div.item-title` holding `span.name`, then `div.item-sub` holding the address (no `<code>`).
     - `div.item-actions`: the access state and Grant button, then Remove, all unchanged.
   - **Unchanged:** the `form.row` and `<Feedback>` below the list.
-- [ ] T019 [P] [US3] `entrypoints/options/VariablesSection.tsx`, markup only:
+- [X] T019 [P] [US3] `entrypoints/options/VariablesSection.tsx`, markup only:
   - **`div.panel-head`:**
     - `<h2 id="variables-title">{t("optionsVariables")} <span className="badge">{rows.length}</span></h2>`;
     - when there is at least one environment, `div.panel-actions` with the base "Add variable" button.
@@ -372,7 +374,7 @@ check (T025) matches the design's previews.
     - `div.panel-foot` holding `<Feedback errors={errors} saved={saved} />` and then the primary Save button
       (same `onClick`).
   - **Removed:** the old `div.row` and the trailing `<Feedback>`.
-- [ ] T020 [P] [US3] `entrypoints/options/CopySection.tsx`, markup only (contracts/ui.md "Copy body"). Needs T005.
+- [X] T020 [P] [US3] `entrypoints/options/CopySection.tsx`, markup only (contracts/ui.md "Copy body"). Needs T005.
   - **`div.panel-head`:** `<h2 id="copy-title">{t("optionsCopy")}</h2>`.
   - **`div.fields` with three `div.field-h` rows.** Each row is a left `div`, then `div.field-h-control`:
     1. **Markdown fields:**
@@ -393,7 +395,7 @@ check (T025) matches the design's previews.
        - The `fieldset`, `legend` and the help paragraph inside the fieldset go.
   - **`div.panel-foot`:** `<Feedback …/>` then the primary Save (same `onClick`).
   - Textarea `rows` and `spellCheck` stay as they are.
-- [ ] T021 [P] [US3] `entrypoints/options/TransferSection.tsx`, markup only (contracts/ui.md "Transfer body"):
+- [X] T021 [P] [US3] `entrypoints/options/TransferSection.tsx`, markup only (contracts/ui.md "Transfer body"):
   - **`div.panel-head`:** `<h2 id="transfer-title">{t("optionsTransfer")}</h2>`.
   - **`div.fields` with two `div.field-h` rows:**
     1. **Export:**
@@ -406,7 +408,7 @@ check (T025) matches the design's previews.
        - control: `<input id="import-file" type="file" accept="application/json,.json" onChange={choose} />`,
          then the unchanged `pending` warning block, then `<Feedback …/>`.
   - **Removed:** the old `div.row`, the wrapping `label` and the trailing `<Feedback>`.
-- [ ] T022 [US3] Remove `optionsMarkdownFields` and `optionsMaskPatterns` from both
+- [X] T022 [US3] Remove `optionsMarkdownFields` and `optionsMaskPatterns` from both
   `public/_locales/en/messages.json` and `public/_locales/tr/messages.json`. Needs T020.
   - `grep -rn 'optionsMarkdownFields"\|optionsMaskPatterns"' entrypoints src tests` prints nothing.
   - `npm run typecheck` is clean.
@@ -417,11 +419,11 @@ check (T025) matches the design's previews.
 
 ## Phase 6: Polish & Cross-Cutting Concerns
 
-- [ ] T023 In `entrypoints/options/options.css`, remove the `.list` and `.editor` rules.
+- [X] T023 In `entrypoints/options/options.css`, remove the `.list` and `.editor` rules.
   - `grep -rn 'className="list"\|"editor"' entrypoints` prints nothing.
   - Run the token check from quickstart.md. Every `var(--kt-…)` name is a `LIGHT` key or
     `font-sans`/`font-mono`.
-- [ ] T024 Gates (quickstart.md "Gates"):
+- [X] T024 Gates (quickstart.md "Gates"):
   - `npm run typecheck`;
   - `npx vitest run`: 571 tests;
   - `npm run build && npm run check:manifest`;
@@ -429,7 +431,7 @@ check (T025) matches the design's previews.
   - the whole `KT_STACK=9 npm run e2e`, since the theme tokens also reach the bar's shadow root.
 
   Report any failure with its output, and never loosen an existing assertion to make it pass.
-- [ ] T025 The visual check (quickstart.md, research R8). Write a Playwright script in the session scratchpad,
+- [X] T025 The visual check (quickstart.md, research R8). Write a Playwright script in the session scratchpad,
   not in the repo:
   - **Launch:** Chromium with `.output/chrome-mv3`, launched as `tests/e2e/fixtures.ts` does, at 1000×800.
   - **Settings:** store `examples/kibanatool-settings.json` through the service worker, then mark one action
@@ -439,25 +441,25 @@ check (T025) matches the design's previews.
 
   Open every PNG and check the quickstart's "Look for" list. Fix what fails in `options.css` or the markup, then
   rerun T024. The Turkish UI comes from macOS (`tr-TR`).
-- [ ] T026 [P] Write `docs/verification/2026-10-tabbed-options.md` in Turkish, in the layout of
+- [X] T026 [P] Write `docs/verification/2026-10-tabbed-options.md` in Turkish, in the layout of
   `docs/verification/2026-10-row-actions.md`:
   - date, branch, HEAD and tool versions;
   - the T024 results;
   - the T025 visual check (what was looked at, at what width and in which themes, and what was fixed);
   - M1–M4 from quickstart.md, marked "Açık (kullanıcı)".
-- [ ] T027 [P] Update `CLAUDE.md`:
+- [X] T027 [P] Update `CLAUDE.md`:
   - **Docs:** add `005 (\`specs/005-tabbed-options/\`: the options page in five tabs, the action editor in a
     dialog)` to the spec-kit features.
   - **Traps:** add one entry. The options page keeps every tab's section mounted, hidden with `hidden`, so unsaved
     edits survive a tab switch. No element id may equal a tab id (the browser would scroll to it under the
     sticky bar). The action dialog is styled only as `dialog.modal[open]`, every exit unmounts it, and its draft
     is dropped on `hashchange`.
-- [ ] T028 [P] In `CHANGELOG.md`, above `## [1.0.0] - 2026-10-20`, add `## [Unreleased]` with
+- [X] T028 [P] In `CHANGELOG.md`, above `## [1.0.0] - 2026-10-20`, add `## [Unreleased]` with
   `### Changed`:
   - "The options page is split into five tabs (Environments, Variables, Actions, Copy and masking, Export and
     import), each with its own address."
   - "The action editor opens in a dialog, and the action list shows which actions appear on result rows."
-- [ ] T029 Commit everything in one commit: the code, the tests, the docs, and this file with its checkboxes
+- [X] T029 Commit everything in one commit: the code, the tests, the docs, and this file with its checkboxes
   up to date. Message: `feat(options): split the options page into tabs; spec-kit feature 005`.
 - [ ] T030 Ask the user whether to push and open the PR. Do not push without a yes. On yes:
   - **Push** with `GH_TOKEN=$(gh auth token --user cllakyz) git -c credential.helper='!gh auth git-credential'

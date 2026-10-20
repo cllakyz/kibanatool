@@ -43,8 +43,11 @@ follows it and where it departs, and why.
   - **One close path: state, then unmount.** Escape fires the dialog's `close` event, and `onClose` calls
     `onCancel`. ×, Cancel and a successful Save also clear the draft in `ActionsSection`, which unmounts the
     editor.
-    - The layout effect's cleanup focuses the element that was active when `showModal()` ran, which is the opener.
-    - The cleanup does **not** call `dialog.close()`. Removing a dialog from the document takes it out of the top
+    - The layout effect remembers the element that was active when `showModal()` ran, which is the opener. A
+      passive effect's cleanup focuses it. A layout cleanup would be too early: it runs while the dialog is still
+      in the page, so the page is still inert and `focus()` does nothing (found by the e2e focus check after Save,
+      2026-10-20).
+    - Neither cleanup calls `dialog.close()`. Removing a dialog from the document takes it out of the top
       layer without a `close` event. A `close` event there would run `onCancel` after a successful Save and clear
       the saved notice.
   - The `disabled={editing}` guard on Edit and the two Add buttons is removed:
@@ -55,7 +58,9 @@ follows it and where it departs, and why.
       the dialog body.
     - While a draft is open, the section's own `Feedback` shows no errors.
     - Cancel clears stale errors (`fail([])`), so they don't appear in the panel after the dialog closes.
-  - **Back or Forward while the dialog is open**: `ActionsSection` listens for `hashchange` and clears the draft.
+  - **Back or Forward while the dialog is open**: `ActionsSection` listens for `hashchange` and calls `cancel`.
+    This clears the draft and a failed save's errors, which would otherwise show in the panel without their dialog.
+    The e2e dialog test caught that case on 2026-10-20.
     - The Actions wrapper becomes `hidden`. Whether Chrome still shows a modal inside a `display: none` ancestor
       was not tested, and the listener makes the question moot.
     - Without it, the page could stay inert behind a dialog nobody can see.

@@ -32,6 +32,9 @@ const PAIRS: [string, string, number][] = [
   ["text", "danger-soft", 4.5],
   ["text", "success-soft", 4.5],
   ["text", "warning-soft", 4.5],
+  ["text-primary", "surface", 4.5], // the open tab's label (spec 005)
+  ["text", "discover", 4.5], // the tab intro callout
+  ["primary", "surface", 3], // the open tab's underline
   ["border-input", "surface", 3],
   ["border-input", "surface-sub", 3],
   ["warning", "warning-soft", 3],

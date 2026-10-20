@@ -18,10 +18,20 @@ export function VariablesSection({ config, onSave }: SectionProps) {
 
   return (
     <section aria-labelledby="variables-title">
-      <h2 id="variables-title">{t("optionsVariables")}</h2>
-      <p className="muted">{t("optionsVariablesHelp")}</p>
+      <div className="panel-head">
+        <h2 id="variables-title">
+          {t("optionsVariables")} <span className="badge">{rows.length}</span>
+        </h2>
+        {config.environments.length > 0 && (
+          <div className="panel-actions">
+            <button type="button" onClick={() => setRows([...rows, { name: "", values: {} }])}>
+              {t("optionsAddVariable")}
+            </button>
+          </div>
+        )}
+      </div>
       {config.environments.length === 0 ? (
-        <p className="muted">{t("optionsVariablesNoEnvironments")}</p>
+        <p className="empty">{t("optionsVariablesNoEnvironments")}</p>
       ) : (
         <>
           <div className="table-scroll">
@@ -78,17 +88,14 @@ export function VariablesSection({ config, onSave }: SectionProps) {
               </tbody>
             </table>
           </div>
-          <div className="row">
-            <button type="button" onClick={() => setRows([...rows, { name: "", values: {} }])}>
-              {t("optionsAddVariable")}
-            </button>
+          <div className="panel-foot">
+            <Feedback errors={errors} saved={saved} />
             <button type="button" className="primary" onClick={() => void submit(withVariables(config, rows))}>
               {t("optionsSave")}
             </button>
           </div>
         </>
       )}
-      <Feedback errors={errors} saved={saved} />
     </section>
   );
 }

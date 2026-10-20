@@ -1,4 +1,5 @@
-// Light and dark palettes from Kibana 9's Borealis theme, as CSS custom properties (--kt-<name>).
+// Light and dark palettes from Kibana 9's Borealis theme, plus the options page's sizes, as CSS custom properties
+// (--kt-<name>).
 // The options page follows the system setting; the action bar follows the Kibana page behind it.
 
 export type Palette = Record<string, string>;
@@ -37,6 +38,13 @@ export const LIGHT: Palette = {
   "json-number": "#1750ba",
   match: "#fde9b5",
   "shadow-menu": "0 0 2px 0 rgba(43, 57, 79, 0.16), 0 3px 10px 0 rgba(43, 57, 79, 0.1), 0 6px 14px 0 rgba(43, 57, 79, 0.06)",
+  overlay: "rgba(29, 42, 62, 0.5)",
+  "shadow-modal": "0 0 2px 0 rgba(43, 57, 79, 0.16), 0 6px 18px 0 rgba(43, 57, 79, 0.14), 0 14px 32px 0 rgba(43, 57, 79, 0.1)",
+  "height-navbar": "48px",
+  "width-content": "1120px",
+  "width-label": "240px",
+  "width-modal": "760px",
+  "z-nav": "10",
 };
 
 export const DARK: Palette = {
@@ -73,6 +81,13 @@ export const DARK: Palette = {
   "json-number": "#61a2ff",
   match: "#3d3014",
   "shadow-menu": "0 3px 10px 0 rgba(5, 15, 33, 0.52), 0 6px 14px 0 rgba(5, 15, 33, 0.28)",
+  overlay: "rgba(5, 15, 33, 0.72)",
+  "shadow-modal": "0 6px 18px 0 rgba(5, 15, 33, 0.6), 0 14px 32px 0 rgba(5, 15, 33, 0.4)",
+  "height-navbar": "48px",
+  "width-content": "1120px",
+  "width-label": "240px",
+  "width-modal": "760px",
+  "z-nav": "10",
 };
 
 export const FONT_SANS = `Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif`;

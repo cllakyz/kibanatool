@@ -3,6 +3,14 @@
 All notable changes are listed here. The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/)
 and versions follow [Semantic Versioning](https://semver.org/).
 
+## [Unreleased]
+
+### Changed
+
+- The options page is split into five tabs (Environments, Variables, Actions, Copy and masking, Export and import),
+  each with its own address.
+- The action editor opens in a dialog, and the action list shows which actions appear on result rows.
+
 ## [1.0.0] - 2026-10-20
 
 First public release, for Kibana 7.17, 8.x and 9.x in Chrome.

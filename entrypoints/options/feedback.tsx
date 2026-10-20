@@ -1,6 +1,6 @@
 // Shared pieces of the options page sections: their props and per-section save feedback.
 import { useState } from "react";
-import type { Config, ParseResult } from "../../src/core/config";
+import type { Action, Config, ParseResult } from "../../src/core/config";
 import { t } from "../../src/i18n";
 import type { VariableWarning } from "../../src/options/model";
 
@@ -63,4 +63,9 @@ export function VariableWarnings({ warnings }: { warnings: VariableWarning[] }) 
       ))}
     </>
   );
+}
+
+/** An action's kind, in its row and in the editor's header (spec 005 FR-015, FR-016). */
+export function KindBadge({ kind }: { kind: Action["kind"] }) {
+  return <span className="badge">{t(kind === "link" ? "optionsKindLink" : "optionsKindDiscover")}</span>;
 }
