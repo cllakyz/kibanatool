@@ -5,6 +5,11 @@ and versions follow [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Added
+
+- The options page has a theme switch in its top bar: System, Light or Dark. The choice stays on this device and
+  is not part of the exported settings.
+
 ### Changed
 
 - The options page is split into five tabs (Environments, Variables, Actions, Copy and masking, Export and import),

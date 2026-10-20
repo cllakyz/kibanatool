@@ -99,6 +99,15 @@ export function cssVars(palette: Palette): string {
   return [...colors, `--kt-font-sans: ${FONT_SANS};`, `--kt-font-mono: ${FONT_MONO};`].join(" ");
 }
 
+/** The options page's theme choices (spec 006): System follows the browser's color scheme. */
+export const THEME_CHOICES = ["system", "light", "dark"] as const;
+export type ThemeChoice = (typeof THEME_CHOICES)[number];
+
+/** Marks the page root with the palette a choice shows: the choice itself, or for System the system's mode. */
+export function applyTheme(root: HTMLElement, choice: ThemeChoice, systemDark: boolean): void {
+  root.dataset.theme = choice === "system" ? (systemDark ? "dark" : "light") : choice;
+}
+
 /** [r, g, b, a] from `#rgb`, `#rrggbb` or the `rgb()`/`rgba()` form getComputedStyle returns; null otherwise. */
 export function parseColor(text: string): [number, number, number, number] | null {
   const hex = /^#([0-9a-f]{3}|[0-9a-f]{6})$/i.exec(text.trim());

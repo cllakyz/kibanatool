@@ -44,11 +44,11 @@ Everything stays on the branch `006-theme-toggle` and goes up as one pull reques
 
 ## Phase 1: Setup
 
-- [ ] T001 Check the starting point:
+- [X] T001 Check the starting point:
   - `git branch --show-current` is `006-theme-toggle`;
   - `git log --oneline -1` is the tasks commit or later (spec `0a67df6`, plan `6f9f915`);
   - the tree is clean.
-- [ ] T002 Record the baseline:
+- [X] T002 Record the baseline:
   - `npx vitest run` passes with 571 tests.
   - The 9.x stack answers (`curl -s -o /dev/null -w '%{http_code}' http://localhost:19601/api/status`). It was
     stopped on 2026-10-20, so run `./docker/up.sh 9` and wait for it.
@@ -58,7 +58,7 @@ Everything stays on the branch `006-theme-toggle` and goes up as one pull reques
 
 ## Phase 2: Foundational (blocks every story)
 
-- [ ] T003 [P] In `tests/unit/theme.test.ts`, add `applyTheme` to the import from `../../src/theme` and a
+- [X] T003 [P] In `tests/unit/theme.test.ts`, add `applyTheme` to the import from `../../src/theme` and a
   `describe("applyTheme", …)` block before `describe("themeBehind", …)`. The unit tests run in the `node`
   environment, so the root is a stand-in: `const root = () => ({ dataset: {} }) as unknown as HTMLElement`.
   - Light and Dark hold whatever the system says: for each of `"light"` and `"dark"`, and each `systemDark` of
@@ -66,7 +66,7 @@ Everything stays on the branch `006-theme-toggle` and goes up as one pull reques
   - System follows the system: `"system"` with `false` gives `"light"`, with `true` gives `"dark"`.
 
   It fails until T005.
-- [ ] T004 [P] In `tests/unit/storage.test.ts`, import `THEME_KEY`, `loadThemeChoice` and `saveThemeChoice`, and
+- [X] T004 [P] In `tests/unit/storage.test.ts`, import `THEME_KEY`, `loadThemeChoice` and `saveThemeChoice`, and
   add a `describe("theme choice (spec 006)", …)` block. A local helper
   `webArea(initial?: string)` returns `{ data: Map, getItem: (key) => data.get(key) ?? null, setItem: (key, value) => void data.set(key, value) }`,
   with `initial` stored under `THEME_KEY` when given. Silence the expected log with
@@ -78,7 +78,7 @@ Everything stays on the branch `006-theme-toggle` and goes up as one pull reques
   - A `setItem` that throws doesn't throw out of `saveThemeChoice`.
 
   It fails until T006.
-- [ ] T005 In `src/theme.ts`, after `cssVars` and before `parseColor`, add (research R3):
+- [X] T005 In `src/theme.ts`, after `cssVars` and before `parseColor`, add (research R3):
 
   ```ts
   /** The options page's theme choices (spec 006): System follows the browser's color scheme. */
@@ -93,7 +93,7 @@ Everything stays on the branch `006-theme-toggle` and goes up as one pull reques
 
   If `cssVars` is not right before `parseColor`, put the block right after `cssVars`. Run
   `npx vitest run tests/unit/theme.test.ts`: all pass.
-- [ ] T006 In `src/storage.ts`, after `createConfigStore` (research R1). Needs T005.
+- [X] T006 In `src/storage.ts`, after `createConfigStore` (research R1). Needs T005.
   - Import `{ THEME_CHOICES, type ThemeChoice }` from `./theme`.
   - Add `export const THEME_KEY = "kibanatool.theme";`.
   - Add `loadThemeChoice(area: Pick<Storage, "getItem">): ThemeChoice`:
@@ -110,10 +110,10 @@ Everything stays on the branch `006-theme-toggle` and goes up as one pull reques
 
   Run `npx vitest run tests/unit/storage.test.ts tests/unit/architecture.test.ts`: all pass. The root group may
   import root, and `theme.ts` imports nothing from `storage.ts`.
-- [ ] T007 [P] In `public/_locales/en/messages.json`, add the four keys from `contracts/strings.md` right after
+- [X] T007 [P] In `public/_locales/en/messages.json`, add the four keys from `contracts/strings.md` right after
   `optionsNavLabel`, one line each, in this order: `optionsTheme`, `optionsThemeSystem`, `optionsThemeLight` and
   `optionsThemeDark`.
-- [ ] T008 [P] In `public/_locales/tr/messages.json`, add the same four keys at the same place, with the Turkish
+- [X] T008 [P] In `public/_locales/tr/messages.json`, add the same four keys at the same place, with the Turkish
   text from `contracts/strings.md`.
 
 **Checkpoint**: `npx vitest run` passes: 571 plus the new `applyTheme` and theme-choice cases, including
@@ -131,7 +131,7 @@ existing ones.
 
 ### Tests for User Story 1
 
-- [ ] T009 [US1] In `tests/e2e/options.spec.ts`, add the test "switches the page theme, keeps it from the first
+- [X] T009 [US1] In `tests/e2e/options.spec.ts`, add the test "switches the page theme, keeps it from the first
   frame, follows the system on System, and leaves it out of the export (spec 006 FR-016)", steps 1–5 of
   contracts/ui.md. Import `DARK` and `parseColor` from `../../src/theme`.
   1. **Setup:**
@@ -161,7 +161,7 @@ existing ones.
 
 ### Implementation for User Story 1
 
-- [ ] T010 [US1] Create `entrypoints/options-theme.ts` (research R2, R3). Needs T005 and T006.
+- [X] T010 [US1] Create `entrypoints/options-theme.ts` (research R2, R3). Needs T005 and T006.
   - **Header comment:** the options page's palette and theme before its first frame (spec 006 FR-008; research
     R2). A classic script in the page's `<head>`: a module would run after the first frame and flash the other
     theme. It reads the stored choice and follows the system's mode under System.
@@ -174,7 +174,7 @@ existing ones.
     3. `const apply = (): void => applyTheme(document.documentElement, loadThemeChoice(localStorage), media.matches)`.
        It re-reads the stored choice each time, so a pick made since load counts.
     4. `apply()`, then `media.addEventListener("change", apply)`.
-- [ ] T011 [US1] Load the script and move the palette out of `main.tsx`. Needs T010.
+- [X] T011 [US1] Load the script and move the palette out of `main.tsx`. Needs T010.
   - **`entrypoints/options/index.html`:** add `<script src="/options-theme.js"></script>` right after `<title>`.
   - **`entrypoints/options/main.tsx`:**
     - remove the `DARK, LIGHT, cssVars` import and the three lines that build and append the palette `<style>`;
@@ -186,7 +186,7 @@ existing ones.
   - **The Vite warning:** the build prints `can't be bundled without type="module"`. Try adding a `vite-ignore`
     attribute to the tag and building again. Keep it only if the warning goes away and the built tag is still a
     classic `<script src="/options-theme.js">`; otherwise remove it and leave the warning.
-- [ ] T012 [P] [US1] Create `entrypoints/options/ThemeSwitch.tsx` (research R4, contracts/ui.md "Navbar").
+- [X] T012 [P] [US1] Create `entrypoints/options/ThemeSwitch.tsx` (research R4, contracts/ui.md "Navbar").
   Needs T005–T008.
   - **Header comment:** the page's theme choice, System, Light or Dark, stored on this device apart from the
     settings (spec 006 FR-001–FR-005).
@@ -207,13 +207,13 @@ existing ones.
     - render `<div className="theme-switch" role="radiogroup" aria-label={t("optionsTheme")}>`, then for each
       `THEME_CHOICES` entry `c`: `<label key={c} title={t(NAMES[c])}><input type="radio" name="theme" value={c}
       checked={choice === c} onChange={() => choose(c)} aria-label={t(NAMES[c])} />{ICONS[c]}</label>`.
-- [ ] T013 [US1] In `entrypoints/options/App.tsx` (contracts/ui.md "Navbar"). Needs T012.
+- [X] T013 [US1] In `entrypoints/options/App.tsx` (contracts/ui.md "Navbar"). Needs T012.
   - Replace the brand's `<picture>` with two images:
     `<img className="logo-light" src={iconPaths(false)["48"]} alt="" width={24} height={24} />` and
     `<img className="logo-dark" src={iconPaths(true)["48"]} alt="" width={24} height={24} />`. The text
     "kibanatool" follows them.
   - Render `<ThemeSwitch />` between `</nav>` and `span.nav-version`. Import it from `./ThemeSwitch`.
-- [ ] T014 [US1] In `entrypoints/options/options.css` (research R3–R5, contracts/ui.md "CSS hooks"):
+- [X] T014 [US1] In `entrypoints/options/options.css` (research R3–R5, contracts/ui.md "CSS hooks"):
   - **Header comment:** the palette comes from `options-theme.js` and is picked by `html[data-theme]` (spec 006).
   - **Remove** `:root { color-scheme: light dark; }`. The head script's rules set `color-scheme` per theme.
   - **Mark:** replace `.nav-brand picture, .nav-brand img { display: block; }` and `.nav-brand img { width: 24px;
@@ -256,15 +256,15 @@ tabs and the control fit at 1000px.
 
 ### Tests for User Story 2
 
-- [ ] T015 [US2] In the new e2e test, after step 5, add step 6 of contracts/ui.md:
+- [X] T015 [US2] In the new e2e test, after step 5, add step 6 of contracts/ui.md:
   - `options.locator('a.tab[href="#transfer"]').focus()`, then `options.keyboard.press("Tab")`.
   - `radio("system")` is focused.
   - Press `ArrowRight` twice: `radio("dark")` is checked, and `html` has `data-theme` `"dark"`.
 
 ### Implementation for User Story 2
 
-- [ ] T016 [US2] In `entrypoints/options/options.css`, change `.nav`'s `gap: 32px` to `gap: 24px` (research R5).
-- [ ] T017 [US2] Measure the fit with a scratchpad Playwright script (not committed), as quickstart.md "First
+- [X] T016 [US2] In `entrypoints/options/options.css`, change `.nav`'s `gap: 32px` to `gap: 24px` (research R5).
+- [X] T017 [US2] Measure the fit with a scratchpad Playwright script (not committed), as quickstart.md "First
   frame and fit" step 2, on the build from T016:
   - at 1000×800 in Turkish, `.nav-tabs` `scrollWidth` ≤ `clientWidth`, and `.theme-switch`'s right edge is at
     most `.nav-version`'s left edge;
@@ -285,7 +285,7 @@ tabs and the control fit at 1000px.
 
 ### Tests for User Story 3
 
-- [ ] T018 [US3] In the new e2e test, after step 6 (the choice is Dark), add step 7 of contracts/ui.md:
+- [X] T018 [US3] In the new e2e test, after step 6 (the choice is Dark), add step 7 of contracts/ui.md:
   - click `a.tab[href="#transfer"]`;
   - `const [download] = await Promise.all([options.waitForEvent("download"), options.locator('section[aria-labelledby="transfer-title"] .field-h button').click()])`;
   - `JSON.parse(await readFile(await download.path(), "utf8"))` equals `e2eConfig()`.
@@ -299,7 +299,7 @@ tabs and the control fit at 1000px.
 
 ## Phase 6: Polish & Cross-Cutting Concerns
 
-- [ ] T019 [P] In `CLAUDE.md` (research R7):
+- [X] T019 [P] In `CLAUDE.md` (research R7):
   - **Docs:** after the 005 entry in the spec-kit list, add 006 (`specs/006-theme-toggle/`: a System, Light or
     Dark switch on the options page).
   - **Traps:** right after the toolbar icon trap, add one bullet. The options page's theme choice (System, Light,
@@ -310,10 +310,10 @@ tabs and the control fit at 1000px.
     type="module"` warning about it is expected." or nothing, if `vite-ignore` silenced it. Last: the toolbar
     icon's `kibanatool:theme` report still follows the browser; don't wire it, the action bar or the row strip to
     the choice.
-- [ ] T020 [P] In `CHANGELOG.md`, under `## [Unreleased]`, add an `### Added` section above `### Changed`:
+- [X] T020 [P] In `CHANGELOG.md`, under `## [Unreleased]`, add an `### Added` section above `### Changed`:
   "- The options page has a theme switch in its top bar: System, Light or Dark. The choice stays on this device and
   is not part of the exported settings."
-- [ ] T021 Run the gates (quickstart.md "Gates"):
+- [X] T021 Run the gates (quickstart.md "Gates"):
   - `npm run typecheck`;
   - `npx vitest run`;
   - `npm run build && npm run check:manifest`, and the built `options.html` check from T011;
@@ -321,14 +321,14 @@ tabs and the control fit at 1000px.
   - `KT_STACK=9 npm run e2e` (the full 9.x suite: 42 passed and 5 skipped expected).
 
   Fix anything that fails before going on.
-- [ ] T022 The visual check from quickstart.md, with a scratchpad Playwright script (not committed), Turkish,
+- [X] T022 The visual check from quickstart.md, with a scratchpad Playwright script (not committed), Turkish,
   1000×800:
   - screenshots of `#environments` and of `#actions` with the action dialog open, for each of: system light with
     Dark, system dark with Light, and System in each system mode;
   - look for everything in quickstart.md's "Look for" list, and check `#transfer`'s file picker button in the
     dark case;
   - rerun the first-frame probe (10 reloads, system light, choice Dark).
-- [ ] T023 Create `docs/verification/2026-10-theme-switch.md` in Turkish, shaped like
+- [X] T023 Create `docs/verification/2026-10-theme-switch.md` in Turkish, shaped like
   `docs/verification/2026-10-tabbed-options.md`:
   - header: date, branch and HEAD, spec path, Kibana 9.5.5, tools;
   - **Otomatik kontroller:** the T021 results, T011's built-tag check and the Vite warning outcome;
@@ -336,7 +336,7 @@ tabs and the control fit at 1000px.
   - **Görsel kontrol:** one row per T022 look-for item, with its result;
   - **Elle yapılacak kontroller:** M1–M5 from quickstart.md, each marked "Bekliyor". Note that M2 also closes
     spec 005's M3.
-- [ ] T024 Commit the implementation on `006-theme-toggle` as one commit,
+- [X] T024 Commit the implementation on `006-theme-toggle` as one commit,
   `feat(options): theme switch on the options page; spec-kit feature 006`, with the trailer. Mark T001–T024
   `[X]` in this file in the same commit. Then ask the user whether to push and open the pull request; don't do
   either without a yes.

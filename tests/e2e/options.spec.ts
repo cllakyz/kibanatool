@@ -1,6 +1,7 @@
 import { readFile } from "node:fs/promises";
 import type { BrowserContext } from "@playwright/test";
 import type { Config } from "../../src/core/config";
+import { DARK, parseColor } from "../../src/theme";
 import { e2eConfig, expect, markInRow, readStored, registeredMatches, test, writeStored } from "./fixtures";
 import { barLinks, openDoc } from "./kibana";
 import { stack } from "./stack";
@@ -207,4 +208,57 @@ test("imports a version 1 settings file and stores it as the current version", a
     .setInputFiles({ name: "v1.json", mimeType: "application/json", buffer: Buffer.from(JSON.stringify(v1)) });
   await transfer.locator(".warning button").first().click(); // "Replace settings"
   await expect.poll(() => readStored(extension.worker)).toEqual(e2eConfig());
+});
+
+test("switches the page theme, keeps it from the first frame, follows the system on System, and leaves it out of the export (spec 006 FR-016)", async ({ context, extension, configure }) => {
+  await configure();
+  type Probe = Window & { __ktFirstFrameTheme?: string };
+  // What the page shows in its first frame: the head script must have set the theme by then (FR-008).
+  await context.addInitScript(() =>
+    requestAnimationFrame(() => {
+      (window as Probe).__ktFirstFrameTheme = document.documentElement.dataset.theme;
+    }),
+  );
+  const options = await openOptions(context, extension.id);
+  await options.emulateMedia({ colorScheme: "light" });
+  const html = options.locator("html");
+  const radio = (value: string) => options.locator(`input[name="theme"][value="${value}"]`);
+  // The radios are visually hidden, so a pick clicks the label that draws the segment.
+  const pick = (value: string) => options.locator(".theme-switch label", { has: radio(value) }).click();
+
+  await expect(html).toHaveAttribute("data-theme", "light");
+  await expect(radio("system")).toBeChecked();
+
+  await pick("dark");
+  await expect(html).toHaveAttribute("data-theme", "dark");
+  await expect(radio("dark")).toBeChecked();
+  const [r, g, b] = parseColor(DARK["surface-page"] ?? "")!;
+  await expect(options.locator("body")).toHaveCSS("background-color", `rgb(${r}, ${g}, ${b})`);
+
+  await options.reload();
+  // The first frame can come a moment after the page counts as loaded.
+  await expect.poll(() => options.evaluate(() => (window as Probe).__ktFirstFrameTheme)).toBe("dark");
+  await expect(radio("dark")).toBeChecked();
+
+  // Under System the page follows a change of the system's mode while it is open (FR-007).
+  await pick("system");
+  await options.emulateMedia({ colorScheme: "dark" });
+  await expect(html).toHaveAttribute("data-theme", "dark");
+  await options.emulateMedia({ colorScheme: "light" });
+  await expect(html).toHaveAttribute("data-theme", "light");
+
+  // One keyboard stop right after the tabs; the arrow keys pick (FR-004).
+  await options.locator('a.tab[href="#transfer"]').focus();
+  await options.keyboard.press("Tab");
+  await expect(radio("system")).toBeFocused();
+  await options.keyboard.press("ArrowRight");
+  await options.keyboard.press("ArrowRight");
+  await expect(radio("dark")).toBeChecked();
+  await expect(html).toHaveAttribute("data-theme", "dark");
+
+  // The choice stays out of the settings: the export is exactly the stored config (FR-010).
+  await options.locator('a.tab[href="#transfer"]').click();
+  const transfer = options.locator('section[aria-labelledby="transfer-title"]');
+  const [download] = await Promise.all([options.waitForEvent("download"), transfer.locator(".field-h button").click()]);
+  expect(JSON.parse(await readFile(await download.path(), "utf8"))).toEqual(e2eConfig());
 });

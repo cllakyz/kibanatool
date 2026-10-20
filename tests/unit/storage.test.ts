@@ -1,6 +1,6 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import { type Config, emptyConfig } from "../../src/core/config";
-import { CONFIG_KEY, createConfigStore } from "../../src/storage";
+import { CONFIG_KEY, THEME_KEY, createConfigStore, loadThemeChoice, saveThemeChoice } from "../../src/storage";
 
 function fakeArea(initial: Record<string, unknown> = {}) {
   const data = new Map(Object.entries(initial));
@@ -95,5 +95,41 @@ describe("onChange", () => {
     area.emit({ [CONFIG_KEY]: {} });
     area.emit({ other: {} });
     expect(calls).toBe(1);
+  });
+});
+
+describe("theme choice (spec 006)", () => {
+  // A stand-in for the page's localStorage.
+  function webArea(initial?: string) {
+    const data = new Map<string, string>(initial === undefined ? [] : [[THEME_KEY, initial]]);
+    return { data, getItem: (key: string) => data.get(key) ?? null, setItem: (key: string, value: string) => void data.set(key, value) };
+  }
+  const throwing = () => {
+    throw new Error("storage blocked");
+  };
+
+  it.each(["system", "light", "dark"] as const)("reads a stored %s back", (choice) => {
+    expect(loadThemeChoice(webArea(choice))).toBe(choice);
+  });
+
+  it("gives System for a missing or unknown value", () => {
+    expect(loadThemeChoice(webArea())).toBe("system");
+    expect(loadThemeChoice(webArea("blue"))).toBe("system");
+  });
+
+  it("gives System when the storage can't be read", () => {
+    vi.spyOn(console, "debug").mockImplementation(() => {});
+    expect(loadThemeChoice({ getItem: throwing })).toBe("system");
+  });
+
+  it("writes the choice under its key", () => {
+    const area = webArea();
+    saveThemeChoice(area, "dark");
+    expect(area.data.get(THEME_KEY)).toBe("dark");
+  });
+
+  it("survives a storage that can't be written", () => {
+    vi.spyOn(console, "debug").mockImplementation(() => {});
+    expect(() => saveThemeChoice({ setItem: throwing }, "dark")).not.toThrow();
   });
 });
