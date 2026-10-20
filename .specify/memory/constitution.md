@@ -1,15 +1,17 @@
 <!--
 Sync Impact Report
-- Version change: 1.0.5 → 1.0.6 (PATCH)
-- Modified: Known Deviations: D12 and D13 fixed and removed. The action bar gets the page and the
-  clock as props, and settings-change subscriptions go through `src/storage.ts`
-  (`store.onChange`). The bar no longer reads the clock itself either, an unlisted Principle V
-  item found while specifying. Known Deviations is now empty.
+- Version change: 1.0.6 → 1.0.7 (PATCH)
+- Modified: Principle V names one exception to "storage goes through `src/storage.ts`": the
+  options page's theme choice (`localStorage`, spec-kit 006) is read and written by
+  `src/theme.ts`. Reason: the page's head script reads it before the first frame, and through
+  `src/storage.ts` it bundled the settings schema and zod (97 kB instead of 3.6 kB in the store
+  package). The user asked for the smaller package (2026-10-20).
 - Added/removed sections: none
 - History: 1.0.0 (2026-10-14) ratified from the architecture review at commit 56e48a2; 1.0.1
   clarified the Principle I import table; 1.0.2 enforced Principle I with
   `tests/unit/architecture.test.ts` and removed D1; 1.0.3 removed D9 and D10; 1.0.4 removed D2–D8;
-  1.0.5 removed D11. The work is specs/001-fix-architecture-deviations.
+  1.0.5 removed D11; 1.0.6 removed D12 and D13, leaving Known Deviations empty. The work is
+  specs/001-fix-architecture-deviations.
 - Templates: no change needed (plan-template.md reads Principles I–V at runtime).
 - Deferred TODOs: none.
 -->
@@ -90,7 +92,10 @@ Rationale: an overloaded `null` turns an unrelated failure into a misleading not
   `src/content/clipboard.ts` (wraps the clipboard) and DOM event listeners inside React
   components.
 - React components MUST receive page location as props; they MUST NOT read `location` directly.
-- Storage reads, writes and change subscriptions MUST go through `src/storage.ts`.
+- Storage reads, writes and change subscriptions MUST go through `src/storage.ts`. One exception:
+  the options page's theme choice (`localStorage`) is read and written by `src/theme.ts`, because
+  the page's head script reads it before the first frame and must not bundle the settings schema
+  that `src/storage.ts` imports.
 - An interface with a single implementation is allowed only when it is a test seam, that is,
   when a test substitutes it. Otherwise there is no interface.
 
@@ -136,4 +141,4 @@ Where, Expected fix.
   gates. A violation that a plan keeps goes into that plan's Complexity Tracking table and into
   Known Deviations.
 
-**Version**: 1.0.6 | **Ratified**: 2026-10-14 | **Last Amended**: 2026-10-14
+**Version**: 1.0.7 | **Ratified**: 2026-10-14 | **Last Amended**: 2026-10-20

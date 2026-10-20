@@ -1,5 +1,5 @@
-import { describe, expect, it } from "vitest";
-import { DARK, LIGHT, type Palette, applyTheme, luminance, parseColor, themeBehind } from "../../src/theme";
+import { describe, expect, it, vi } from "vitest";
+import { DARK, LIGHT, THEME_KEY, type Palette, applyTheme, loadThemeChoice, luminance, parseColor, saveThemeChoice, themeBehind } from "../../src/theme";
 
 function contrast(palette: Palette, foreground: string, background: string): number {
   const [a, b] = [foreground, background].map((name) => {
@@ -88,6 +88,42 @@ describe("applyTheme (spec 006)", () => {
     applyTheme(light, "system", false);
     applyTheme(dark, "system", true);
     expect([light.dataset.theme, dark.dataset.theme]).toEqual(["light", "dark"]);
+  });
+});
+
+describe("theme choice (spec 006)", () => {
+  // A stand-in for the page's localStorage.
+  function webArea(initial?: string) {
+    const data = new Map<string, string>(initial === undefined ? [] : [[THEME_KEY, initial]]);
+    return { data, getItem: (key: string) => data.get(key) ?? null, setItem: (key: string, value: string) => void data.set(key, value) };
+  }
+  const throwing = () => {
+    throw new Error("storage blocked");
+  };
+
+  it.each(["system", "light", "dark"] as const)("reads a stored %s back", (choice) => {
+    expect(loadThemeChoice(webArea(choice))).toBe(choice);
+  });
+
+  it("gives System for a missing or unknown value", () => {
+    expect(loadThemeChoice(webArea())).toBe("system");
+    expect(loadThemeChoice(webArea("blue"))).toBe("system");
+  });
+
+  it("gives System when the storage can't be read", () => {
+    vi.spyOn(console, "debug").mockImplementation(() => {});
+    expect(loadThemeChoice({ getItem: throwing })).toBe("system");
+  });
+
+  it("writes the choice under its key", () => {
+    const area = webArea();
+    saveThemeChoice(area, "dark");
+    expect(area.data.get(THEME_KEY)).toBe("dark");
+  });
+
+  it("survives a storage that can't be written", () => {
+    vi.spyOn(console, "debug").mockImplementation(() => {});
+    expect(() => saveThemeChoice({ setItem: throwing }, "dark")).not.toThrow();
   });
 });
 

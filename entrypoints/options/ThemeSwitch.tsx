@@ -2,8 +2,7 @@
 // FR-001–FR-005). Native radios give one tab stop, arrow keys that select, and "selected" announcements.
 import { type ReactNode, useState } from "react";
 import { type MessageKey, t } from "../../src/i18n";
-import { loadThemeChoice, saveThemeChoice } from "../../src/storage";
-import { THEME_CHOICES, type ThemeChoice, applyTheme } from "../../src/theme";
+import { THEME_CHOICES, type ThemeChoice, applyTheme, loadThemeChoice, saveThemeChoice } from "../../src/theme";
 
 const NAMES = { system: "optionsThemeSystem", light: "optionsThemeLight", dark: "optionsThemeDark" } satisfies Record<ThemeChoice, MessageKey>;
 

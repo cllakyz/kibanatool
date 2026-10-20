@@ -66,6 +66,8 @@ Constitution v1.0.6, no open deviations.
 
 No gate is violated, so Complexity Tracking is empty.
 
+**Changed 2026-10-20 (user decision, smaller package):** `THEME_KEY`, `loadThemeChoice` and `saveThemeChoice` moved to `src/theme.ts`, and constitution 1.0.7 names this exception to Principle V. `options-theme.js` is 3.6 kB without zod, and the store package went from 303.37 kB to 276.94 kB.
+
 ## Project Structure
 
 ### Documentation (this feature)

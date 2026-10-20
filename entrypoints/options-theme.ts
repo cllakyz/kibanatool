@@ -2,8 +2,7 @@
 // the page's <head>: a module runs after the first frame, which would flash the other theme. It applies the stored
 // choice, and under System follows the system's mode while the page is open.
 import { defineUnlistedScript } from "#imports";
-import { loadThemeChoice } from "../src/storage";
-import { DARK, LIGHT, applyTheme, cssVars } from "../src/theme";
+import { DARK, LIGHT, applyTheme, cssVars, loadThemeChoice } from "../src/theme";
 
 export default defineUnlistedScript(() => {
   const style = document.createElement("style");
