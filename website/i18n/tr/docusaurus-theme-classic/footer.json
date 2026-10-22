@@ -1,0 +1,22 @@
+{
+  "link.title.kibanatool": {
+    "message": "kibanatool",
+    "description": "The title of the footer links column with title=kibanatool in the footer"
+  },
+  "link.item.label.MIT License": {
+    "message": "MIT Lisansı",
+    "description": "The label of footer link with label=MIT License linking to https://github.com/cllakyz/kibanatool/blob/main/LICENSE"
+  },
+  "link.item.label.Privacy policy": {
+    "message": "Gizlilik politikası",
+    "description": "The label of footer link with label=Privacy policy linking to https://github.com/cllakyz/kibanatool/blob/main/PRIVACY.md"
+  },
+  "link.item.label.GitHub": {
+    "message": "GitHub",
+    "description": "The label of footer link with label=GitHub linking to https://github.com/cllakyz/kibanatool"
+  },
+  "copyright": {
+    "message": "Graylog için yazılan <a href=\"https://github.com/bozkurtemre/graytool\">graytool</a>'dan esinlenildi",
+    "description": "The footer copyright"
+  }
+}

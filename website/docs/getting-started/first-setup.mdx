@@ -1,0 +1,25 @@
+---
+sidebar_position: 3
+title: First setup
+description: From a fresh install to your first action buttons in Kibana, using the example settings.
+---
+
+import { STORE_URL, exampleSettingsUrl } from "@site/src/constants";
+
+# First setup
+
+1. [Install kibanatool](/docs/getting-started/install) from the <a href={STORE_URL}>Chrome Web Store</a>.
+2. Click the toolbar icon to open the options. Save <a href={exampleSettingsUrl("en")}><code>kibanatool-settings.json</code></a>:
+   it opens as text in the browser, so right-click the link and choose "Save link as". Then load it under
+   **Export and import**. Importing replaces all current settings.
+3. **Environments:** enter a name and your Kibana address, e.g. `https://kibana.example.com` or
+   `https://example.com/kibana`, and click **Add and grant access**. Chrome asks for access to that site; the
+   extension runs nowhere else. See [Environments](/docs/configure/environments).
+4. **Variables:** values that differ per environment, like your admin panel's address. Each row is a
+   variable, each column an environment; use them in templates as `{env.name}`. Fill in `adminUrl` and `jiraUrl`
+   in your environment's column and click **Save**. See [Variables](/docs/configure/variables).
+5. Back on **Environments**, click **Remove** on the example "Production" environment. Do this after step 4: a
+   variable no environment has a value for leaves the table.
+6. **Actions:** add link or Discover actions, and paste a sample log into **Live preview** to see the result.
+   Mark **Show in row** on the ones you also want on the result rows. See [Actions](/docs/configure/actions).
+7. Reload your Kibana tab and open a log.

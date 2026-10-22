@@ -1,0 +1,23 @@
+---
+sidebar_position: 5
+title: Örnek aksiyonlar
+description: Örnek ayar dosyası ve içindeki altı aksiyon.
+---
+
+import { exampleSettingsUrl } from "@site/src/constants";
+
+# Örnek aksiyonlar
+
+<a href={exampleSettingsUrl("tr")}><code>kibanatool-settings.tr.json</code></a> dosyasında şunlar var:
+
+| Etiket | Tür | Şablon |
+|---|---|---|
+| Admin'de kullanıcı | Link | `{env.adminUrl}/users/{user_id\|context.user_id\|user.id}` |
+| Sentry | Link, yalnızca `level_name` `ERROR` olduğunda | `https://acme.sentry.io/issues/?query={message}` |
+| Jira | Link | `{env.jiraUrl}/issues/?jql=text%20~%20{user_id\|user.id}` |
+| Bu kullanıcının logları | Discover | `user_id:{user_id}` |
+| Tüm loglarda bu kullanıcı | `*_log` data view'ında Discover, 60 dakikalık pencere | `user_id:{user_id}` |
+| ±5 dakika | Discover, 5 dakikalık pencere | boş sorgu |
+
+Dosyayı **Dışa ve içe aktarma** bölümünde içe aktarın; içe aktarma, mevcut bütün ayarların yerine geçer. Bkz.
+[İlk kurulum](/docs/getting-started/first-setup).

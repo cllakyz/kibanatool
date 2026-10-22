@@ -1,0 +1,109 @@
+:root {
+  --ifm-color-primary: #0b64dd;
+  --ifm-color-primary-dark: #0a5ac7;
+  --ifm-color-primary-darker: #0955bc;
+  --ifm-color-primary-darkest: #1750ba;
+  --ifm-color-primary-light: #1f73ee;
+  --ifm-color-primary-lighter: #2c7bf0;
+  --ifm-color-primary-lightest: #5395f3;
+  --ifm-background-color: #ffffff;
+  --ifm-font-color-base: #1d2a3e;
+  --ifm-color-emphasis-200: #e3e8f2;
+  --ifm-color-emphasis-300: #e3e8f2;
+  --ifm-color-emphasis-500: #516381;
+  --ifm-navbar-background-color: #ffffff;
+  --ifm-footer-background-color: #f6f9fc;
+  --ifm-footer-color: #516381;
+  --ifm-font-family-base: "Schibsted Grotesk", system-ui, sans-serif;
+  --ifm-font-family-monospace: "Roboto Mono", ui-monospace, monospace;
+  --ifm-heading-font-weight: 800;
+  --ifm-heading-line-height: 1.1;
+  --ifm-line-height-base: 1.55;
+  --kt-muted: #516381;
+  --kt-tint: #f6f9fc;
+  --kt-surface: #ffffff;
+  --kt-line: #e3e8f2;
+  --kt-discover: #d9e8ff;
+  --kt-discover-text: #1750ba;
+  --kt-key: #6b3c9f;
+  --kt-value: #047471;
+  --kt-mark: #fde9b5;
+  --kt-shadow: 0 12px 32px rgba(29, 42, 62, 0.14);
+}
+
+html[data-theme="dark"] {
+  --ifm-color-primary: #61a2ff;
+  --ifm-color-primary-dark: #4a93ff;
+  --ifm-color-primary-darker: #3f8bff;
+  --ifm-color-primary-darkest: #85b7ff;
+  --ifm-color-primary-light: #78b0ff;
+  --ifm-color-primary-lighter: #83b7ff;
+  --ifm-color-primary-lightest: #a3c8ff;
+  --ifm-background-color: #050f21;
+  --ifm-background-surface-color: #111c2c;
+  --ifm-font-color-base: #cad3e2;
+  --ifm-color-emphasis-200: #2b394f;
+  --ifm-color-emphasis-300: #2b394f;
+  --ifm-color-emphasis-500: #98a8c3;
+  --ifm-navbar-background-color: #050f21;
+  --ifm-footer-background-color: #0b1628;
+  --ifm-footer-color: #98a8c3;
+  --kt-muted: #98a8c3;
+  --kt-tint: #0b1628;
+  --kt-surface: #111c2c;
+  --kt-line: #2b394f;
+  --kt-discover: #0d2f5e;
+  --kt-discover-text: #61a2ff;
+  --kt-key: #c5a5fa;
+  --kt-value: #16c5c0;
+  --kt-mark: #3d3014;
+  --kt-shadow: 0 12px 32px rgba(0, 0, 0, 0.5);
+}
+
+h1,
+h2,
+h3 {
+  letter-spacing: -0.035em;
+}
+
+.menu__link--active:not(.menu__link--sublist) {
+  background: var(--kt-discover);
+  color: var(--kt-discover-text);
+  font-weight: 700;
+}
+
+.alert--info,
+.alert--secondary {
+  --ifm-alert-background-color: var(--kt-discover);
+  --ifm-alert-foreground-color: var(--kt-discover-text);
+  --ifm-alert-border-color: var(--ifm-color-primary);
+}
+
+:focus-visible {
+  outline: 2px solid var(--ifm-color-primary);
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    transition: none !important;
+  }
+}
+
+/* Footer: links on the left, the graytool credit on the right (spec §6.2); stacked below 997px. */
+@media (min-width: 997px) {
+  .footer > .container {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    gap: 2rem;
+  }
+  .footer .footer__links {
+    margin-bottom: 0;
+  }
+  .footer .footer__bottom {
+    text-align: right;
+  }
+}
