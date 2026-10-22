@@ -1,0 +1,23 @@
+---
+sidebar_position: 5
+title: Example actions
+description: The example settings file and the six actions it contains.
+---
+
+import { exampleSettingsUrl } from "@site/src/constants";
+
+# Example actions
+
+These are in <a href={exampleSettingsUrl("en")}><code>kibanatool-settings.json</code></a>:
+
+| Label | Kind | Template |
+|---|---|---|
+| User in admin | Link | `{env.adminUrl}/users/{user_id\|context.user_id\|user.id}` |
+| Sentry | Link, only when `level_name` is `ERROR` | `https://acme.sentry.io/issues/?query={message}` |
+| Jira | Link | `{env.jiraUrl}/issues/?jql=text%20~%20{user_id\|user.id}` |
+| This user's logs | Discover | `user_id:{user_id}` |
+| This user in all logs | Discover on the `*_log` data view, 60-minute window | `user_id:{user_id}` |
+| ±5 minutes | Discover, 5-minute window | empty query |
+
+Import the file under **Export and import**; importing replaces all current settings. See
+[First setup](/docs/getting-started/first-setup).

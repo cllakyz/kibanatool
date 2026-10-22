@@ -238,6 +238,12 @@ export default function Home(): ReactNode {
               </Item>
             </li>
           </ol>
+          <p className={styles.text}>
+            <Translate id="home.install.buildYourself">Prefer to build it yourself?</Translate>{" "}
+            <Link to="/docs/more/build-from-source">
+              <Translate id="home.install.buildFromSource">Build from source</Translate>
+            </Link>
+          </p>
         </Split>
 
         <Split title={<Translate id="home.releases.title">Releases</Translate>}>
