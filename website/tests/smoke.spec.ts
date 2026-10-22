@@ -62,6 +62,13 @@ test("Add to Chrome goes to the store and Read the docs to the introduction", as
   await expect(page.getByRole("link", { name: "Read the docs" })).toHaveAttribute("href", "/kibanatool/docs/getting-started/introduction");
 });
 
+test("the Turkish home page uses Turkish screenshots and the Turkish example file", async ({ page }) => {
+  await page.goto("tr/");
+  await expect(page.locator("html")).toHaveAttribute("lang", "tr");
+  await expect(page.getByRole("tabpanel").getByRole("img")).toHaveAttribute("src", /\/img\/screenshots\/tr\/1-bar\.png$/);
+  await expect(page.locator('a[href$="/examples/kibanatool-settings.tr.json"]')).toHaveCount(1);
+});
+
 test("no horizontal scroll at 375px", async ({ page }) => {
   await page.setViewportSize({ width: 375, height: 812 });
   for (const path of ["", "tr/", "docs/getting-started/introduction"]) {

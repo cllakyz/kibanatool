@@ -1,0 +1,22 @@
+{
+  "version.label": {
+    "message": "Sonraki",
+    "description": "The label for version current"
+  },
+  "sidebar.docs.category.Getting started": {
+    "message": "Başlarken",
+    "description": "The label for category 'Getting started' in sidebar 'docs'"
+  },
+  "sidebar.docs.category.Configure": {
+    "message": "Yapılandırma",
+    "description": "The label for category 'Configure' in sidebar 'docs'"
+  },
+  "sidebar.docs.category.Use": {
+    "message": "Kullanım",
+    "description": "The label for category 'Use' in sidebar 'docs'"
+  },
+  "sidebar.docs.category.More": {
+    "message": "Diğer",
+    "description": "The label for category 'More' in sidebar 'docs'"
+  }
+}

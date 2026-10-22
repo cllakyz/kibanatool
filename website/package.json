@@ -12,7 +12,7 @@
     "clear": "docusaurus clear",
     "write-translations": "docusaurus write-translations",
     "typecheck": "tsc",
-    "test": "node --test plugins/*.test.mjs",
+    "test": "node --test plugins/*.test.mjs tests/*.test.mjs",
     "smoke": "playwright test"
   },
   "dependencies": {

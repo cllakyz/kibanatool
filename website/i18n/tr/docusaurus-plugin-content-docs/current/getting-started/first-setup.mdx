@@ -1,0 +1,23 @@
+---
+sidebar_position: 3
+title: İlk kurulum
+description: Örnek ayarlarla, yeni kurulmuş eklentiden Kibana'daki ilk aksiyon butonlarınıza.
+---
+
+import { STORE_URL, exampleSettingsUrl } from "@site/src/constants";
+
+# İlk kurulum
+
+1. kibanatool'u <a href={STORE_URL}>Chrome Web Store</a>'dan [kurun](/docs/getting-started/install).
+2. Ayarları açmak için araç çubuğundaki simgeye tıklayın.
+3. **Dışa ve içe aktarma** bölümünde <a href={exampleSettingsUrl("tr")}><code>kibanatool-settings.tr.json</code></a>
+   dosyasını içe aktarın ve düzenleyin. İçe aktarma, mevcut bütün ayarların yerine geçer.
+4. **Ortamlar:** örnek adresi kendi Kibana adresinizle (örn. `https://kibana.example.com` ya da
+   `https://example.com/kibana`) değiştirin ve **Erişim izni ver** butonuna tıklayın. Chrome o site için erişim izni ister;
+   eklenti başka hiçbir yerde çalışmaz. Bkz. [Ortamlar](/docs/configure/environments).
+5. **Değişkenler:** admin panelinizin adresi gibi ortama göre değişen değerler. Her satır bir değişken, her sütun
+   bir ortamdır; şablonlarda `{env.ad}` olarak kullanın. Bkz. [Değişkenler](/docs/configure/variables).
+6. **Aksiyonlar:** link ya da Discover aksiyonları ekleyin ve sonucu görmek için **Canlı önizleme** alanına örnek bir
+   log yapıştırın. Sonuç satırlarında da görmek istediklerinizi **Satırda göster** ile işaretleyin.
+   Bkz. [Aksiyonlar](/docs/configure/actions).
+7. Kibana sekmenizi yenileyin ve bir log açın.
