@@ -13,14 +13,11 @@ remote code, no telemetry, local-only storage.
 
 ```bash
 npm install                 # postinstall runs `wxt prepare`, which generates .wxt/tsconfig.json (tsconfig extends it)
-npx vitest run tests/unit/core/template.test.ts   # one test file (add -t "<name>" for one test)
 npm --prefix website start   # the website in website/: dev server
 npm --prefix website test && npm --prefix website run build && npm --prefix website run smoke   # its checks (smoke serves the build)
 npm run build               # → .output/chrome-mv3 (load unpacked in chrome://extensions)
 npm run check:manifest      # run after build; fails if the manifest asks for more permissions than allowed
 KT_STACK=9 npm run e2e      # builds, then runs tests/e2e against the running docker stack 7|8|9
-npm run icons               # re-render public/icon/*.png and public/icon-dark/*.png from assets/icon.svg and icon-dark.svg
-npm run zip                 # store package: .output/kibanatool-<version>-chrome.zip
 ```
 
 Dev Kibana stacks: `./docker/up.sh 7|8|9` starts Kibana 7.17.29 on :17601 under the `/kibana` base path, 8.19.23 on :18601 or 9.5.5 on :19601, with security on and anonymous browser login (as `kt_anon`; Elasticsearch anonymous access is off). It re-seeds the same synthetic logs, data views, a `test` space, an `obs` Observability space (9.x) and the read-only user `kt_reader` on every run. `./docker/down.sh 7|8|9` stops a stack and deletes its data. Secrets are in `docker/.env.<major>`; never print them.
@@ -34,13 +31,12 @@ Dev Kibana stacks: `./docker/up.sh 7|8|9` starts Kibana 7.17.29 on :17601 under 
 **Website** (plan 8): the Docusaurus site is in `website/`, a separate package that never imports the extension's `src/`. The release box and the releases page read `CHANGELOG.md` at build time (`website/plugins/changelog.mjs`); the store address lives in `website/src/constants.ts`. `.github/workflows/website.yml` builds and smoke-tests it on pull requests that touch `website/**` or `CHANGELOG.md`, and publishes it to GitHub Pages when a `v*` tag is pushed (after the store has that version) or when run by hand. A manual run publishes the branch as it is, so it must not run while `main` holds docs for a feature the store version lacks.
 
 **Layers:**
-- `src/core/` is pure logic with no browser APIs: the config schema (zod), field flattening (which also expands JSON, XML and form text; `xml.ts` is the XML parser, `form.ts` the form one), `{path|fallback}` templates, conditions, and copy masking: by field name (`mask.ts`) and inside values (`value-mask.ts`: IBAN, TCKN, GSM, card). `curl.ts` writes the request a log records as a masked cURL command.
+- `src/core/` is pure logic with no browser APIs.
 - `src/kibana/` handles Kibana I/O and URL/state parsing.
 - `src/adapters/` only reads the DOM.
 - `tests/unit/architecture.test.ts` enforces which layer may import which (the constitution's import table), keeps browser globals out of `src/core` and forbids import cycles.
 - `src/theme.ts` holds every color: the Borealis light and dark palettes, as `--kt-*` custom properties for the bar's shadow root and the options page. `tests/unit/theme.test.ts` fails if a pair drops below its WCAG contrast floor.
 - `src/storage.ts` is the only place that touches `chrome.storage`. It validates config on both load and save. A corrupt stored config becomes the empty config.
-- `activeEnvironment` picks the environment with the longest matching `kibanaUrl` base path.
 - Discover actions may name their target data view (`dataViewName`). The bar reads the open space's data view list once per page (`/api/data_views`, or `saved_objects/_find` on 7.17), only when an action needs it.
 
 ## Traps
@@ -69,10 +65,10 @@ Dev Kibana stacks: `./docker/up.sh 7|8|9` starts Kibana 7.17.29 on :17601 under 
 - The options page is five hash tabs (`#environments` … `#transfer`). Every section stays mounted and the closed ones are `hidden`, so unsaved edits survive a tab switch. No element id may equal a tab id: the browser would scroll to it under the sticky navbar. The action editor is a native `<dialog>` styled only as `dialog.modal[open]`. Every exit unmounts it, focus goes back to the opener in a passive effect's cleanup (a layout cleanup runs while the page is still inert), and a `hashchange` drops the draft, since a hidden modal would keep the page inert.
 - A new UI string needs an entry in both `public/_locales/en/messages.json` and `public/_locales/tr/messages.json`. `MessageKey` in `src/i18n.ts` is derived from the English file, and `tests/unit/i18n.test.ts` keeps the two in step.
 - The user manual lives in the website docs; the README stays short. A changed extension UI string means updating the docs in both languages. A docs page is added in `website/docs/` and `website/i18n/tr/docusaurus-plugin-content-docs/current/` together (`website/tests/docs-parity.test.mjs` fails otherwise). Never put `{…}` code in a `translate()` message (Docusaurus reads `{name}` as a placeholder; pass code through `values`). `website/static/img/icon.svg` and `favicon.png` are copies of `assets/icon.svg` and `public/icon/32.png`.
-- `docker/seed.mjs` is a contract with `tests/e2e` (ids, values, times): change both together. `tests/fixtures/*.json` are captured from the stacks (`KT_CAPTURE=1 npm run e2e -- capture`); refresh them after a Kibana upgrade instead of editing them.
+- `docker/seed.mjs` is a contract with `tests/e2e` (ids, values, times): change both together.
 
 ## Docs
 
-Code comments cite the design spec by section (`spec §5.1`). The design specs and plans live in `docs/superpowers/` and are written in Turkish. `docs/verification/` is tracked. Plans 1 (link actions), 2 (Discover actions, copy/mask, JSON view, full options page), 3 (e2e matrix, CI, store package), 4 (environment variables, data views by name), 5 (masking inside values), 6 (XML as JSON, "Copy as JSON"), 7 ("Copy as cURL") and 8 (the website) are done, and so are spec-kit features 002 (`specs/002-plain-text-viewer/`: form data as structured text, the text view), 003 (`specs/003-row-actions/`: one-click buttons on result rows), 004 (`specs/004-mask-scope-docs/`: how far a field-name mask reaches, explained on the options page and in the docs), 005 (`specs/005-tabbed-options/`: the options page in five tabs, the action editor in a dialog) and 006 (`specs/006-theme-toggle/`: a System, Light or Dark switch on the options page). `.github/workflows/ci.yml` runs the unit checks and the e2e matrix on every pull request to `main` (not on pushes, so a direct push to `main` is not tested).
+Code comments cite the design spec by section (`spec §5.1`). The design specs and plans live in `docs/superpowers/` and are written in Turkish. `docs/verification/` is tracked. Plan 8 (the website) is done. `.github/workflows/ci.yml` runs the unit checks and the e2e matrix on every pull request to `main` (not on pushes, so a direct push to `main` is not tested).
 
 The architecture rules (principles I–V, quality gates, known deviations) are in the spec-kit constitution `.specify/memory/constitution.md`. Follow it in every plan and review, not only in spec-kit commands. Spec-kit features (spec, plan, tasks) live in `specs/`.

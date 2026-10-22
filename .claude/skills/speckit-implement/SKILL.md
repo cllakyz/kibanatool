@@ -2,6 +2,7 @@
 name: "speckit-implement"
 description: "Execute the implementation plan by processing and executing all tasks defined in tasks.md"
 argument-hint: "Optional implementation guidance or task filter"
+model: sonnet
 compatibility: "Requires spec-kit project structure with .specify/ directory"
 metadata:
   author: "github-spec-kit"
