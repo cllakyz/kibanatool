@@ -5,143 +5,18 @@ the log you open, built from that log's raw fields. It works on Kibana 7.17, 8.x
 
 Inspired by [graytool](https://github.com/bozkurtemre/graytool) for Graylog.
 
-## What it does
+Website: https://cllakyz.github.io/kibanatool/
 
-When you open a log in Discover (an expanded row on 7.17, the document flyout on 8.x/9.x), kibanatool shows
-a bar above it with:
+## Install
 
-- **Link actions** that jump to another system with a value from the log, e.g. `https://admin.example.com/users/{user_id}`.
-- **Discover actions** that open related logs in a new tab: the same user's logs, or everything ±5 minutes around this log.
-- **View**: fields that hold JSON, XML or form text, such as a request body, as a tree you can search and copy
-  from, and long or multi-line text, such as console output or a stack trace, as text you can search.
-- **⋯** to copy the log as Markdown or JSON with sensitive fields and values masked, the request it records as a cURL command, a link to the log, or the current view with its time range fixed.
+1. Install kibanatool from the [Chrome Web Store](https://chromewebstore.google.com/detail/STORE_ITEM_ID).
+2. Open the options and import [`examples/kibanatool-settings.json`](examples/kibanatool-settings.json) under
+   **Export and import**. Importing replaces all current settings.
+3. Under **Environments**, change the example address to your Kibana's and click **Grant access**. Then reload
+   your Kibana tab and open a log.
 
-Actions you mark with **Show in row** also appear on the result rows themselves: point at a row, or move
-keyboard focus into it, and they show at the row's right end, so one click runs them without opening the log.
-The bar keeps every action, the View panel and the copy menu. On 7.17, whose collapsed rows carry no log id, a
-small script in the Kibana page's own context reads each row's index and id from Kibana's page data, only
-while an action is marked.
-
-## Set up
-
-1. Install kibanatool from the [Chrome Web Store](https://chromewebstore.google.com/detail/kibanatool/flgnjcjghmbcnfhilikbeddkhjiagodp), or
-   build it (see [Development](#development)) and load `.output/chrome-mv3` as an unpacked extension.
-2. Click the toolbar icon to open the options.
-3. **Environments:** add your Kibana address, e.g. `https://kibana.example.com` or `https://example.com/kibana`.
-   Chrome asks for access to that site; the extension runs nowhere else.
-4. **Variables:** values that differ per environment, like your admin panel's address. Each row is a
-   variable, each column an environment; use them in templates as `{env.name}`.
-5. **Actions:** add link or Discover actions, and paste a sample log into the preview to see the result.
-   Mark **Show in row** on the ones you also want on the result rows.
-   Or import [`examples/kibanatool-settings.json`](examples/kibanatool-settings.json) under **Export and import** and edit it.
-6. Reload your Kibana tab and open a log.
-
-### Placeholders and conditions
-
-- `{field}` is a field of the raw log. Nested fields use dots (`context.user_id`), and fields that hold JSON,
-  XML or form text can be read inside too (`context.body.amount`, `context.request.Envelope.Body.Id`; see
-  [XML and form data](#xml-and-form-data)).
-- `{a|b|c}` uses the first field that has a value. If none has one, the button is hidden.
-- `{env.name}` is a variable of the environment you are in (see **Variables**), e.g. `{env.adminUrl}/users/{user_id}`.
-  It goes into links as it is and is quoted like a field in KQL. A link may start with one if its value is an
-  `http(s)` address. If the environment does not set it, the button is greyed out and its tooltip says why.
-- A Discover action opens the data view of the open log, or the one under **Target data view**: a display
-  name or an index pattern (e.g. `*_log`), looked up in the current space, or an ID. If no data view or more
-  than one matches the name, the button is greyed out.
-- Field values are URL-encoded in links and quoted for KQL in Discover queries.
-- Conditions (`exists`, `equals`, `notEquals`, `contains`, `startsWith`) must all hold for the button to show.
-
-### Example actions
-
-These are in [`examples/kibanatool-settings.json`](examples/kibanatool-settings.json):
-
-| Label | Kind | Template |
-|---|---|---|
-| User in admin | Link | `{env.adminUrl}/users/{user_id\|context.user_id\|user.id}` |
-| Sentry | Link, only when `level_name` is `ERROR` | `https://acme.sentry.io/issues/?query={message}` |
-| Jira | Link | `{env.jiraUrl}/issues/?jql=text%20~%20{user_id\|user.id}` |
-| This user's logs | Discover | `user_id:{user_id}` |
-| This user in all logs | Discover on the `*_log` data view, 60-minute window | `user_id:{user_id}` |
-| ±5 minutes | Discover, 5-minute window | empty query |
-
-### XML and form data
-
-Fields that hold XML text, such as SOAP request and response bodies, are read as JSON: in the JSON view, in
-both copies and in placeholders.
-
-- Namespace prefixes are dropped: `soap:Envelope` becomes `Envelope`.
-- An attribute becomes `@name`, and the text of an element that has attributes becomes `#text`
-  (`{context.request.Amount.#text}`).
-- An element that appears more than once becomes a list. Every value stays text, so `00` keeps its zeros.
-- XML or JSON escaped inside a value is opened too, up to five levels deep. In the copies, anything nested deeper
-  is replaced with `***`.
-- Text split by an element, comment or CDATA section is joined with a space, so `ID<br/>10000000146` reads
-  `ID 10000000146` and its value is still masked.
-- Text that is not well-formed XML, such as an HTML error page, stays as it is.
-
-URL-encoded form text with two or more `&`-joined pairs, such as `username=…&password=…&grant_type=…`, is
-read the same way and tagged "form" in the JSON view. Values are decoded and stay text, a repeated key becomes
-a list, and a single `key=value` stays text. Masks reach its keys, so `*password*` hides a password inside it.
-
-### Text view
-
-The **View** panel also lists text that is not JSON, XML or form data when it has more than one line or is at
-least 500 characters long, such as console output, stack traces and long error messages. Shorter one-line
-values, such as tokens and headers, are left out.
-
-- The text is shown as stored, in a monospace font. An HTML page shows as its source; nothing in it runs.
-- Multi-line text opens unwrapped, so console tables keep their columns; one-line text opens wrapped.
-  **Wrap lines** switches either way.
-- Search marks every match, shows the count and steps through them with ↑/↓ or Enter and Shift+Enter.
-- **Copy value** copies the whole text as it is. Like the tree's copy buttons, it is not masked: use the ⋯ menu
-  to share a log.
-
-### Copy and masking
-
-"Copy as JSON" copies the log's `_index`, `_id` and `_source`, with the JSON and XML text inside it expanded.
-
-Both copies mask every field whose path matches a pattern under **Copy and masking** (by default
-`*authorization*`, `*password*`, `*token*`, `*secret*`, `*cookie*` and `*php-auth-*`, the Basic-auth user and
-password that Symfony copies out of `Authorization`), keys inside JSON, XML and form text included.
-
-A field whose path matches is masked with everything inside it: an object, a list or an XML element becomes
-a single `***`. That is what you want for a header list or a `<Token Type="…" Value="…"/>` element. But it
-also hides a wrapper whose name merely contains the word, such as a SOAP operation `GetTokenRequest`.
-
-To keep such a wrapper readable, narrow the pattern instead of removing it. `*token` matches names that end
-in "token", such as `platform-token`, `ConfirmationToken` and `_token`, but not `GetTokenRequest`. Any
-narrower pattern trades coverage for readability:
-
-- `*token` misses a name like `tokenValue`;
-- `*.token` matches only names that are exactly `token`, so it would leave `platform-token` or
-  `refreshToken` in plain text.
-
-They also look inside every value, such as plain-text bodies that a field name cannot reach, and replace each
-of these with `***`. Each kind can be turned off under **Mask inside values**:
-
-- Turkish IBANs: `TR` and 24 digits, written together or in the usual groups of four.
-- Turkish ID numbers (TCKN): 11 digits with a valid checksum.
-- Turkish mobile numbers: `5xx xxx xx xx`, with or without `+90`, `90` or `0` in front.
-- Card numbers: Visa, Mastercard, Amex and Troy numbers with a valid Luhn digit.
-
-A number glued to a letter or another digit is left alone, so IDs inside longer codes are not touched.
-Masking applies to what you copy; the screen and your link templates are not changed. It is a best effort:
-read the copy before you share it.
-
-### Copy as cURL
-
-A log that records an HTTP request, with a `method` and an absolute `http(s)` `url` under `context` or at the top
-level, also gets "Copy as cURL": a bash or zsh command that sends the request again.
-
-- `headers`, `body` and `query` are read from the same place. Each may be JSON text, as in Symfony request logs.
-- The query is added to the URL, and a form body is written back as `a[b]=c`, the way PHP reads it. Multipart
-  fields become `--form-string` options; uploaded files are not in the log, so they are left out.
-- Transport, proxy and CDN headers are dropped: `host`, `content-length`, `connection`, `accept-encoding`,
-  `forwarded`, `x-forwarded-*`, `x-real-ip`, `cf-*`, `cdn-loop`, `x-php-ob-level` and `php-auth-*`.
-  `accept-encoding` becomes `--compressed`.
-- The command is masked like the other copies, so a token reads `-H 'authorization: ***'`: put in your own before
-  you run it. JSON and form text inside the request is masked inside and stays JSON or form text; plain, HTML
-  and XML text stays as it is, with only the value masks.
+Full guide: [English](https://cllakyz.github.io/kibanatool/docs/getting-started/introduction) ·
+[Türkçe](https://cllakyz.github.io/kibanatool/tr/docs/getting-started/introduction)
 
 ## Privacy
 
@@ -184,6 +59,18 @@ KT_STACK=9 KT_CAPTURE=1 npm run e2e -- capture      # refreshes tests/fixtures f
 ```
 
 CI runs the unit checks and the e2e tests against all three versions on every pull request to `main`.
+
+### Website
+
+The website is a Docusaurus site in `website/`, a separate package.
+
+```bash
+npm --prefix website ci
+npm --prefix website start       # dev server
+npm --prefix website run build
+npm --prefix website test
+npm --prefix website run smoke   # needs a build, and `npx playwright install chromium` once, from website/
+```
 
 ### Release
 
