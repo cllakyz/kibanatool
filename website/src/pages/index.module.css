@@ -1,0 +1,291 @@
+.wrap {
+  max-width: calc(1120px + 2 * var(--ifm-spacing-horizontal));
+  margin: 0 auto;
+  padding: 0 var(--ifm-spacing-horizontal);
+}
+
+.section {
+  padding: 96px 0;
+}
+
+.tint {
+  background: var(--kt-tint);
+}
+
+/* Hero */
+
+.hero {
+  padding: 72px 0 104px;
+}
+
+.heroGrid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 35rem);
+  gap: 64px;
+  align-items: center;
+}
+
+.title {
+  margin: 0 0 24px;
+  font-size: clamp(2.5rem, 1.5rem + 3.2vw, 3.5rem);
+  font-weight: 800;
+  line-height: 1.02;
+  letter-spacing: -0.035em;
+}
+
+.lead {
+  max-width: 34em;
+  margin: 0 0 32px;
+  font-size: 1.125rem;
+}
+
+.buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.button {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  padding: 10px 20px;
+  border-radius: 6px;
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+.button:hover {
+  text-decoration: none;
+}
+
+.primary,
+.primary:hover {
+  color: var(--ifm-background-color);
+}
+
+.primary {
+  background: var(--ifm-color-primary);
+}
+
+.primary:hover {
+  background: var(--ifm-color-primary-darkest);
+}
+
+.secondary,
+.secondary:hover {
+  color: var(--kt-discover-text);
+}
+
+.secondary {
+  background: var(--kt-discover);
+}
+
+.secondary:hover {
+  box-shadow: inset 0 0 0 1px var(--kt-discover-text);
+}
+
+.support {
+  margin: 20px 0 0;
+  font-size: 0.9375rem;
+  color: var(--kt-muted);
+}
+
+/* Section type */
+
+.h2 {
+  margin: 0 0 12px;
+  font-size: clamp(1.75rem, 1.4rem + 1.2vw, 2.25rem);
+  font-weight: 800;
+  line-height: 1.1;
+}
+
+.intro {
+  max-width: 62ch;
+  margin: 0;
+  font-size: 1.0625rem;
+  color: var(--kt-muted);
+}
+
+.h3 {
+  margin: 0 0 6px;
+  font-size: 1.1875rem;
+  font-weight: 700;
+  line-height: 1.3;
+  letter-spacing: -0.01em;
+}
+
+.text {
+  max-width: 62ch;
+  margin: 0;
+}
+
+/* Layouts */
+
+.shots {
+  margin-top: 40px;
+}
+
+.split {
+  display: grid;
+  grid-template-columns: 300px minmax(0, 1fr);
+  gap: 64px;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 40px 48px;
+}
+
+.how,
+.steps {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  counter-reset: step;
+}
+
+.how > li,
+.steps > li {
+  counter-increment: step;
+}
+
+.how > li::before,
+.steps > li::before {
+  content: counter(step);
+  font-size: 2.5rem;
+  font-weight: 800;
+  line-height: 1;
+  letter-spacing: -0.035em;
+  color: var(--ifm-color-primary);
+}
+
+.how {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 48px;
+  margin-top: 40px;
+}
+
+.how > li {
+  padding-top: 20px;
+  border-top: 2px solid var(--ifm-font-color-base);
+}
+
+.how > li::before {
+  display: block;
+  margin-bottom: 20px;
+}
+
+.steps > li {
+  display: grid;
+  grid-template-columns: 3rem minmax(0, 1fr);
+  padding: 28px 0;
+  border-top: 1px solid var(--kt-line);
+}
+
+.steps > li:first-child {
+  padding-top: 0;
+  border-top: 0;
+}
+
+.steps > li:last-child {
+  padding-bottom: 0;
+}
+
+.steps > li::before {
+  grid-row: span 2;
+  font-size: 1.75rem;
+}
+
+.steps .buttons {
+  margin-top: 12px;
+}
+
+.tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 40px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.tags > li {
+  margin: 0;
+  padding: 4px 12px;
+  border: 1px solid var(--kt-line);
+  border-radius: 999px;
+  font-size: 0.875rem;
+}
+
+.release {
+  padding: 28px 32px;
+  border: 1px solid var(--kt-line);
+  border-radius: 12px;
+  background: var(--kt-surface);
+}
+
+.releaseHead {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 8px 20px;
+  margin-bottom: 12px;
+}
+
+.version {
+  margin: 0;
+  font-size: 2.5rem;
+  font-weight: 800;
+  line-height: 1;
+}
+
+.date {
+  color: var(--kt-muted);
+}
+
+.allReleases {
+  margin-left: auto;
+  font-weight: 700;
+}
+
+@media (max-width: 996px) {
+  .section {
+    padding: 64px 0;
+  }
+
+  .hero {
+    padding: 48px 0 64px;
+  }
+
+  .heroGrid,
+  .split,
+  .how {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .heroGrid {
+    gap: 48px;
+  }
+
+  .split {
+    gap: 32px;
+  }
+
+  .how {
+    gap: 40px;
+  }
+}
+
+@media (max-width: 640px) {
+  .grid {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 28px;
+  }
+
+  .release {
+    padding: 24px 20px;
+  }
+}

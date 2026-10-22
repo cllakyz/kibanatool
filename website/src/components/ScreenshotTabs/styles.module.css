@@ -1,0 +1,57 @@
+.tablist {
+  display: flex;
+  gap: 4px;
+  overflow-x: auto;
+  border-bottom: 1px solid var(--kt-line);
+}
+
+.tab {
+  flex: none;
+  padding: 10px 12px 12px;
+  border: 0;
+  border-bottom: 2px solid transparent;
+  background: none;
+  color: var(--kt-muted);
+  font: 500 1rem/1.25 var(--ifm-font-family-base);
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.tab:hover {
+  color: var(--ifm-font-color-base);
+}
+
+.tab[aria-selected="true"] {
+  border-bottom-color: var(--ifm-color-primary);
+  color: var(--ifm-font-color-base);
+}
+
+/* Inside the tab, so the tablist's overflow does not clip it. */
+.tab:focus-visible {
+  outline-offset: -2px;
+}
+
+.panel {
+  padding-top: 28px;
+}
+
+.panel:focus-visible {
+  outline-offset: 6px;
+  border-radius: 4px;
+}
+
+.image {
+  display: block;
+  width: 100%;
+  height: auto;
+  border: 1px solid var(--kt-line);
+  border-radius: 10px;
+  box-shadow: var(--kt-shadow);
+  background: var(--kt-surface);
+}
+
+.caption {
+  max-width: 62ch;
+  margin: 18px 0 0;
+  color: var(--kt-muted);
+}

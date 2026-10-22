@@ -31,7 +31,7 @@
   --kt-shadow: 0 12px 32px rgba(29, 42, 62, 0.14);
 }
 
-[data-theme="dark"] {
+html[data-theme="dark"] {
   --ifm-color-primary: #61a2ff;
   --ifm-color-primary-dark: #4a93ff;
   --ifm-color-primary-darker: #3f8bff;

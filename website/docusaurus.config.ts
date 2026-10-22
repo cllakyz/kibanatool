@@ -45,6 +45,7 @@ const config: Config = {
     ],
   ],
   themeConfig: {
+    image: "img/screenshots/en/1-bar.png",
     colorMode: { respectPrefersColorScheme: true },
     navbar: {
       title: "kibanatool",
