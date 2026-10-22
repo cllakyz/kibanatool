@@ -8,7 +8,7 @@ description: kibanatool'un neyi gönderdiği, neyi sakladığı, Chrome'dan ne i
 
 kibanatool yalnızca eklediğiniz Kibana adresleriyle, sizin oturumunuzla konuşur ve ayarlarını tarayıcınızda
 tutar. Telemetri ve üçüncü taraf servis yoktur. Politikanın tamamı
-[PRIVACY.md](https://github.com/cllakyz/kibanatool/blob/main/PRIVACY.md) dosyasında (İngilizce).
+[PRIVACY.md](https://github.com/cllakyz/kibanatool/blob/main/PRIVACY.md#gizlilik-politikası) dosyasında.
 
 - **Ayarlar.** Kibana adresleriniz, aksiyonlarınız ve kopyalama ayarlarınız yalnızca tarayıcınızda
   (`chrome.storage.local`) saklanır. Bilgisayarınızdan yalnızca siz onları bir dosyaya dışa aktarırsanız çıkar.

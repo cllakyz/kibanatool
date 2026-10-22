@@ -17,5 +17,5 @@ description: Yer tutucular ({alan}, {a|b|c}, {env.ad}) ve buton koşulları nas�
   aranan bir görünen ad ya da index deseni (örn. `*_log`) veya bir kimlik (ID). Bu adla hiçbir data view
   eşleşmezse ya da birden fazlası eşleşirse buton gri ve pasif görünür.
 - Alan değerleri linklerde URL kodlamasından (URL-encode) geçer, Discover sorgularında KQL için tırnaklanır.
-- **Koşullar** (`exists`, `equals`, `notEquals`, `contains`, `startsWith`; ayarlar sayfasında var, eşittir,
-  eşit değildir, içerir, ile başlar): butonun görünmesi için hepsi sağlanmalı.
+- **Koşullar** (`exists`, `equals`, `notEquals`, `contains`, `startsWith`; ayarlar sayfasında "var", "eşittir",
+  "eşit değildir", "içerir", "ile başlar"): butonun görünmesi için hepsi sağlanmalı.

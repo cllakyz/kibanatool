@@ -91,3 +91,19 @@ h3 {
     transition: none !important;
   }
 }
+
+/* Footer: links on the left, the graytool credit on the right (spec §6.2); stacked below 997px. */
+@media (min-width: 997px) {
+  .footer > .container {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    gap: 2rem;
+  }
+  .footer .footer__links {
+    margin-bottom: 0;
+  }
+  .footer .footer__bottom {
+    text-align: right;
+  }
+}

@@ -123,13 +123,13 @@
     "message": "Örnek aksiyonları içe aktarın"
   },
   "home.install.step2.text": {
-    "message": "Ayarları açmak için araç çubuğundaki simgeye tıklayın. Dışa ve içe aktarma bölümünde {file} dosyasını yükleyin."
+    "message": "Ayarları açmak için araç çubuğundaki simgeye tıklayın. {file} dosyasını kaydedin (sağ tıklayıp Bağlantıyı farklı kaydet) ve Dışa ve içe aktarma bölümünde yükleyin."
   },
   "home.install.step3.title": {
     "message": "Kendi Kibana'nıza bağlayın"
   },
   "home.install.step3.text": {
-    "message": "Ortamlar sekmesinde örnek adresi kendi Kibana adresinizle değiştirip Erişim izni ver butonuna tıklayın. Değişkenler sekmesinde kendi admin ve Jira adreslerinizi girin. Sonra Kibana sekmenizi yenileyip bir log açın."
+    "message": "Ortamlar sekmesinde bir ad ve Kibana adresinizi girip Ekle ve erişim izni ver butonuna tıklayın. Değişkenler sekmesinde bu ortamın sütununa adminUrl ve jiraUrl değerlerini girip Kaydet'e tıklayın. Sonra örnek ortamı kaldırın, Kibana sekmenizi yenileyin ve bir log açın."
   },
   "home.install.buildYourself": {
     "message": "Kendiniz derlemek mi istersiniz?"
@@ -183,7 +183,7 @@
     "message": "aranabilir bir JSON ağacı olarak"
   },
   "home.demo.copy.label": {
-    "message": "Kopyalama menüsü"
+    "message": "Kopyalama seçenekleri"
   },
   "home.demo.copy.note": {
     "message": "Markdown, JSON ya da cURL olarak kopyalarken maskelenir"

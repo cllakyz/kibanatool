@@ -81,7 +81,7 @@ function demoActions(): DemoAction[] {
     {
       id: "copy",
       kind: "plain",
-      label: translate({ id: "home.demo.copy.label", message: "Copy menu" }),
+      label: translate({ id: "home.demo.copy.label", message: "Copy options" }),
       glyph: "⋯",
       fields: ["context.method", "context.url", "context.headers"],
       result: "authorization: ***",

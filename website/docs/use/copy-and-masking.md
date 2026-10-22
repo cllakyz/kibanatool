@@ -6,6 +6,9 @@ description: Copy a log as Markdown or JSON with sensitive fields and values mas
 
 # Copy and masking
 
+This page covers two copies in the **⋯** menu (Copy options) on the action bar: **Copy as Markdown** and **Copy as
+JSON**. **Copy as cURL** has [its own page](/docs/use/copy-as-curl).
+
 "Copy as JSON" copies the log's `_index`, `_id` and `_source`, with the JSON and XML text inside it expanded.
 
 Both copies mask every field whose path matches a pattern under **Copy and masking** (by default
@@ -24,7 +27,7 @@ narrower pattern trades coverage for readability:
 - `*.token` matches only names that are exactly `token`, so it would leave `platform-token` or
   `refreshToken` in plain text.
 
-They also look inside every value, such as plain-text bodies that a field name cannot reach, and replace each
+The masks also look inside every value, such as plain-text bodies that a field name cannot reach, and replace each
 of these with `***`. Each kind can be turned off under **Mask inside values**:
 
 - Turkish IBANs: `TR` and 24 digits, written together or in the usual groups of four.

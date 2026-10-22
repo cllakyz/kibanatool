@@ -6,8 +6,9 @@ description: Add the Kibana addresses kibanatool should run on and grant Chrome 
 
 # Environments
 
-On the options page's **Environments** tab, add your Kibana address, e.g. `https://kibana.example.com` or
-`https://example.com/kibana`. Chrome asks for access to that site; the extension runs nowhere else.
+On the options page's **Environments** tab, enter a name and your Kibana address, e.g. `https://kibana.example.com`
+or `https://example.com/kibana`, and click **Add and grant access**. Chrome asks for access to that site; the
+extension runs nowhere else.
 
-Access is requested for each address when you add it, and you can remove it at any time in `chrome://extensions`.
-See [Privacy and permissions](/docs/more/privacy-and-permissions).
+An environment without access, for example after an import, shows **Grant access**: click it to ask Chrome again.
+You can remove access at any time in `chrome://extensions`. See [Privacy and permissions](/docs/more/privacy-and-permissions).

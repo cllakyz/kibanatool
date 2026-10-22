@@ -6,7 +6,8 @@ import { REPO_URL } from "./src/constants";
 
 const config: Config = {
   title: "kibanatool",
-  tagline: "Turn the open Kibana log into one-click actions: links, Discover searches, copy and view.",
+  tagline:
+    "kibanatool reads the raw fields of the log you open in Discover and turns them into buttons: your admin panel, Jira, Sentry, related logs, a masked copy to share.",
   favicon: "img/favicon.png",
   url: "https://cllakyz.github.io",
   baseUrl: "/kibanatool/",

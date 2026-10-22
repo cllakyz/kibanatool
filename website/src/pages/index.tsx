@@ -225,15 +225,16 @@ export default function Home(): ReactNode {
                     ),
                   }}
                 >
-                  {"Click the toolbar icon to open the options. Under Export and import, load {file}."}
+                  {"Click the toolbar icon to open the options. Save {file} (right-click, Save link as) and load it under Export and import."}
                 </Translate>
               </Item>
             </li>
             <li>
               <Item title={<Translate id="home.install.step3.title">Point it at your Kibana</Translate>}>
                 <Translate id="home.install.step3.text">
-                  On Environments, change the example address to your Kibana's and click Grant access. Under
-                  Variables, put in your own admin and Jira addresses. Then reload your Kibana tab and open a log.
+                  On Environments, enter a name and your Kibana's address and click Add and grant access. Under
+                  Variables, fill in adminUrl and jiraUrl in its column and click Save. Then remove the example
+                  environment, reload your Kibana tab and open a log.
                 </Translate>
               </Item>
             </li>

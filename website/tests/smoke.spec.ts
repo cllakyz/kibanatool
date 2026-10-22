@@ -8,13 +8,21 @@ async function openHydrated(page: Page, path: string) {
 }
 
 const PAGES = ["", "tr/", "docs/getting-started/introduction", "tr/docs/getting-started/introduction", "releases", "tr/releases"];
+const SITE = "https://cllakyz.github.io/kibanatool/"; // docusaurus.config.ts url + baseUrl, as the sitemaps write it
 
-test("pages load only from the site, with no failed request", async ({ page, baseURL }) => {
+test("pages load only from the site, with no failed request", async ({ page, request, baseURL }) => {
+  test.setTimeout(180_000);
+  const paths = new Set(PAGES);
+  for (const sitemap of ["sitemap.xml", "tr/sitemap.xml"]) {
+    const locs = [...(await (await request.get(sitemap)).text()).matchAll(/<loc>([^<]+)<\/loc>/g)].map((m) => m[1]);
+    expect(locs.length).toBeGreaterThan(10);
+    for (const loc of locs) paths.add(loc.replace(SITE, ""));
+  }
   const origin = new URL(baseURL!).origin;
   const bad: string[] = [];
   page.on("request", (r) => { if (!r.url().startsWith("data:") && new URL(r.url()).origin !== origin) bad.push(r.url()); });
   page.on("response", (r) => { if (r.status() >= 400) bad.push(`${r.status()} ${r.url()}`); });
-  for (const path of PAGES) await page.goto(path, { waitUntil: "networkidle" });
+  for (const path of paths) await page.goto(path, { waitUntil: "networkidle" });
   expect(bad).toEqual([]);
 });
 

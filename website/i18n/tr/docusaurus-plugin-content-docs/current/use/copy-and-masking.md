@@ -6,6 +6,9 @@ description: Logu, hassas alanları ve değerleri maskelenmiş olarak Markdown y
 
 # Kopyalama ve maskeleme
 
+Bu sayfa, aksiyon çubuğundaki **⋯** menüsünün (Kopyalama seçenekleri) iki kopyasını anlatır: **Markdown olarak
+kopyala** ve **JSON olarak kopyala**. **cURL olarak kopyala**'nın [kendi sayfası](/docs/use/copy-as-curl) var.
+
 "JSON olarak kopyala", logun `_index`, `_id` ve `_source` alanlarını, içindeki JSON ve XML metni açılmış olarak
 kopyalar.
 
@@ -26,7 +29,7 @@ dar her desen, kapsamdan vererek okunurluk kazanır:
 - `*.token` yalnızca adı tam olarak `token` olanlarla eşleşir; bu yüzden `platform-token` ya da `refreshToken`
   düz metin olarak kalır.
 
-Kopyalar ayrıca her değerin içine de bakar (alan adının ulaşamadığı düz metin gövdeler gibi) ve aşağıdakilerin
+Maskeler ayrıca her değerin içine de bakar (alan adının ulaşamadığı düz metin gövdeler gibi) ve aşağıdakilerin
 her birini `***` ile değiştirir. Her tür **Değerin içinde maskele** altından kapatılabilir:
 
 - **IBAN (TR):** `TR` ve 24 haneden oluşan IBAN'lar; bitişik ya da alışılmış dörtlü gruplar halinde.

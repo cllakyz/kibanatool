@@ -19,5 +19,7 @@ test("a changelog without a dated entry is an error", () => {
   assert.throws(() => latestRelease("# Changelog\n"), /no "## \[version\] - date" entry/);
 });
 test("the repository's CHANGELOG.md has a latest release", () => {
-  assert.equal(latestRelease(readFileSync(new URL("../../CHANGELOG.md", import.meta.url), "utf8")).version, "1.0.0");
+  const { version, date } = latestRelease(readFileSync(new URL("../../CHANGELOG.md", import.meta.url), "utf8"));
+  assert.match(version, /^\d+\.\d+\.\d+$/);
+  assert.match(date, /^\d{4}-\d{2}-\d{2}$/);
 });
