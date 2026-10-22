@@ -43,5 +43,8 @@ Hepsi metin için 4.5:1'in üstünde. Task 3'ün gözden geçirmesinde düz demo
 
 ## Açık kalanlar
 
-- Store item ID'si (Task 9): `website/src/constants.ts` ve README'deki `STORE_ITEM_ID`.
-- GitHub Pages'in "GitHub Actions" kaynağıyla açılması ve `website.yml`'nin ilk yayını (Task 9, kullanıcı).
+- ~~Store item ID'si~~: tamam (2026-10-22, final review). Store'daki 1.0.0 listesi
+  `https://chromewebstore.google.com/detail/kibanatool/flgnjcjghmbcnfhilikbeddkhjiagodp`; `website/src/constants.ts`
+  ve README bu adrese gidiyor.
+- GitHub Pages'in "GitHub Actions" kaynağıyla açılması ve `website.yml`'nin ilk yayını (kullanıcı).
+- PR'ın `main`'e birleştirilmesi (kullanıcı).

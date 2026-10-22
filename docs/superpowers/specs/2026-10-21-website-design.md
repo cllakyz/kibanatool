@@ -94,8 +94,12 @@ Kullanıcı bunları mockup'ta ya da sohbette gördü ama ayrıca onaylamadı.
   araç çubuğu için yapılmış limon yeşili bir işaret; sitenin mavisine (K6) uymaz.
 - **Kurulum sırası (onaylı metinde düzeltme):** mockup'taki "önce adresi ekle, sonra örnek ayarları içe aktar"
   sırası çalışmaz, çünkü içe aktarma mevcut bütün ayarların yerine geçer ve eklenen adres kaybolur. Sıra: store'dan
-  kur, örnek ayarları içe aktar, sonra örnekteki adresi kendi Kibana'nla değiştirip erişim izni ver. §6.2'deki
-  Install bölümü, "First setup" sayfası ve README buna göre yazılır.
+  kur; ayarları açıp örnek ayar dosyasını kaydet (tarayıcıda ham JSON olarak açılır: sağ tık, "Bağlantıyı farklı
+  kaydet") ve "Export and import"ta içe aktar; "Environments"ta kendi Kibana'nı bir adla "Add and grant access" ile
+  ekle; "Variables"ta kendi ortamının sütununa `adminUrl` ve `jiraUrl` yazıp kaydet; örnekteki "Production" ortamını
+  kaldır (değişkenler ortamların içinde durur: önce kaldırılırsa satırları kaybolur); Kibana sekmesini yenileyip bir
+  log aç. §6.2'deki Install bölümü, "First setup" sayfası ve README buna göre yazılır. (2026-10-22, final review:
+  the address cannot be edited. Bir ortam satırında yalnızca "Remove" ve, erişim eksikse, "Grant access" vardır.)
 - **Demo logu:** "⋯" satırı cURL'ü vaat ettiği için loga `context.method` ve `context.url` eklendi; eklenti "Copy as
   cURL"u yalnızca ikisi olan loglarda gösterir.
 
@@ -271,8 +275,9 @@ Masaüstünde içerik genişliği yaklaşık 1120px, sola hizalı. "Başlık sol
 - Solda başlık "Install" ve "Two minutes, with the example settings."
 - Sağda üç numaralı adım:
   1. **Add kibanatool from the Chrome Web Store** ve "Add to Chrome" butonu.
-  2. **Import the example actions:** Click the toolbar icon to open the options. Under Export and import, load `kibanatool-settings.json`.
-  3. **Point it at your Kibana:** On Environments, change the example address to your Kibana's and click Grant access. Under Variables, put in your own admin and Jira addresses. Then reload your Kibana tab and open a log.
+  2. **Import the example actions:** Click the toolbar icon to open the options. Save `kibanatool-settings.json` (right-click, Save link as) and load it under Export and import.
+  3. **Point it at your Kibana:** On Environments, enter a name and your Kibana's address and click Add and grant access. Under Variables, fill in adminUrl and jiraUrl in its column and click Save. Then remove the example environment, reload your Kibana tab and open a log.
+  (2026-10-22, final review: the address cannot be edited)
 - Altında: "Prefer to build it yourself?" ve "Build from source" linki (docs).
 - `kibanatool-settings.json` linki GitHub'daki `examples/kibanatool-settings.json`'ın ham dosyasına gider; Türkçe
   sitede `examples/kibanatool-settings.tr.json`'a (K12).
@@ -335,7 +340,7 @@ Türkçe sayfalar `website/i18n/tr/docusaurus-plugin-content-docs/current/` alt�
 ## 8. README'nin yeni hali
 
 Kalanlar: başlık ve iki cümlelik tanım, sitenin adresi, kısa kurulum (store linki; örnek ayarları içe aktarma;
-örnekteki adresi kendi Kibana'nla değiştirip erişim izni verme; üç madde, §4'teki kurulum sırasıyla), "Documentation" linki (İngilizce ve Türkçe), "Privacy" (iki cümle ve PRIVACY.md), "Development"
+kendi Kibana'nı ekleyip değişkenleri doldurma ve örnek ortamı kaldırma; üç madde, §4'teki kurulum sırasıyla), "Documentation" linki (İngilizce ve Türkçe), "Privacy" (iki cümle ve PRIVACY.md), "Development"
 bölümünün tamamı, "Credits", "License". "What it does"tan "Copy as cURL"a kadar her şey docs'a taşınır.
 
 `CLAUDE.md`'ye eklenecekler: `website/` komutları (`npm --prefix website …`), "kullanım kılavuzu docs'ta, README kısa"
@@ -354,9 +359,10 @@ kuralı ve "eklentinin arayüz metni değişince iki dildeki docs da güncelleni
 - WCAG AA renk karşıtlığı iki temada; görünür klavye odağı; `prefers-reduced-motion` desteği.
 - Kırık link build'i düşürür.
 - Ekran görüntüleri ve örnekler yalnızca sentetik veri.
-- Store item ID'si gelene kadar store adresi tek bir yerde tutulan bir yer tutucu sabittir. Site, store onayından
-  sonra yayına çıkar: kullanıcı repo ayarlarında Pages'i "GitHub Actions" kaynağıyla açar ve PR onaydan sonra
-  birleştirilir.
+- Store adresi tek bir yerde tutulan bir sabittir (`website/src/constants.ts`). 2026-10-22: liste 1.0.0 ile yayında,
+  adres `https://chromewebstore.google.com/detail/kibanatool/flgnjcjghmbcnfhilikbeddkhjiagodp`. Site, store
+  onayından sonra yayına çıkar: kullanıcı repo ayarlarında Pages'i "GitHub Actions" kaynağıyla açar ve PR onaydan
+  sonra birleştirilir.
 
 ## 10. Builder'a kalanlar
 
@@ -370,4 +376,5 @@ kuralı ve "eklentinin arayüz metni değişince iki dildeki docs da güncelleni
 
 ## 11. Açık
 
-- Store item ID'si (kullanıcı verecek).
+- ~~Store item ID'si (kullanıcı verecek).~~ 2026-10-22: liste yayında,
+  `https://chromewebstore.google.com/detail/kibanatool/flgnjcjghmbcnfhilikbeddkhjiagodp`.

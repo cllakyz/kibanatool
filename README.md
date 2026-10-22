@@ -9,11 +9,14 @@ Website: https://cllakyz.github.io/kibanatool/
 
 ## Install
 
-1. Install kibanatool from the [Chrome Web Store](https://chromewebstore.google.com/detail/STORE_ITEM_ID).
-2. Open the options and import [`examples/kibanatool-settings.json`](examples/kibanatool-settings.json) under
-   **Export and import**. Importing replaces all current settings.
-3. Under **Environments**, change the example address to your Kibana's and click **Grant access**. Then reload
-   your Kibana tab and open a log.
+1. Install kibanatool from the [Chrome Web Store](https://chromewebstore.google.com/detail/kibanatool/flgnjcjghmbcnfhilikbeddkhjiagodp).
+2. Click the toolbar icon to open the options. Save
+   [`kibanatool-settings.json`](https://raw.githubusercontent.com/cllakyz/kibanatool/main/examples/kibanatool-settings.json)
+   (right-click, Save link as) and load it under **Export and import**. Importing replaces all current settings.
+3. On **Environments**, enter a name and your Kibana's address, e.g. `https://kibana.example.com` or
+   `https://example.com/kibana`, and click **Add and grant access**. Chrome asks for access to that site;
+   kibanatool runs nowhere else. Under **Variables**, fill in `adminUrl` and `jiraUrl` in its column and click
+   **Save**. Then remove the example "Production" environment, reload your Kibana tab and open a log.
 
 Full guide: [English](https://cllakyz.github.io/kibanatool/docs/getting-started/introduction) ·
 [Türkçe](https://cllakyz.github.io/kibanatool/tr/docs/getting-started/introduction)

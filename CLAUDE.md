@@ -14,7 +14,8 @@ remote code, no telemetry, local-only storage.
 ```bash
 npm install                 # postinstall runs `wxt prepare`, which generates .wxt/tsconfig.json (tsconfig extends it)
 npx vitest run tests/unit/core/template.test.ts   # one test file (add -t "<name>" for one test)
-npm --prefix website start|build|test|smoke   # the website in website/ (smoke needs a build first)
+npm --prefix website start   # the website in website/: dev server
+npm --prefix website test && npm --prefix website run build && npm --prefix website run smoke   # its checks (smoke serves the build)
 npm run build               # → .output/chrome-mv3 (load unpacked in chrome://extensions)
 npm run check:manifest      # run after build; fails if the manifest asks for more permissions than allowed
 KT_STACK=9 npm run e2e      # builds, then runs tests/e2e against the running docker stack 7|8|9
@@ -72,6 +73,6 @@ Dev Kibana stacks: `./docker/up.sh 7|8|9` starts Kibana 7.17.29 on :17601 under 
 
 ## Docs
 
-Code comments cite the design spec by section (`spec §5.1`). The design specs and plans live in `docs/superpowers/` and are written in Turkish. `docs/verification/` is tracked. Plans 1 (link actions), 2 (Discover actions, copy/mask, JSON view, full options page), 3 (e2e matrix, CI, store package), 4 (environment variables, data views by name), 5 (masking inside values), 6 (XML as JSON, "Copy as JSON") 7 ("Copy as cURL") and 8 (the website) are done, and so are spec-kit features 002 (`specs/002-plain-text-viewer/`: form data as structured text, the text view), 003 (`specs/003-row-actions/`: one-click buttons on result rows), 004 (`specs/004-mask-scope-docs/`: how far a field-name mask reaches, explained on the options page and in the README), 005 (`specs/005-tabbed-options/`: the options page in five tabs, the action editor in a dialog) and 006 (`specs/006-theme-toggle/`: a System, Light or Dark switch on the options page). `.github/workflows/ci.yml` runs the unit checks and the e2e matrix on every pull request to `main` (not on pushes, so a direct push to `main` is not tested).
+Code comments cite the design spec by section (`spec §5.1`). The design specs and plans live in `docs/superpowers/` and are written in Turkish. `docs/verification/` is tracked. Plans 1 (link actions), 2 (Discover actions, copy/mask, JSON view, full options page), 3 (e2e matrix, CI, store package), 4 (environment variables, data views by name), 5 (masking inside values), 6 (XML as JSON, "Copy as JSON"), 7 ("Copy as cURL") and 8 (the website) are done, and so are spec-kit features 002 (`specs/002-plain-text-viewer/`: form data as structured text, the text view), 003 (`specs/003-row-actions/`: one-click buttons on result rows), 004 (`specs/004-mask-scope-docs/`: how far a field-name mask reaches, explained on the options page and in the docs), 005 (`specs/005-tabbed-options/`: the options page in five tabs, the action editor in a dialog) and 006 (`specs/006-theme-toggle/`: a System, Light or Dark switch on the options page). `.github/workflows/ci.yml` runs the unit checks and the e2e matrix on every pull request to `main` (not on pushes, so a direct push to `main` is not tested).
 
 The architecture rules (principles I–V, quality gates, known deviations) are in the spec-kit constitution `.specify/memory/constitution.md`. Follow it in every plan and review, not only in spec-kit commands. Spec-kit features (spec, plan, tasks) live in `specs/`.
