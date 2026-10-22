@@ -1,0 +1,81 @@
+{
+  "schemaVersion": 4,
+  "environments": [
+    {
+      "id": "prod",
+      "name": "Production",
+      "kibanaUrl": "https://kibana.example.com",
+      "variables": { "adminUrl": "https://admin.example.com", "jiraUrl": "https://acme.atlassian.net" }
+    }
+  ],
+  "actions": [
+    {
+      "id": "admin-user",
+      "kind": "link",
+      "label": "Admin'de kullanıcı",
+      "enabled": true,
+      "showInRow": true,
+      "environmentIds": [],
+      "conditions": [],
+      "urlTemplate": "{env.adminUrl}/users/{user_id|context.user_id|user.id}"
+    },
+    {
+      "id": "sentry",
+      "kind": "link",
+      "label": "Sentry",
+      "enabled": true,
+      "showInRow": false,
+      "environmentIds": [],
+      "conditions": [{ "field": "level_name", "op": "equals", "value": "ERROR" }],
+      "urlTemplate": "https://acme.sentry.io/issues/?query={message}"
+    },
+    {
+      "id": "jira",
+      "kind": "link",
+      "label": "Jira",
+      "enabled": true,
+      "showInRow": false,
+      "environmentIds": [],
+      "conditions": [],
+      "urlTemplate": "{env.jiraUrl}/issues/?jql=text%20~%20{user_id|user.id}"
+    },
+    {
+      "id": "user-logs",
+      "kind": "discover",
+      "label": "Bu kullanıcının logları",
+      "enabled": true,
+      "showInRow": false,
+      "environmentIds": [],
+      "conditions": [],
+      "queryTemplate": "user_id:{user_id}"
+    },
+    {
+      "id": "user-everywhere",
+      "kind": "discover",
+      "label": "Tüm loglarda bu kullanıcı",
+      "enabled": true,
+      "showInRow": false,
+      "environmentIds": [],
+      "conditions": [],
+      "queryTemplate": "user_id:{user_id}",
+      "dataViewName": "*_log",
+      "windowMinutes": 60
+    },
+    {
+      "id": "around",
+      "kind": "discover",
+      "label": "±5 dakika",
+      "enabled": true,
+      "showInRow": false,
+      "environmentIds": [],
+      "conditions": [],
+      "queryTemplate": "",
+      "windowMinutes": 5
+    }
+  ],
+  "copy": {
+    "markdownFields": [],
+    "maskPatterns": ["*authorization*", "*password*", "*token*", "*secret*", "*cookie*", "*php-auth-*"],
+    "valueMasks": ["iban", "tckn", "gsm", "card"]
+  }
+}
