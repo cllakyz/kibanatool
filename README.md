@@ -24,8 +24,8 @@ while an action is marked.
 
 ## Set up
 
-1. Install kibanatool from the Chrome Web Store, or build it (see [Development](#development)) and load
-   `.output/chrome-mv3` as an unpacked extension.
+1. Install kibanatool from the [Chrome Web Store](https://chromewebstore.google.com/detail/kibanatool/flgnjcjghmbcnfhilikbeddkhjiagodp), or
+   build it (see [Development](#development)) and load `.output/chrome-mv3` as an unpacked extension.
 2. Click the toolbar icon to open the options.
 3. **Environments:** add your Kibana address, e.g. `https://kibana.example.com` or `https://example.com/kibana`.
    Chrome asks for access to that site; the extension runs nowhere else.
