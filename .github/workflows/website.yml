@@ -1,4 +1,5 @@
-# Builds and tests the website; publishes it to GitHub Pages on pushes to main.
+# Builds and tests the website on pull requests; publishes it to GitHub Pages on a release tag (pushed once the
+# Chrome Web Store has the version, so the docs never run ahead of the store) or when run by hand.
 name: website
 
 on:
@@ -6,8 +7,7 @@ on:
     branches: [main]
     paths: ["website/**", "CHANGELOG.md", ".github/workflows/website.yml"]
   push:
-    branches: [main]
-    paths: ["website/**", "CHANGELOG.md", ".github/workflows/website.yml"]
+    tags: ["v*"]
   workflow_dispatch:
 
 permissions:

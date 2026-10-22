@@ -83,6 +83,8 @@ npm run zip     # .output/kibanatool-<version>-chrome.zip, uploaded to the Chrom
 ```
 
 Store listing texts are in [docs/store-listing.md](docs/store-listing.md); changes in [CHANGELOG.md](CHANGELOG.md).
+Once the store publishes a version, push its `v<version>` tag: that also publishes the website, so its docs match
+the version in the store. A docs fix in between goes out with Actions → website → Run workflow.
 
 ## Credits
 

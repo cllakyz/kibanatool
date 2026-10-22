@@ -46,5 +46,7 @@ Hepsi metin için 4.5:1'in üstünde. Task 3'ün gözden geçirmesinde düz demo
 - ~~Store item ID'si~~: tamam (2026-10-22, final review). Store'daki 1.0.0 listesi
   `https://chromewebstore.google.com/detail/kibanatool/flgnjcjghmbcnfhilikbeddkhjiagodp`; `website/src/constants.ts`
   ve README bu adrese gidiyor.
-- GitHub Pages'in "GitHub Actions" kaynağıyla açılması ve `website.yml`'nin ilk yayını (kullanıcı).
+- GitHub Pages'in "GitHub Actions" kaynağıyla açılması, `github-pages` environment'ına `v*` etiket kuralının
+  eklenmesi ve merge'den sonra ilk yayının elle "Run workflow" ile yapılması (kullanıcı). Site 2026-10-22'den beri
+  `main`'e push'ta değil, `v*` etiketinde ve elle yayınlanıyor.
 - PR'ın `main`'e birleştirilmesi (kullanıcı).

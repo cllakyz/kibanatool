@@ -67,9 +67,12 @@ Kullanıcı bunları mockup'ta ya da sohbette gördü ama ayrıca onaylamadı.
 - **Yayın akışı:** yeni bir `.github/workflows/website.yml`.
   - `pull_request` (main'e, yalnızca `website/**` ya da `CHANGELOG.md` değişince): siteyi build eder. Kırık link
     build'i düşürür (`onBrokenLinks: "throw"`).
-  - `push` (main, aynı yollar) ve `workflow_dispatch`: build eder ve `actions/deploy-pages` ile yayınlar.
-  - `ci.yml` bilerek yalnızca PR'larda çalışıyor; bu ayrı bir yayın workflow'u ve main'e push'ta yalnızca siteyi
-    yayınlar, eklentiyi test etmez.
+  - `push` (`v*` etiketi) ve `workflow_dispatch`: build eder ve `actions/deploy-pages` ile yayınlar. 2026-10-22
+    (kullanıcı kararı, PR #18): önceden main'e her push'ta yayınlıyordu; o zaman `main`'e giren bir özellik docs'ta
+    store'daki sürümden önce görünürdü. Etiket, sürüm store'a çıkınca push'lanıyor, yani site store'daki sürümün
+    docs'unu gösterir. Bir docs düzeltmesi elle "Run workflow" ile yayınlanır.
+  - `ci.yml` bilerek yalnızca PR'larda çalışıyor; bu ayrı bir yayın workflow'u yalnızca siteyi yayınlar, eklentiyi
+    test etmez.
 - **Arama:** `@easyops-cn/docusaurus-search-local`, `language: ["en", "tr"]`. Dizin build sırasında üretilir, aramada
   dışarıya istek gitmez.
 - **Fontlar:** başlık ve gövde için Schibsted Grotesk, log ve kod için Roboto Mono. `@fontsource/schibsted-grotesk` ve
@@ -362,7 +365,8 @@ kuralı ve "eklentinin arayüz metni değişince iki dildeki docs da güncelleni
 - Store adresi tek bir yerde tutulan bir sabittir (`website/src/constants.ts`). 2026-10-22: liste 1.0.0 ile yayında,
   adres `https://chromewebstore.google.com/detail/kibanatool/flgnjcjghmbcnfhilikbeddkhjiagodp`. Site, store
   onayından sonra yayına çıkar: kullanıcı repo ayarlarında Pages'i "GitHub Actions" kaynağıyla açar ve PR onaydan
-  sonra birleştirilir.
+  sonra birleştirilir. Etiketten yayın için `github-pages` environment'ının "Deployment branches and tags" kuralına
+  `v*` etiketi eklenir; ilk yayın merge'den sonra elle "Run workflow" ile yapılır.
 
 ## 10. Builder'a kalanlar
 
