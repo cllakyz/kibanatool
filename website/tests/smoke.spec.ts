@@ -1,5 +1,11 @@
-import { expect, test } from "@playwright/test";
+import { expect, test, type Page } from "@playwright/test";
 import { STORE_URL } from "../src/constants";
+
+// goto resolves on load, before React hydrates; Docusaurus then sets <html data-has-hydrated="true">.
+async function openHydrated(page: Page, path: string) {
+  await page.goto(path);
+  await expect(page.locator("html")).toHaveAttribute("data-has-hydrated", "true");
+}
 
 const PAGES = ["", "tr/", "docs/getting-started/introduction", "tr/docs/getting-started/introduction", "releases", "tr/releases"];
 
@@ -24,7 +30,7 @@ test.describe("hero demo without JavaScript", () => {
 });
 
 test("focus and click choose a demo button", async ({ page }) => {
-  await page.goto("");
+  await openHydrated(page, "");
   const demo = page.getByTestId("hero-demo");
   await demo.getByRole("button", { name: "Sentry", exact: true }).focus();
   for (const field of ["level_name", "message"]) await expect(demo.locator(`[data-field="${field}"]`)).toHaveAttribute("data-marked", "true");
@@ -36,7 +42,7 @@ test("focus and click choose a demo button", async ({ page }) => {
 });
 
 test("screenshot tabs follow the arrow keys", async ({ page }) => {
-  await page.goto("");
+  await openHydrated(page, "");
   const tabs = page.getByRole("tab");
   await expect(tabs).toHaveCount(5);
   await tabs.first().focus();

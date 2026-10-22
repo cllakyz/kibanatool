@@ -49,6 +49,7 @@
 
 .plain:hover {
   background: var(--kt-discover);
+  color: var(--kt-discover-text);
 }
 
 .glyph {
