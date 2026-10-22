@@ -84,7 +84,8 @@ npm run zip     # .output/kibanatool-<version>-chrome.zip, uploaded to the Chrom
 
 Store listing texts are in [docs/store-listing.md](docs/store-listing.md); changes in [CHANGELOG.md](CHANGELOG.md).
 Once the store publishes a version, push its `v<version>` tag: that also publishes the website, so its docs match
-the version in the store. A docs fix in between goes out with Actions → website → Run workflow.
+the version in the store. Actions → website → Run workflow publishes a branch as it is: use it for a docs fix only
+while `main` has no docs for a feature the store does not have yet; otherwise the fix waits for the next tag.
 
 ## Credits
 

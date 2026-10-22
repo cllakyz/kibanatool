@@ -70,7 +70,8 @@ Kullanıcı bunları mockup'ta ya da sohbette gördü ama ayrıca onaylamadı.
   - `push` (`v*` etiketi) ve `workflow_dispatch`: build eder ve `actions/deploy-pages` ile yayınlar. 2026-10-22
     (kullanıcı kararı, PR #18): önceden main'e her push'ta yayınlıyordu; o zaman `main`'e giren bir özellik docs'ta
     store'daki sürümden önce görünürdü. Etiket, sürüm store'a çıkınca push'lanıyor, yani site store'daki sürümün
-    docs'unu gösterir. Bir docs düzeltmesi elle "Run workflow" ile yayınlanır.
+    docs'unu gösterir. Elle "Run workflow" seçilen dalı olduğu gibi yayınlar: bir docs düzeltmesi için yalnızca
+    `main`'de store'da olmayan bir özelliğin docs'u yokken kullanılır, yoksa düzeltme bir sonraki etiketi bekler.
   - `ci.yml` bilerek yalnızca PR'larda çalışıyor; bu ayrı bir yayın workflow'u yalnızca siteyi yayınlar, eklentiyi
     test etmez.
 - **Arama:** `@easyops-cn/docusaurus-search-local`, `language: ["en", "tr"]`. Dizin build sırasında üretilir, aramada
