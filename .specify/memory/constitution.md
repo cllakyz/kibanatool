@@ -1,18 +1,17 @@
 <!--
 Sync Impact Report
-- Version change: 1.0.6 → 1.0.7 (PATCH)
-- Modified: Principle V names one exception to "storage goes through `src/storage.ts`": the
-  options page's theme choice (`localStorage`, spec-kit 006) is read and written by
-  `src/theme.ts`. Reason: the page's head script reads it before the first frame, and through
-  `src/storage.ts` it bundled the settings schema and zod (97 kB instead of 3.6 kB in the store
-  package). The user asked for the smaller package (2026-10-20).
+- Version change: 1.0.7 → 1.0.8 (PATCH)
+- Modified: Review Process and Governance no longer name spec-kit's `Constitution Check` and
+  Complexity Tracking. Reason: the user stopped using the spec-kit and superpowers skills in this
+  project (2026-11-15). Every plan and review still checks Principles I–V and Gates G1–G4.
 - Added/removed sections: none
 - History: 1.0.0 (2026-10-14) ratified from the architecture review at commit 56e48a2; 1.0.1
   clarified the Principle I import table; 1.0.2 enforced Principle I with
   `tests/unit/architecture.test.ts` and removed D1; 1.0.3 removed D9 and D10; 1.0.4 removed D2–D8;
-  1.0.5 removed D11; 1.0.6 removed D12 and D13, leaving Known Deviations empty. The work is
-  specs/001-fix-architecture-deviations.
-- Templates: no change needed (plan-template.md reads Principles I–V at runtime).
+  1.0.5 removed D11; 1.0.6 removed D12 and D13, leaving Known Deviations empty (the work is
+  specs/001-fix-architecture-deviations); 1.0.7 let `src/theme.ts` read and write the options
+  page's theme choice in Principle V, so the head script does not bundle zod (specs/006-theme-toggle).
+- Templates: no longer used; `.specify/templates/` stays as the record of earlier features.
 - Deferred TODOs: none.
 -->
 
@@ -118,10 +117,10 @@ A change MUST pass these gates before merge:
 
 ## Review Process and Known Deviations
 
-- Every review (spec-kit `Constitution Check`, the final review of a plan, `/code-review`) checks
-  Principles I–V on the changed code.
-- New code MUST comply. A new deviation is allowed only when the plan's Complexity Tracking
-  justifies it and the same change adds a row below.
+- Every review (the final review of a plan, `/code-review`) checks Principles I–V on the changed
+  code.
+- New code MUST comply. A new deviation is allowed only when the same change states its reason
+  and adds a row below.
 - A change that touches a line listed below MUST fix that deviation and delete its row.
 - Give the file and the symbol name with each line number, since lines move.
 
@@ -137,8 +136,7 @@ Where, Expected fix.
   Report and sets Last Amended.
 - Versioning (semver): MAJOR removes or redefines a principle; MINOR adds a principle or section,
   or materially expands one; PATCH changes wording or adds or removes a Known Deviations row.
-- Compliance: the spec-kit plan's Constitution Check uses Principles I–V and Gates G1–G4 as its
-  gates. A violation that a plan keeps goes into that plan's Complexity Tracking table and into
-  Known Deviations.
+- Compliance: every plan uses Principles I–V and Gates G1–G4 as its gates. A violation that a
+  change keeps goes into Known Deviations, with its reason.
 
-**Version**: 1.0.7 | **Ratified**: 2026-10-14 | **Last Amended**: 2026-10-20
+**Version**: 1.0.8 | **Ratified**: 2026-10-14 | **Last Amended**: 2026-11-15

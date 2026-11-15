@@ -71,6 +71,6 @@ Dev Kibana stacks: `./docker/up.sh 7|8|9` starts Kibana 7.17.29 on :17601 under 
 
 Code comments cite the design spec by section (`spec §5.1`). The design specs and plans live in `docs/superpowers/` and are written in Turkish. `docs/verification/` is tracked. Plan 8 (the website) is done. `.github/workflows/ci.yml` runs the unit checks and the e2e matrix on every pull request to `main` (not on pushes, so a direct push to `main` is not tested).
 
-The architecture rules (principles I–V, quality gates, known deviations) are in the spec-kit constitution `.specify/memory/constitution.md`. Follow it in every plan and review, not only in spec-kit commands. Spec-kit features (spec, plan, tasks) live in `specs/`; every new feature goes through spec-kit, never a new `docs/superpowers/` plan.
+The architecture rules (principles I–V, quality gates, known deviations) are in the spec-kit constitution `.specify/memory/constitution.md`. Follow it in every plan and review. The spec-kit documents (spec, plan, tasks) of earlier features live in `specs/`. Don't use the spec-kit or superpowers skills in this project, and never add a new `docs/superpowers/` plan.
 
 Architecture notes, decisions (ADRs) and work logs live in the Obsidian second brain at `/Users/celal.akyuz/Documents/spine-os/second-brain/genel/kibanatool/` (start at `00-Index.md`). Read the relevant notes before starting work; `AGENTS.md` and `.agents/rules/obsidian-second-brain.md` say how to record new decisions.
