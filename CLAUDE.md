@@ -74,3 +74,17 @@ Code comments cite the design spec by section (`spec §5.1`). The design specs a
 The architecture rules (principles I–V, quality gates, known deviations) are in the spec-kit constitution `.specify/memory/constitution.md`. Follow it in every plan and review. The spec-kit documents (spec, plan, tasks) of earlier features live in `specs/`. Don't use the spec-kit or superpowers skills in this project, and never add a new `docs/superpowers/` plan.
 
 Architecture notes, decisions (ADRs) and work logs live in the Obsidian second brain at `/Users/celal.akyuz/Documents/spine-os/second-brain/genel/kibanatool/` (start at `00-Index.md`). Read the relevant notes before starting work; `AGENTS.md` and `.agents/rules/obsidian-second-brain.md` say how to record new decisions.
+
+## Agent skills
+
+### Issue tracker
+
+Issues are local markdown files under `.scratch/<feature>/`. See `docs/agents/issue-tracker.md`.
+
+### Triage labels
+
+The five default roles, each label equal to its name, stored as an issue file's `Status:` line. See `docs/agents/triage-labels.md`.
+
+### Domain docs
+
+Single-context: `GLOSSARY.md` at the repo root, and ADRs in the Obsidian vault, never `docs/adr/`. See `docs/agents/domain.md`.
