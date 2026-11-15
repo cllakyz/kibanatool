@@ -4,31 +4,39 @@ How the engineering skills should consume this repo's domain documentation when 
 
 ## Before exploring, read these
 
-- **`GLOSSARY.md`** at the repo root.
-- **ADRs in the Obsidian second brain**, not `docs/adr/`: `/Users/celal.akyuz/Documents/spine-os/second-brain/genel/kibanatool/02-Decisions/`. Start at `ADR-Index.md` and read the `accepted` ADRs that touch the area you're about to work in. The vault is written in Turkish. If it contradicts the repo (code, `CLAUDE.md`, constitution), the repo wins.
+- **`GLOSSARY.md`** at the repo root, or
+- **`GLOSSARY-MAP.md`** at the repo root if it exists: it points at one `GLOSSARY.md` per context. Read each one relevant to the topic.
+- **`docs/adr/`**: read ADRs that touch the area you're about to work in. In multi-context repos, also check `src/<context>/docs/adr/` for context-scoped decisions.
 
-If `GLOSSARY.md` doesn't exist, **proceed silently**. Don't flag its absence or suggest creating it upfront. `/domain-modeling` creates it when terms are actually settled.
+If any of these files don't exist, **proceed silently**. Don't flag their absence; don't suggest creating them upfront. The `/domain-modeling` skill (reached via `/grill-with-docs` and `/improve-codebase-architecture`) creates them lazily when terms or decisions actually get resolved.
 
 ## File structure
 
+Single-context repo (most repos):
+
 ```
-kibanatool/                          (repo)
+/
 ├── GLOSSARY.md
+├── docs/adr/
+│   ├── 0001-event-sourced-orders.md
+│   └── 0002-postgres-for-write-model.md
 └── src/
-
-second-brain/genel/kibanatool/       (Obsidian vault)
-└── 02-Decisions/
-    ├── ADR-Index.md
-    ├── ADR-0001-wxt-react-typescript-mv3.md
-    └── …
 ```
 
-## Recording ADRs
+Multi-context repo (presence of `GLOSSARY-MAP.md` at the root):
 
-Never create `docs/adr/`. A new ADR, including one from `/domain-modeling`, goes into the vault by the flow in `.agents/rules/obsidian-second-brain.md`:
-- take the next 4-digit number from `ADR-Index.md`
-- use the `tpl-adr.md` template and write it in Turkish
-- add it to both indexes and to the day's log
+```
+/
+├── GLOSSARY-MAP.md
+├── docs/adr/                          ← system-wide decisions
+└── src/
+    ├── ordering/
+    │   ├── GLOSSARY.md
+    │   └── docs/adr/                  ← context-specific decisions
+    └── billing/
+        ├── GLOSSARY.md
+        └── docs/adr/
+```
 
 ## Use the glossary's vocabulary
 
@@ -38,8 +46,6 @@ If the concept you need isn't in the glossary yet, that's a signal: either you'r
 
 ## Flag ADR conflicts
 
-If your output contradicts an accepted ADR, say so explicitly instead of quietly overriding it:
+If your output contradicts an existing ADR, surface it explicitly rather than silently overriding:
 
-> _Contradicts ADR-0003 (optional host permissions, runtime registration), but worth reopening because…_
-
-Then follow the vault rule's conflict guard: don't change code until the user decides whether the old ADR is superseded or this is an exception.
+> _Contradicts ADR-0007 (event-sourced orders), but worth reopening because…_
