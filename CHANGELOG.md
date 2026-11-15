@@ -3,6 +3,14 @@
 All notable changes are listed here. The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/)
 and versions follow [Semantic Versioning](https://semver.org/).
 
+## [Unreleased]
+
+### Fixed
+
+- "Copy as cURL" now masks the whole request when a mask pattern matches the field that holds it, such as
+  `context`, as "Copy as Markdown" and "Copy as JSON" already did. Before, the command still showed the request's
+  headers and body.
+
 ## [1.0.0] - 2026-10-20
 
 First public release, for Kibana 7.17, 8.x and 9.x in Chrome.
