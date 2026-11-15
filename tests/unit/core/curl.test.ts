@@ -210,6 +210,11 @@ describe("buildCurl (spec §5)", () => {
     expect(curl(source, ["context.url", "context.headers", "context.body", "context.query"])).toBe(lines("curl '***'", "--data-raw '***'"));
   });
 
+  it("masks every part under a masked request root, as the JSON copy does (spec §5.6)", () => {
+    const source = request({ method: "POST", headers: json({ authorization: ["Bearer synthetic"] }), body: json({ password: "synthetic" }) });
+    expect(curl(source, ["context"])).toBe(lines("curl '***'", "-X '***'", "--data-raw '***'"));
+  });
+
   it("reads the root prefix with the root paths for masks", () => {
     expect(curl({ method: "GET", url: URL, headers: { "x-secret": "synthetic" } })).toBe(lines(`curl '${URL}'`, "-H 'x-secret: ***'"));
   });

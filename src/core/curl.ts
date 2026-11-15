@@ -38,7 +38,9 @@ export function buildCurl(hit: RawHit, maskPatterns: string[], valueMasks: reado
   const prefix = requestPrefix(source);
   const fields = prefix === undefined ? undefined : fieldsAt(source, prefix);
   if (prefix === undefined || fields === undefined) return undefined;
-  const isMasked = maskMatcher(maskPatterns);
+  const matches = maskMatcher(maskPatterns);
+  // Spec §5.6: a masked request root (e.g. `context`) masks every part under it, as in the JSON copy.
+  const isMasked: IsMasked = prefix !== "" && matches(prefix) ? () => true : matches;
   const path = (name: string): string => (prefix === "" ? name : `${prefix}.${name}`);
   const part = (name: string) => maskPart(path(name), fields[name], isMasked, valueMasks);
   const method = String(maskValue(path("method"), fields.method, isMasked, valueMasks)).trim().toUpperCase();
